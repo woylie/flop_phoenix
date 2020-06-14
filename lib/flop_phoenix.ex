@@ -31,6 +31,7 @@ defmodule FlopPhoenix do
     end
   end
 
+  @spec previous_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
   def previous_link(%Meta{} = meta, page_link_helper, opts) do
     link_class = opts[:previous_link_class] || @previous_link_class
     content = opts[:previous_link_content] || "Previous"
