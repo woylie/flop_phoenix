@@ -99,5 +99,113 @@ defmodule FlopPhoenixTest do
       assert result =~
                "<span class=\"pagination-previous\" disabled=\"disabled\">Previous</span>"
     end
+
+    test "allows to overwrite previous link class and label if disabled" do
+      meta =
+        build(:meta,
+          current_offset: 0,
+          current_page: 1,
+          has_previous_page?: false,
+          previous_offset: nil,
+          previous_page: nil
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts,
+          previous_link_class: "prev",
+          previous_link_content: "Prev"
+        )
+        |> safe_to_string()
+
+      assert result =~
+               "<span class=\"prev\" disabled=\"disabled\">Prev</span>"
+    end
+
+    test "renders next link" do
+      meta =
+        build(:meta,
+          current_page: 2,
+          current_offset: 10,
+          has_next_page?: true,
+          next_page: 3,
+          next_offset: 20
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts)
+        |> safe_to_string()
+
+      assert result =~
+               "<a class=\"pagination-next\" href=\"/pets?page=3&amp;page_size=10\">Next</a>"
+    end
+
+    test "allows to overwrite next link class and label" do
+      meta =
+        build(:meta,
+          current_page: 2,
+          current_offset: 10,
+          has_next_page?: true,
+          next_page: 3,
+          next_offset: 20
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts,
+          next_link_class: "next",
+          next_link_content:
+            content_tag :i, class: "fas fa-chevron-right" do
+            end
+        )
+        |> safe_to_string()
+
+      assert result =~
+               "<a class=\"next\" href=\"/pets?page=3&amp;page_size=10\"><i class=\"fas fa-chevron-right\"></i></a>"
+    end
+
+    test "disables next link if on last page" do
+      meta =
+        build(:meta,
+          current_offset: 40,
+          current_page: 5,
+          has_next_page?: false,
+          next_offset: nil,
+          next_page: nil
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts)
+        |> safe_to_string()
+
+      assert result =~
+               "<span class=\"pagination-next\" disabled=\"disabled\">Next</span>"
+    end
+
+    test "allows to overwrite next link class and label when disabled" do
+      meta =
+        build(:meta,
+          current_offset: 40,
+          current_page: 5,
+          has_next_page?: false,
+          next_offset: nil,
+          next_page: nil
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts,
+          next_link_class: "next",
+          next_link_content:
+            content_tag :i, class: "fas fa-chevron-right" do
+            end
+        )
+        |> safe_to_string()
+
+      assert result =~
+               "<span class=\"next\" disabled=\"disabled\"><i class=\"fas fa-chevron-right\"></i></span>"
+    end
   end
 end

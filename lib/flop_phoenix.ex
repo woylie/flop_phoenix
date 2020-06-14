@@ -7,6 +7,7 @@ defmodule FlopPhoenix do
 
   alias Flop.Meta
 
+  @next_link_class "pagination-next"
   @previous_link_class "pagination-previous"
   @wrapper_class "pagination"
 
@@ -27,7 +28,10 @@ defmodule FlopPhoenix do
       class: opts[:wrapper_class],
       role: "navigation",
       aria: [label: "pagination"] do
-      [previous_link(meta, page_link_helper, opts)]
+      [
+        previous_link(meta, page_link_helper, opts),
+        next_link(meta, page_link_helper, opts)
+      ]
     end
   end
 
@@ -38,6 +42,22 @@ defmodule FlopPhoenix do
 
     if meta.has_previous_page? do
       link class: link_class, to: page_link_helper.(meta.previous_page) do
+        content
+      end
+    else
+      content_tag :span, class: link_class, disabled: "disabled" do
+        content
+      end
+    end
+  end
+
+  @spec next_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
+  def next_link(%Meta{} = meta, page_link_helper, opts) do
+    link_class = opts[:next_link_class] || @next_link_class
+    content = opts[:next_link_content] || "Next"
+
+    if meta.has_next_page? do
+      link class: link_class, to: page_link_helper.(meta.next_page) do
         content
       end
     else
