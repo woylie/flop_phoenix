@@ -4,7 +4,7 @@ defmodule FlopPhoenix.Factory do
 
   alias Flop.Meta
 
-  def meta_factory do
+  def meta_on_first_page_factory do
     %Meta{
       current_offset: 0,
       current_page: 1,
@@ -15,6 +15,38 @@ defmodule FlopPhoenix.Factory do
       page_size: 10,
       previous_offset: nil,
       previous_page: nil,
+      total_count: 42,
+      total_pages: 5
+    }
+  end
+
+  def meta_on_second_page_factory do
+    %Meta{
+      current_offset: 10,
+      current_page: 2,
+      has_next_page?: true,
+      has_previous_page?: true,
+      next_offset: 10,
+      next_page: 3,
+      page_size: 10,
+      previous_offset: 0,
+      previous_page: 1,
+      total_count: 42,
+      total_pages: 5
+    }
+  end
+
+  def meta_on_last_page_factory do
+    %Meta{
+      current_offset: 40,
+      current_page: 5,
+      has_next_page?: false,
+      has_previous_page?: true,
+      next_offset: 10,
+      next_page: nil,
+      page_size: 10,
+      previous_offset: 30,
+      previous_page: 4,
       total_count: 42,
       total_pages: 5
     }

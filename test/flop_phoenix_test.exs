@@ -23,7 +23,7 @@ defmodule FlopPhoenixTest do
 
   describe "pagination/4" do
     test "renders pagination wrapper" do
-      result = render_pagination(build(:meta))
+      result = render_pagination(build(:meta_on_first_page))
 
       assert String.starts_with?(
                result,
@@ -42,23 +42,15 @@ defmodule FlopPhoenixTest do
     end
 
     test "allows to overwrite wrapper class" do
-      result = render_pagination(build(:meta), wrapper_class: "boo")
+      result =
+        render_pagination(build(:meta_on_first_page), wrapper_class: "boo")
 
       assert result =~
                "<nav aria-label=\"pagination\" class=\"boo\" role=\"navigation\">"
     end
 
     test "renders previous link" do
-      result =
-        render_pagination(
-          build(:meta,
-            current_page: 2,
-            current_offset: 10,
-            has_previous_page?: true,
-            previous_page: 1,
-            previous_offset: 0
-          )
-        )
+      result = render_pagination(build(:meta_on_second_page))
 
       assert result =~
                "<a class=\"pagination-previous\" href=\"/pets?page=1&amp;page_size=10\">Previous</a>"
@@ -67,13 +59,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite previous link class and label" do
       result =
         render_pagination(
-          build(:meta,
-            current_page: 2,
-            current_offset: 10,
-            has_previous_page?: true,
-            previous_page: 1,
-            previous_offset: 0
-          ),
+          build(:meta_on_second_page),
           previous_link_class: "prev",
           previous_link_content:
             content_tag :i, class: "fas fa-chevron-left" do
@@ -85,16 +71,7 @@ defmodule FlopPhoenixTest do
     end
 
     test "disables previous link if on first page" do
-      result =
-        render_pagination(
-          build(:meta,
-            current_offset: 0,
-            current_page: 1,
-            has_previous_page?: false,
-            previous_offset: nil,
-            previous_page: nil
-          )
-        )
+      result = render_pagination(build(:meta_on_first_page))
 
       assert result =~
                "<span class=\"pagination-previous\" disabled=\"disabled\">Previous</span>"
@@ -103,13 +80,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite previous link class and label if disabled" do
       result =
         render_pagination(
-          build(:meta,
-            current_offset: 0,
-            current_page: 1,
-            has_previous_page?: false,
-            previous_offset: nil,
-            previous_page: nil
-          ),
+          build(:meta_on_first_page),
           previous_link_class: "prev",
           previous_link_content: "Prev"
         )
@@ -119,16 +90,7 @@ defmodule FlopPhoenixTest do
     end
 
     test "renders next link" do
-      result =
-        render_pagination(
-          build(:meta,
-            current_page: 2,
-            current_offset: 10,
-            has_next_page?: true,
-            next_page: 3,
-            next_offset: 20
-          )
-        )
+      result = render_pagination(build(:meta_on_second_page))
 
       assert result =~
                "<a class=\"pagination-next\" href=\"/pets?page=3&amp;page_size=10\">Next</a>"
@@ -137,13 +99,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite next link class and label" do
       result =
         render_pagination(
-          build(:meta,
-            current_page: 2,
-            current_offset: 10,
-            has_next_page?: true,
-            next_page: 3,
-            next_offset: 20
-          ),
+          build(:meta_on_second_page),
           next_link_class: "next",
           next_link_content:
             content_tag :i, class: "fas fa-chevron-right" do
@@ -155,16 +111,7 @@ defmodule FlopPhoenixTest do
     end
 
     test "disables next link if on last page" do
-      result =
-        render_pagination(
-          build(:meta,
-            current_offset: 40,
-            current_page: 5,
-            has_next_page?: false,
-            next_offset: nil,
-            next_page: nil
-          )
-        )
+      result = render_pagination(build(:meta_on_last_page))
 
       assert result =~
                "<span class=\"pagination-next\" disabled=\"disabled\">Next</span>"
@@ -173,13 +120,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite next link class and label when disabled" do
       result =
         render_pagination(
-          build(:meta,
-            current_offset: 40,
-            current_page: 5,
-            has_next_page?: false,
-            next_offset: nil,
-            next_page: nil
-          ),
+          build(:meta_on_last_page),
           next_link_class: "next",
           next_link_content:
             content_tag :i, class: "fas fa-chevron-right" do
@@ -191,18 +132,7 @@ defmodule FlopPhoenixTest do
     end
 
     test "renders page links" do
-      result =
-        render_pagination(
-          build(:meta,
-            current_page: 2,
-            has_next_page?: true,
-            has_previous_page?: true,
-            next_page: 3,
-            page_size: 10,
-            previous_page: 1,
-            total_pages: 3
-          )
-        )
+      result = render_pagination(build(:meta_on_second_page))
 
       assert result =~ "<ul class=\"pagination-list\">"
 
@@ -221,15 +151,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite pagination list class" do
       result =
         render_pagination(
-          build(:meta,
-            current_page: 2,
-            has_next_page?: true,
-            has_previous_page?: true,
-            next_page: 3,
-            page_size: 10,
-            previous_page: 1,
-            total_pages: 3
-          ),
+          build(:meta_on_first_page),
           pagination_list_class: "p-list"
         )
 
@@ -239,15 +161,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite pagination link class" do
       result =
         render_pagination(
-          build(:meta,
-            current_page: 2,
-            has_next_page?: true,
-            has_previous_page?: true,
-            next_page: 3,
-            page_size: 10,
-            previous_page: 1,
-            total_pages: 3
-          ),
+          build(:meta_on_second_page),
           pagination_link_class: "p-link"
         )
 
@@ -261,15 +175,7 @@ defmodule FlopPhoenixTest do
     test "allows to overwrite pagination link aria label" do
       result =
         render_pagination(
-          build(:meta,
-            current_page: 2,
-            has_next_page?: true,
-            has_previous_page?: true,
-            next_page: 3,
-            page_size: 10,
-            previous_page: 1,
-            total_pages: 3
-          ),
+          build(:meta_on_second_page),
           pagination_link_aria_label: &"On to page #{&1}"
         )
 
