@@ -44,7 +44,7 @@ defmodule FlopPhoenix do
   ### View
 
   To make the `FlopPhoenix` functions available in all templates, locate the
-  `view_helpers/0` macro and add another import statement:
+  `view_helpers/0` macro in `my_app_web.ex` and add another import statement:
 
       defp view_helpers do
         quote do
