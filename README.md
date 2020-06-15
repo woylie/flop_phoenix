@@ -98,8 +98,8 @@ defmodule MyAppWeb.FlopHelpers do
 
   def pagination(meta, route_helper, route_helper_args) do
     opts = [
-      next_link_content: next_icon,
-      previous_link_content: previous_icon,
+      next_link_content: next_icon(),
+      previous_link_content: previous_icon(),
       wrapper_attrs: [class: "paginator"]
     ]
 
