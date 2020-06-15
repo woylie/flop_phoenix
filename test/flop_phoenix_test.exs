@@ -34,16 +34,11 @@ defmodule FlopPhoenixTest do
     end
 
     test "does not render anything if there is only one page" do
-      result =
-        render_pagination(
-          build(:meta,
-            total_pages: 1,
-            has_previous_page?: false,
-            has_next_page?: false
-          )
-        )
+      assert render_pagination(build(:meta_one_page)) == ""
+    end
 
-      assert result == ""
+    test "does not render anything if there are no results" do
+      assert render_pagination(build(:meta_no_results)) == ""
     end
 
     test "allows to overwrite wrapper class" do

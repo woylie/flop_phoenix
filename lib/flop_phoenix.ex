@@ -16,7 +16,7 @@ defmodule FlopPhoenix do
 
   def pagination(meta, route_helper, route_helper_args, opts \\ [])
 
-  def pagination(%Meta{total_pages: 1}, _, _, _), do: raw(nil)
+  def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
 
   def pagination(%Meta{} = meta, route_helper, route_helper_args, opts) do
     opts = Keyword.put_new(opts, :wrapper_class, @wrapper_class)
