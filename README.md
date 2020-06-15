@@ -110,4 +110,19 @@ defmodule MyAppWeb.FlopHelpers do
 end
 ```
 
+Change the import in `my_app_web.ex`:
+
+```diff
+defp view_helpers do
+  quote do
+    # ...
+
+-   import FlopPhoenix
++   import MyAppWeb.FlopHelpers
+
+    # ...
+  end
+end
+```
+
 Refer to the `FlopPhoenix` docs for more information on the available options.
