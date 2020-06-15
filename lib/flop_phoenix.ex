@@ -233,7 +233,7 @@ defmodule FlopPhoenix do
   end
 
   @spec previous_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
-  def previous_link(%Meta{} = meta, page_link_helper, opts) do
+  defp previous_link(%Meta{} = meta, page_link_helper, opts) do
     attrs =
       opts
       |> Keyword.get(:previous_link_attrs, [])
@@ -257,7 +257,7 @@ defmodule FlopPhoenix do
   end
 
   @spec next_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
-  def next_link(%Meta{} = meta, page_link_helper, opts) do
+  defp next_link(%Meta{} = meta, page_link_helper, opts) do
     attrs =
       opts
       |> Keyword.get(:next_link_attrs, [])
@@ -281,7 +281,7 @@ defmodule FlopPhoenix do
   end
 
   @spec page_links(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
-  def page_links(meta, route_func, opts \\ []) do
+  defp page_links(meta, route_func, opts) do
     aria_label = opts[:pagination_link_aria_label] || (&"Goto page #{&1}")
 
     link_attrs =
