@@ -16,7 +16,7 @@ defmodule FlopPhoenix do
 
       @spec list_pets(Flop.t() | map) ::
               {:ok, {[Pet.t()], Flop.Meta.t}} | {:error, Changeset.t()}
-      def list_pets(flop \\ %{}) do
+      def list_pets(flop \\\\ %{}) do
         Flop.validate_and_run(Pet, flop, for: Pet)
       end
 
