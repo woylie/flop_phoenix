@@ -94,18 +94,26 @@ that once for all templates. To do that, create a new file
 
 ```elixir
 defmodule MyAppWeb.FlopHelpers do
+  use Phoenix.HTML
+
   def pagination(meta, route_helper, route_helper_args) do
     opts = [
-      next_link_content:
-        content_tag :i, class: "fas fa-chevron-next" do
-        end,
-      previous_link_content:
-        content_tag :i, class: "fas fa-chevron-left" do
-        end,
+      next_link_content: next_icon,
+      previous_link_content: previous_icon,
       wrapper_attrs: [class: "paginator"]
     ]
 
     FlopPhoenix.pagination(meta, route_helper, route_helper_args, opts)
+  end
+
+  defp next_icon do
+    content_tag :i, class: "fas fa-chevron-right" do
+    end
+  end
+
+  defp previous_icon do
+    content_tag :i, class: "fas fa-chevron-left" do
+    end
   end
 end
 ```
