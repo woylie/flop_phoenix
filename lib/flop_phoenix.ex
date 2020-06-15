@@ -13,12 +13,12 @@ defmodule FlopPhoenix do
 
   @spec pagination(Meta.t(), function, [any], keyword) ::
           Phoenix.HTML.safe()
-  def pagination(
-        %Meta{} = meta,
-        route_helper,
-        route_helper_args,
-        opts \\ []
-      ) do
+
+  def pagination(meta, route_helper, route_helper_args, opts \\ [])
+
+  def pagination(%Meta{total_pages: 1}, _, _, _), do: raw(nil)
+
+  def pagination(%Meta{} = meta, route_helper, route_helper_args, opts) do
     opts = Keyword.put_new(opts, :wrapper_class, @wrapper_class)
 
     page_link_helper =

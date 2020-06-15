@@ -28,6 +28,22 @@ defmodule FlopPhoenixTest do
       assert String.ends_with?(result, "</nav>")
     end
 
+    test "does not render anything if there is only one page" do
+      meta =
+        build(:meta,
+          total_pages: 1,
+          has_previous_page?: false,
+          has_next_page?: false
+        )
+
+      result =
+        meta
+        |> pagination(&route_helper/3, @route_helper_opts)
+        |> safe_to_string()
+
+      assert result == ""
+    end
+
     test "allows to overwrite wrapper class" do
       result =
         build(:meta)
