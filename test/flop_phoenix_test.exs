@@ -27,7 +27,8 @@ defmodule FlopPhoenixTest do
 
       assert String.starts_with?(
                result,
-               "<nav aria-label=\"pagination\" class=\"pagination\" role=\"navigation\">"
+               "<nav aria-label=\"pagination\" class=\"pagination\" " <>
+                 "role=\"navigation\">"
              )
 
       assert String.ends_with?(result, "</nav>")
@@ -46,14 +47,16 @@ defmodule FlopPhoenixTest do
         render_pagination(build(:meta_on_first_page), wrapper_class: "boo")
 
       assert result =~
-               "<nav aria-label=\"pagination\" class=\"boo\" role=\"navigation\">"
+               "<nav aria-label=\"pagination\" class=\"boo\" " <>
+                 "role=\"navigation\">"
     end
 
     test "renders previous link" do
       result = render_pagination(build(:meta_on_second_page))
 
       assert result =~
-               "<a class=\"pagination-previous\" href=\"/pets?page=1&amp;page_size=10\">Previous</a>"
+               "<a class=\"pagination-previous\" " <>
+                 "href=\"/pets?page=1&amp;page_size=10\">Previous</a>"
     end
 
     test "allows to overwrite previous link class and label" do
@@ -67,14 +70,16 @@ defmodule FlopPhoenixTest do
         )
 
       assert result =~
-               "<a class=\"prev\" href=\"/pets?page=1&amp;page_size=10\"><i class=\"fas fa-chevron-left\"></i></a>"
+               "<a class=\"prev\" href=\"/pets?page=1&amp;page_size=10\">" <>
+                 "<i class=\"fas fa-chevron-left\"></i></a>"
     end
 
     test "disables previous link if on first page" do
       result = render_pagination(build(:meta_on_first_page))
 
       assert result =~
-               "<span class=\"pagination-previous\" disabled=\"disabled\">Previous</span>"
+               "<span class=\"pagination-previous\" disabled=\"disabled\">" <>
+                 "Previous</span>"
     end
 
     test "allows to overwrite previous link class and label if disabled" do
@@ -93,7 +98,8 @@ defmodule FlopPhoenixTest do
       result = render_pagination(build(:meta_on_second_page))
 
       assert result =~
-               "<a class=\"pagination-next\" href=\"/pets?page=3&amp;page_size=10\">Next</a>"
+               "<a class=\"pagination-next\" " <>
+                 "href=\"/pets?page=3&amp;page_size=10\">Next</a>"
     end
 
     test "allows to overwrite next link class and label" do
@@ -107,14 +113,16 @@ defmodule FlopPhoenixTest do
         )
 
       assert result =~
-               "<a class=\"next\" href=\"/pets?page=3&amp;page_size=10\"><i class=\"fas fa-chevron-right\"></i></a>"
+               "<a class=\"next\" href=\"/pets?page=3&amp;page_size=10\">" <>
+                 "<i class=\"fas fa-chevron-right\"></i></a>"
     end
 
     test "disables next link if on last page" do
       result = render_pagination(build(:meta_on_last_page))
 
       assert result =~
-               "<span class=\"pagination-next\" disabled=\"disabled\">Next</span>"
+               "<span class=\"pagination-next\" disabled=\"disabled\">" <>
+                 "Next</span>"
     end
 
     test "allows to overwrite next link class and label when disabled" do
@@ -128,7 +136,8 @@ defmodule FlopPhoenixTest do
         )
 
       assert result =~
-               "<span class=\"next\" disabled=\"disabled\"><i class=\"fas fa-chevron-right\"></i></span>"
+               "<span class=\"next\" disabled=\"disabled\">" <>
+                 "<i class=\"fas fa-chevron-right\"></i></span>"
     end
 
     test "renders page links" do
@@ -137,13 +146,17 @@ defmodule FlopPhoenixTest do
       assert result =~ "<ul class=\"pagination-list\">"
 
       assert result =~
-               "<li><a aria-label=\"Goto page 1\" class=\"pagination-link\" href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
+               "<li><a aria-label=\"Goto page 1\" class=\"pagination-link\" " <>
+                 "href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
 
       assert result =~
-               "<li><a aria-current=\"page\" aria-label=\"Goto page 2\" class=\"pagination-link is-current\" href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
+               "<li><a aria-current=\"page\" aria-label=\"Goto page 2\" " <>
+                 "class=\"pagination-link is-current\" " <>
+                 "href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
 
       assert result =~
-               "<li><a aria-label=\"Goto page 3\" class=\"pagination-link\" href=\"/pets?page=3&amp;page_size=10\">3</a></li>"
+               "<li><a aria-label=\"Goto page 3\" class=\"pagination-link\" " <>
+                 "href=\"/pets?page=3&amp;page_size=10\">3</a></li>"
 
       assert result =~ "</ul>"
     end
@@ -166,10 +179,15 @@ defmodule FlopPhoenixTest do
         )
 
       assert result =~
-               "<li><a aria-label=\"Goto page 1\" class=\"p-link\" href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
+               "<li>" <>
+                 "<a aria-label=\"Goto page 1\" class=\"p-link\" " <>
+                 "href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
 
       assert result =~
-               "<li><a aria-current=\"page\" aria-label=\"Goto page 2\" class=\"p-link is-current\" href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
+               "<li>" <>
+                 "<a aria-current=\"page\" aria-label=\"Goto page 2\" " <>
+                 "class=\"p-link is-current\" " <>
+                 "href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
     end
 
     test "allows to overwrite pagination link aria label" do
@@ -180,10 +198,15 @@ defmodule FlopPhoenixTest do
         )
 
       assert result =~
-               "<li><a aria-label=\"On to page 1\" class=\"pagination-link\" href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
+               "<li>" <>
+                 "<a aria-label=\"On to page 1\" class=\"pagination-link\" " <>
+                 "href=\"/pets?page=1&amp;page_size=10\">1</a></li>"
 
       assert result =~
-               "<li><a aria-current=\"page\" aria-label=\"On to page 2\" class=\"pagination-link is-current\" href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
+               "<li>" <>
+                 "<a aria-current=\"page\" aria-label=\"On to page 2\" " <>
+                 "class=\"pagination-link is-current\" " <>
+                 "href=\"/pets?page=2&amp;page_size=10\">2</a></li>"
     end
   end
 end
