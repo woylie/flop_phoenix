@@ -51,7 +51,7 @@ defmodule FlopPhoenix.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
-      {:flop, "~> 0.6.0"},
+      {:flop, "~> 0.6.1"},
       {:phoenix_html, "~> 2.14"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
