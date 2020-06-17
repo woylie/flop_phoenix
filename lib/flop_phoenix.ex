@@ -82,6 +82,7 @@ defmodule FlopPhoenix do
         <span class="pagination-previous" disabled="disabled">Previous</span>
         <a class="pagination-next" href="/pets?page=2&amp;page_size=10">Next</a>
         <ul class="pagination-list">
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
           <li>
             <a aria-current="page"
                aria-label="Goto page 1"
@@ -98,6 +99,7 @@ defmodule FlopPhoenix do
                class="pagination-link"
                href="/pets?page=3&amp;page_size=2">3</a>
           </li>
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
         </ul>
       </nav>
 
@@ -131,6 +133,17 @@ defmodule FlopPhoenix do
         end
       end
 
+  ## Page link options
+
+  By default, page links for all pages are show. You can limit the number of
+  page links or disable them altogether by passing the `:page_links` option.
+
+  - `:all`: Show all page links (default).
+  - `:hide`: Don't show any page links. Only the previous/next links will be
+    shown.
+  - `{:ellipsis, x}`: Show only x page links. Additional list items with
+    ellipses are shown if there are more pages.
+
   ## Attributes and CSS classes
 
   You can overwrite the default attributes of the `<nav>` tag and the pagination
@@ -143,6 +156,8 @@ defmodule FlopPhoenix do
     `<span>` if disabled)
   - `:pagination_list_attrs`: attributes for the page link list (`<ul>`)
   - `:pagination_link_attrs`: attributes for the page links (`<a>`)
+  - `:ellipsis_attrs`: attributes for the ellipsis element (`<span>`)
+  - `:ellipsis_content`: content for the ellipsis element (`<span>`)
 
   ## Pagination link aria label
 
@@ -161,8 +176,11 @@ defmodule FlopPhoenix do
 
       def pagination(meta, route_helper, route_helper_args) do
         opts = [
+          ellipsis_attrs: [class: "ellipsis"],
+          ellipsis_content: "‥",
           next_link_attrs: [class: "next"],
           next_link_content: next_icon(),
+          page_links: {:ellipsis, 7},
           pagination_link_aria_label: &"\#{&1}ページ目へ",
           pagination_link_attrs: [class: "page-link"],
           pagination_list_attrs: [class: "page-links"],
@@ -213,6 +231,8 @@ defmodule FlopPhoenix do
   def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
 
   def pagination(%Meta{} = meta, route_helper, route_helper_args, opts) do
+    opts = Keyword.put_new(opts, :page_links, :all)
+
     attrs =
       opts
       |> Keyword.get(:wrapper_attrs, [])
@@ -282,6 +302,21 @@ defmodule FlopPhoenix do
 
   @spec page_links(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
   defp page_links(meta, route_func, opts) do
+    page_link_opt = Keyword.fetch!(opts, :page_links)
+
+    case page_link_opt do
+      :hide ->
+        raw(nil)
+
+      :all ->
+        render_page_links(meta, route_func, meta.total_pages, opts)
+
+      {:ellipsis, max_pages} ->
+        render_page_links(meta, route_func, max_pages, opts)
+    end
+  end
+
+  defp render_page_links(meta, route_func, max_pages, opts) do
     aria_label = opts[:pagination_link_aria_label] || (&"Goto page #{&1}")
 
     link_attrs =
@@ -295,17 +330,70 @@ defmodule FlopPhoenix do
       |> Keyword.get(:pagination_list_attrs, [])
       |> Keyword.put_new(:class, "pagination-list")
 
-    content_tag :ul, list_attrs do
-      for page <- 1..meta.total_pages do
+    ellipsis_class =
+      opts
+      |> Keyword.get(:ellipsis_attrs, [])
+      |> Keyword.put_new(:class, "pagination-ellipsis")
+
+    ellipsis_content = Keyword.get(opts, :ellipsis_content, raw("&hellip;"))
+
+    first..last =
+      range =
+      get_page_link_range(meta.current_page, max_pages, meta.total_pages)
+
+    start_ellipsis =
+      if first > 1,
+        do: pagination_ellipsis(ellipsis_class, ellipsis_content),
+        else: raw(nil)
+
+    end_ellipsis =
+      if last < meta.total_pages,
+        do: pagination_ellipsis(ellipsis_class, ellipsis_content),
+        else: raw(nil)
+
+    links =
+      for page <- range do
         attrs =
           link_attrs
-          |> Keyword.update!(:aria, &Keyword.put(&1, :label, aria_label.(page)))
+          |> Keyword.update!(
+            :aria,
+            &Keyword.put(&1, :label, aria_label.(page))
+          )
           |> add_current_attrs(meta.current_page == page)
           |> Keyword.put(:to, route_func.(page))
 
         content_tag :li do
           link(page, attrs)
         end
+      end
+
+    content_tag :ul, list_attrs do
+      [start_ellipsis, links, end_ellipsis]
+    end
+  end
+
+  defp get_page_link_range(current_page, max_pages, total_pages) do
+    # number of additional pages to show before or after current page
+    additional = ceil(max_pages / 2)
+
+    cond do
+      max_pages >= total_pages ->
+        1..total_pages
+
+      current_page + additional >= total_pages ->
+        (total_pages - max_pages + 1)..total_pages
+
+      true ->
+        first = max(current_page - additional + 1, 1)
+        last = min(first + max_pages - 1, total_pages)
+        first..last
+    end
+  end
+
+  defp pagination_ellipsis(attrs, content) do
+    content_tag :li do
+      content_tag :span, attrs do
+        content
       end
     end
   end

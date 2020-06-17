@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.3.0] - 2020-06-17
+
+### Added
+
+- New option to hide the number of page links.
+- New option to limit the number of page links.
+
 ### Changed
 
 - Add order and filter parameters to pagination links.

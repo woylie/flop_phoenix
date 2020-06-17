@@ -12,6 +12,12 @@ defmodule FlopPhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
+  defp count_substrings(str, regex) do
+    regex
+    |> Regex.scan(str)
+    |> length()
+  end
+
   defp render_pagination(%Meta{} = meta, opts \\ []) do
     meta
     |> pagination(&route_helper/3, @route_helper_opts, opts)
@@ -178,6 +184,11 @@ defmodule FlopPhoenixTest do
       assert result =~ "</ul>"
     end
 
+    test "doesn't render pagination links if set to hide" do
+      result = render_pagination(build(:meta_on_second_page), page_links: :hide)
+      refute result =~ "pagination-list"
+    end
+
     test "allows to overwrite pagination list attributes" do
       result =
         render_pagination(
@@ -297,6 +308,136 @@ defmodule FlopPhoenixTest do
       assert result =~
                ~s(<a class="pagination-next" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
+    end
+
+    test "does not render ellipsis if total pages <= max pages" do
+      # max pages smaller than total pages
+      result =
+        render_pagination(build(:meta_on_second_page),
+          page_links: {:ellipsis, 50}
+        )
+
+      refute result =~ "pagination-ellipsis"
+      assert count_substrings(result, ~r/pagination-link/) == 5
+
+      # max pages equal to total pages
+      result =
+        render_pagination(build(:meta_on_second_page),
+          page_links: {:ellipsis, 5}
+        )
+
+      refute result =~ "pagination-ellipsis"
+      assert count_substrings(result, ~r/pagination-link/) == 5
+    end
+
+    test "renders end ellipsis when on page 1" do
+      # current page == 1
+      result =
+        render_pagination(build(:meta_on_first_page, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders start ellipsis when on last page" do
+      # current page == last page
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 20, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders ellipses when on even page with even number of max pages" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 12, total_pages: 20),
+          page_links: {:ellipsis, 6}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
+      assert count_substrings(result, ~r/pagination-link/) == 6
+      for i <- 10..15, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders ellipses when on odd page with odd number of max pages" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 11, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders ellipses when on even page with odd number of max pages" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 10, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 8..12, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders ellipses when on odd page with even number of max pages" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 11, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders end ellipsis when on page close to the beginning" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 2, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "renders start ellipsis when on page close to the end" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 18, total_pages: 20),
+          page_links: {:ellipsis, 5}
+        )
+
+      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
+      assert count_substrings(result, ~r/pagination-link/) == 5
+      for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
+    end
+
+    test "allows to overwrite ellipsis attributes and content" do
+      result =
+        render_pagination(
+          build(:meta_on_first_page, current_page: 10, total_pages: 20),
+          page_links: {:ellipsis, 5},
+          ellipsis_attrs: [class: "dotdotdot", title: "dot"],
+          ellipsis_content: "dot dot dot"
+        )
+
+      expected = ~r/<span class="dotdotdot" title="dot">dot dot dot<\/span>/
+      assert count_substrings(result, expected) == 2
     end
   end
 end
