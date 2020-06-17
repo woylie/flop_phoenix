@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Add order and filter parameters to pagination links.
+
 ## [0.2.0] - 2020-06-15
 
 ### Added
