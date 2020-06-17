@@ -319,8 +319,16 @@ defmodule FlopPhoenix do
   end
 
   defp build_page_link_helper(meta, route_helper, route_helper_args) do
+    filter_map =
+      meta.flop.filters
+      |> Stream.with_index()
+      |> Enum.into(%{}, fn {filter, index} ->
+        {index, Map.from_struct(filter)}
+      end)
+
     query_params =
       []
+      |> maybe_add_param(:filters, filter_map)
       |> maybe_add_param(:order_by, meta.flop.order_by)
       |> maybe_add_param(:order_directions, meta.flop.order_directions)
       |> maybe_add_param(:page_size, meta.page_size)
@@ -334,5 +342,6 @@ defmodule FlopPhoenix do
   end
 
   defp maybe_add_param(params, _, nil), do: params
+  defp maybe_add_param(params, _, []), do: params
   defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
 end

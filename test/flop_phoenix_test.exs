@@ -257,5 +257,46 @@ defmodule FlopPhoenixTest do
                ~s(<a class="pagination-next" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
     end
+
+    test "adds filter parameters to links" do
+      result =
+        render_pagination(
+          build(:meta_on_second_page,
+            flop: %Flop{
+              filters: [
+                %Flop.Filter{field: :fur_length, op: :>=, value: 5},
+                %Flop.Filter{
+                  field: :curiosity,
+                  op: :in,
+                  value: [:a_lot, :somewhat]
+                }
+              ]
+            }
+          )
+        )
+
+      expected_url = fn page ->
+        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
+          ~s(filters[0][field]=fur_length&amp;) <>
+          ~s(filters[0][op]=%3E%3D&amp;) <>
+          ~s(filters[0][value]=5&amp;) <>
+          ~s(filters[1][field]=curiosity&amp;) <>
+          ~s(filters[1][op]=in&amp;) <>
+          ~s(filters[1][value][]=a_lot&amp;) <>
+          ~s(filters[1][value][]=somewhat)
+      end
+
+      assert result =~
+               ~s(<a class="pagination-previous" href=") <>
+                 expected_url.(1) <> ~s(">Previous</a>)
+
+      assert result =~
+               ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
+
+      assert result =~
+               ~s(<a class="pagination-next" href=") <>
+                 expected_url.(3) <> ~s(">Next</a>)
+    end
   end
 end
