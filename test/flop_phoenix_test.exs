@@ -6,6 +6,7 @@ defmodule FlopPhoenixTest do
   import FlopPhoenix.Factory
 
   alias Flop.Meta
+  alias Plug.Conn.Query
 
   doctest FlopPhoenix
 
@@ -18,7 +19,7 @@ defmodule FlopPhoenixTest do
   end
 
   defp route_helper(%{}, path, query) do
-    URI.to_string(%URI{path: "/#{path}", query: URI.encode_query(query)})
+    URI.to_string(%URI{path: "/#{path}", query: Query.encode(query)})
   end
 
   describe "pagination/4" do
@@ -225,6 +226,36 @@ defmodule FlopPhoenixTest do
                  ~s(<a aria-current="page" aria-label="On to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+    end
+
+    test "adds order parameters to links" do
+      result =
+        render_pagination(
+          build(:meta_on_second_page,
+            flop: %Flop{
+              order_by: [:fur_length, :curiosity],
+              order_directions: [:asc, :desc]
+            }
+          )
+        )
+
+      expected_url = fn page ->
+        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
+          ~s(order_directions[]=asc&amp;order_directions[]=desc&amp;) <>
+          ~s(order_by[]=fur_length&amp;order_by[]=curiosity)
+      end
+
+      assert result =~
+               ~s(<a class="pagination-previous" href=") <>
+                 expected_url.(1) <> ~s(">Previous</a>)
+
+      assert result =~
+               ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
+
+      assert result =~
+               ~s(<a class="pagination-next" href=") <>
+                 expected_url.(3) <> ~s(">Next</a>)
     end
   end
 end

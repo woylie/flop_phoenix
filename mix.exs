@@ -53,6 +53,7 @@ defmodule FlopPhoenix.MixProject do
       {:excoveralls, "~> 0.10", only: :test},
       {:flop, "~> 0.6.1"},
       {:phoenix_html, "~> 2.14"},
+      {:plug, "~> 1.10"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
   end
