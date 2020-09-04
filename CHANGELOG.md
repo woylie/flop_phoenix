@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.4.0] - 2020-09-04
+
+### Changed
+
+- Allow usage with newer versions of Flop.
+
 ## [0.3.0] - 2020-06-17
 
 ### Added
