@@ -1,14 +1,14 @@
-defmodule FlopPhoenixTest do
+defmodule Flop.PhoenixTest do
   use ExUnit.Case
   use Phoenix.HTML
 
-  import FlopPhoenix
-  import FlopPhoenix.Factory
+  import Flop.Phoenix
+  import Flop.Phoenix.Factory
 
   alias Flop.Meta
   alias Plug.Conn.Query
 
-  doctest FlopPhoenix
+  doctest Flop.Phoenix
 
   @route_helper_opts [%{}, :pets]
 
@@ -330,7 +330,7 @@ defmodule FlopPhoenixTest do
       assert count_substrings(result, ~r/pagination-link/) == 5
     end
 
-    test "renders end ellipsis when on page 1" do
+    test "renders end ellipsis and last page link when on page 1" do
       # current page == 1
       result =
         render_pagination(build(:meta_on_first_page, total_pages: 20),
@@ -338,11 +338,12 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 6
       for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">20<")
     end
 
-    test "renders start ellipsis when on last page" do
+    test "renders start ellipsis and first page link when on last page" do
       # current page == last page
       result =
         render_pagination(
@@ -351,8 +352,9 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 6
       for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
     end
 
     test "renders ellipses when on even page with even number of max pages" do
@@ -363,8 +365,10 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 6
+      assert count_substrings(result, ~r/pagination-link/) == 8
       for i <- 10..15, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
+      assert String.contains?(result, ">20<")
     end
 
     test "renders ellipses when on odd page with odd number of max pages" do
@@ -375,8 +379,10 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 7
       for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
+      assert String.contains?(result, ">20<")
     end
 
     test "renders ellipses when on even page with odd number of max pages" do
@@ -387,8 +393,10 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 7
       for i <- 8..12, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
+      assert String.contains?(result, ">20<")
     end
 
     test "renders ellipses when on odd page with even number of max pages" do
@@ -399,8 +407,10 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 7
       for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
+      assert String.contains?(result, ">20<")
     end
 
     test "renders end ellipsis when on page close to the beginning" do
@@ -411,8 +421,9 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 6
       for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">20<")
     end
 
     test "renders start ellipsis when on page close to the end" do
@@ -423,8 +434,9 @@ defmodule FlopPhoenixTest do
         )
 
       assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert count_substrings(result, ~r/pagination-link/) == 6
       for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
+      assert String.contains?(result, ">1<")
     end
 
     test "allows to overwrite ellipsis attributes and content" do

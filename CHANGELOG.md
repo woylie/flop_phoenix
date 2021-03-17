@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- Rename `FlopPhoenix` to `Flop.Phoenix`.
+- Add `Flop.Phoenix.Live.PaginationComponent` for use with `Phoenix.LiveView`.
+- Change pagination to always display links to the first and last page.
+
 ## [0.4.0] - 2020-09-04
 
 ### Changed
