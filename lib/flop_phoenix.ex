@@ -158,8 +158,9 @@ defmodule Flop.Phoenix do
   - `:all`: Show all page links (default).
   - `:hide`: Don't show any page links. Only the previous/next links will be
     shown.
-  - `{:ellipsis, x}`: Show only x page links. Additional list items with
-    ellipses are shown if there are more pages.
+  - `{:ellipsis, x}`: Limits the number of page links. The first and last page
+    are always displayed. The `x` refers to the number of additional page links
+    to show.
 
   ## Attributes and CSS classes
 

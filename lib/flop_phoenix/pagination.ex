@@ -148,12 +148,12 @@ defmodule Flop.Phoenix.Pagination do
       get_page_link_range(meta.current_page, max_pages, meta.total_pages)
 
     start_ellipsis =
-      if first > 1,
+      if first > 2,
         do: pagination_ellipsis(ellipsis_class, ellipsis_content),
         else: raw(nil)
 
     end_ellipsis =
-      if last < meta.total_pages,
+      if last < meta.total_pages - 1,
         do: pagination_ellipsis(ellipsis_class, ellipsis_content),
         else: raw(nil)
 
@@ -162,24 +162,60 @@ defmodule Flop.Phoenix.Pagination do
         do: &live_patch/2,
         else: &link/2
 
+    first_link =
+      if first > 1,
+        do:
+          page_link_tag(1, meta, link_attrs, aria_label, route_func, link_func),
+        else: raw(nil)
+
+    last_link =
+      if last < meta.total_pages,
+        do:
+          page_link_tag(
+            meta.total_pages,
+            meta,
+            link_attrs,
+            aria_label,
+            route_func,
+            link_func
+          ),
+        else: raw(nil)
+
     links =
       for page <- range do
-        attrs =
-          link_attrs
-          |> Keyword.update!(
-            :aria,
-            &Keyword.put(&1, :label, aria_label.(page))
-          )
-          |> add_current_attrs(meta.current_page == page)
-          |> Keyword.put(:to, route_func.(page))
-
-        content_tag :li do
-          link_func.(page, attrs)
-        end
+        page_link_tag(page, meta, link_attrs, aria_label, route_func, link_func)
       end
 
     content_tag :ul, list_attrs do
-      [start_ellipsis, links, end_ellipsis]
+      [
+        first_link,
+        start_ellipsis,
+        links,
+        end_ellipsis,
+        last_link
+      ]
+    end
+  end
+
+  defp page_link_tag(
+         page,
+         meta,
+         link_attrs,
+         aria_label,
+         route_func,
+         link_func
+       ) do
+    attrs =
+      link_attrs
+      |> Keyword.update!(
+        :aria,
+        &Keyword.put(&1, :label, aria_label.(page))
+      )
+      |> add_current_attrs(meta.current_page == page)
+      |> Keyword.put(:to, route_func.(page))
+
+    content_tag :li do
+      link_func.(page, attrs)
     end
   end
 
