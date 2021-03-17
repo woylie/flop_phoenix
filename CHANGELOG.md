@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Rename `FlopPhoenix` to `Flop.Phoenix`.
+
 ## [0.4.0] - 2020-09-04
 
 ### Changed
