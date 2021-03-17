@@ -3,6 +3,8 @@ defmodule Flop.Phoenix.Pagination do
 
   use Phoenix.HTML
 
+  import Phoenix.LiveView.Helpers, only: [live_patch: 2]
+
   alias Flop.Meta
 
   @next_link_class "pagination-next"
@@ -56,8 +58,14 @@ defmodule Flop.Phoenix.Pagination do
     if meta.has_previous_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
 
-      link attrs do
-        content
+      if opts[:live_view] do
+        live_patch attrs do
+          content
+        end
+      else
+        link attrs do
+          content
+        end
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -80,8 +88,14 @@ defmodule Flop.Phoenix.Pagination do
     if meta.has_next_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
 
-      link attrs do
-        content
+      if opts[:live_view] do
+        live_patch attrs do
+          content
+        end
+      else
+        link attrs do
+          content
+        end
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -143,6 +157,11 @@ defmodule Flop.Phoenix.Pagination do
         do: pagination_ellipsis(ellipsis_class, ellipsis_content),
         else: raw(nil)
 
+    link_func =
+      if opts[:live_view],
+        do: &live_patch/2,
+        else: &link/2
+
     links =
       for page <- range do
         attrs =
@@ -155,7 +174,7 @@ defmodule Flop.Phoenix.Pagination do
           |> Keyword.put(:to, route_func.(page))
 
         content_tag :li do
-          link(page, attrs)
+          link_func.(page, attrs)
         end
       end
 
