@@ -9,6 +9,7 @@ defmodule FlopPhoenix.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      compilers: [:phoenix] ++ Mix.compilers(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
