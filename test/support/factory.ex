@@ -1,4 +1,4 @@
-defmodule FlopPhoenix.Factory do
+defmodule Flop.Phoenix.Factory do
   @moduledoc false
   use ExMachina
 

@@ -1,14 +1,14 @@
-defmodule FlopPhoenixTest do
+defmodule Flop.PhoenixTest do
   use ExUnit.Case
   use Phoenix.HTML
 
-  import FlopPhoenix
-  import FlopPhoenix.Factory
+  import Flop.Phoenix
+  import Flop.Phoenix.Factory
 
   alias Flop.Meta
   alias Plug.Conn.Query
 
-  doctest FlopPhoenix
+  doctest Flop.Phoenix
 
   @route_helper_opts [%{}, :pets]
 

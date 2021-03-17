@@ -1,4 +1,4 @@
-defmodule FlopPhoenix do
+defmodule Flop.Phoenix do
   @moduledoc """
   View helper functions for Phoenix and Flop.
 
@@ -43,14 +43,14 @@ defmodule FlopPhoenix do
 
   ### View
 
-  To make the `FlopPhoenix` functions available in all templates, locate the
+  To make the `Flop.Phoenix` functions available in all templates, locate the
   `view_helpers/0` macro in `my_app_web.ex` and add another import statement:
 
       defp view_helpers do
         quote do
           # ...
 
-          import FlopPhoenix
+          import Flop.Phoenix
 
           # ...
         end
@@ -68,7 +68,7 @@ defmodule FlopPhoenix do
 
       <%= pagination(@meta, &Routes.pet_path/3, [@conn, :index]) %>
 
-  The second argument of `FlopPhoenix.pagination/4` is the route helper
+  The second argument of `Flop.Phoenix.pagination/4` is the route helper
   function, and the third argument is a list of arguments for that route helper.
   If you want to add path parameters, you can do that like this:
 
@@ -76,7 +76,7 @@ defmodule FlopPhoenix do
 
   ## Customization
 
-  `FlopPhoenix` sets some default classes and aria attributes.
+  `Flop.Phoenix` sets some default classes and aria attributes.
 
       <nav aria-label="pagination" class="pagination is-centered" role="navigation">
         <span class="pagination-previous" disabled="disabled">Previous</span>
@@ -117,7 +117,7 @@ defmodule FlopPhoenix do
             # ...
           ]
 
-          FlopPhoenix.pagination(meta, route_helper, route_helper_args, opts)
+          Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
         end
       end
 
@@ -189,7 +189,7 @@ defmodule FlopPhoenix do
           wrapper_attrs: [class: "paginator"]
         ]
 
-        FlopPhoenix.pagination(meta, route_helper, route_helper_args, opts)
+        Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
       end
 
       defp next_icon do

@@ -44,7 +44,7 @@ defmodule MyAppWeb.PetController do
 end
 ```
 
-In `my_app_web.ex`, find the `view_helpers/0` macro and import `FlopPhoenix`:
+In `my_app_web.ex`, find the `view_helpers/0` macro and import `Flop.Phoenix`:
 
 ```diff
 defp view_helpers do
@@ -55,7 +55,7 @@ defp view_helpers do
     # Import basic rendering functionality (render, render_layout, etc)
     import Phoenix.View
 
-+   import FlopPhoenix
++   import Flop.Phoenix
 
     import MyAppWeb.ErrorHelpers
     import MyAppWeb.Gettext
@@ -78,7 +78,7 @@ In your index template, you can now add pagination links:
 <span><%= link "New Pet", to: Routes.pet_path(@conn, :new) %></span>
 ```
 
-The second argument of `FlopPhoenix.pagination/4` is the route helper function,
+The second argument of `Flop.Phoenix.pagination/4` is the route helper function,
 and the third argument is a list of arguments for that route helper. If you
 want to add path parameters, you can do that like this:
 
@@ -103,7 +103,7 @@ defmodule MyAppWeb.FlopHelpers do
       wrapper_attrs: [class: "paginator"]
     ]
 
-    FlopPhoenix.pagination(meta, route_helper, route_helper_args, opts)
+    Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
   end
 
   defp next_icon do
@@ -125,7 +125,7 @@ defp view_helpers do
   quote do
     # ...
 
--   import FlopPhoenix
+-   import Flop.Phoenix
 +   import MyAppWeb.FlopHelpers
 
     # ...
@@ -133,4 +133,4 @@ defp view_helpers do
 end
 ```
 
-Refer to the `FlopPhoenix` docs for more information on the available options.
+Refer to the `Flop.Phoenix` docs for more information on the available options.
