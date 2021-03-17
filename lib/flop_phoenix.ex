@@ -113,11 +113,18 @@ defmodule Flop.Phoenix do
         use Phoenix.HTML
 
         def pagination(meta, route_helper, route_helper_args) do
-          opts = [
+          Flop.Phoenix.pagination(
+            meta,
+            route_helper,
+            route_helper_args,
+            pagination_opts()
+          )
+        end
+
+        def pagination_opts do
+          [
             # ...
           ]
-
-          Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
         end
       end
 
@@ -132,6 +139,16 @@ defmodule Flop.Phoenix do
           # ...
         end
       end
+
+  You can now also call `pagination_opts/0` when rendering pagination LiveView
+  component:
+
+      <%= live_component @socket, Flop.Phoenix.Live.PaginationComponent,
+        meta: @meta,
+        route_helper: &Routes.pet_index_path/3,
+        route_helper_args: [@socket, :index],
+        opts: pagination_opts()
+        %>
 
   ## Page link options
 
