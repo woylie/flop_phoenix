@@ -30,7 +30,7 @@ defmodule FlopPhoenix.MixProject do
       package: package(),
       docs: [
         main: "readme",
-        extras: ["README.md"]
+        extras: ["README.md", "CHANGELOG.md"]
       ],
       consolidate_protocols: Mix.env() != :test
     ]
