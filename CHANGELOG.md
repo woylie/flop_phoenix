@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.5.1] - 2021-04-14
+
 ### Fixed
 
 - Merge pagination query parameters into existing query parameters, if present.
