@@ -79,6 +79,21 @@ defmodule Flop.PhoenixTest do
                  ~s(href="/pets?page=1&amp;page_size=10">Previous</a>)
     end
 
+    test "merges query parameters into existing parameters" do
+      result =
+        :meta_on_second_page
+        |> build()
+        |> pagination(
+          &route_helper/3,
+          @route_helper_opts ++ [[category: "dinosaurs"]]
+        )
+        |> safe_to_string()
+
+      assert result =~
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(href="/pets?page=1&amp;category=dinosaurs&amp;page_size=10">Previous</a>)
+    end
+
     test "allows to overwrite previous link attributes and content" do
       result =
         render_pagination(
