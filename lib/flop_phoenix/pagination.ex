@@ -38,11 +38,22 @@ defmodule Flop.Phoenix.Pagination do
       |> maybe_add_param(:order_directions, meta.flop.order_directions)
       |> maybe_add_param(:page_size, meta.page_size)
 
+    [last_arg | rest] = Enum.reverse(route_helper_args)
+
     fn page ->
-      apply(
-        route_helper,
-        route_helper_args ++ [Keyword.put(query_params, :page, page)]
-      )
+      final_route_helper_args =
+        if is_list(last_arg) do
+          query_arg =
+            last_arg
+            |> Keyword.merge(query_params)
+            |> Keyword.put(:page, page)
+
+          Enum.reverse([query_arg | rest])
+        else
+          route_helper_args ++ [Keyword.put(query_params, :page, page)]
+        end
+
+      apply(route_helper, final_route_helper_args)
     end
   end
 
