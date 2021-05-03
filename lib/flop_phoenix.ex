@@ -518,9 +518,8 @@ defmodule Flop.Phoenix do
   defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
 
   @doc """
-  Takes a Phoenix path helper function, a list of path helper arguments and a
-  `Flop` struct and builds a path that includes query parameters for the `Flop`
-  struct.
+  Takes a Phoenix path helper function, a list of path helper arguments and
+  builds a path that includes query parameters for the `Flop` struct.
 
   ## Examples
 
@@ -534,6 +533,20 @@ defmodule Flop.Phoenix do
   We're defining fake path helpers for the scope of the doctests. In a real
   Phoenix application, you would pass something like `&Routes.pet_path/3` as the
   first argument.
+
+  You can also pass a `Flop.Meta` struct or a keyword list as the third
+  argument.
+
+      iex> pet_path = fn _conn, :index, query ->
+      ...>   "/pets?" <> Plug.Conn.Query.encode(query)
+      ...> end
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> meta = %Flop.Meta{flop: flop}
+      iex> build_path(pet_path, [%Plug.Conn{}, :index], meta)
+      "/pets?page_size=10&page=2"
+      iex> query_params = to_query(flop)
+      iex> build_path(pet_path, [%Plug.Conn{}, :index], query_params)
+      "/pets?page_size=10&page=2"
 
   If the path helper takes additional path parameters, just add them to the
   second argument.
@@ -563,22 +576,26 @@ defmodule Flop.Phoenix do
   """
 
   @doc since: "0.6.0"
-  @spec build_path(function, [any], Meta.t() | Flop.t()) :: String.t()
+  @spec build_path(function, [any], Meta.t() | Flop.t() | keyword) :: String.t()
   def build_path(path_helper, args, %Meta{flop: flop}),
     do: build_path(path_helper, args, flop)
 
-  def build_path(path_helper, args, %Flop{} = flop)
-      when is_function(path_helper) and is_list(args) do
-    query_params = Flop.Phoenix.to_query(flop)
+  def build_path(path_helper, args, %Flop{} = flop) do
+    build_path(path_helper, args, Flop.Phoenix.to_query(flop))
+  end
 
+  def build_path(path_helper, args, flop_params)
+      when is_function(path_helper) and
+             is_list(args) and
+             is_list(flop_params) do
     final_args =
       case Enum.reverse(args) do
         [last_arg | rest] when is_list(last_arg) ->
-          query_arg = Keyword.merge(last_arg, query_params)
+          query_arg = Keyword.merge(last_arg, flop_params)
           Enum.reverse([query_arg | rest])
 
         _ ->
-          args ++ [query_params]
+          args ++ [flop_params]
       end
 
     apply(path_helper, final_args)

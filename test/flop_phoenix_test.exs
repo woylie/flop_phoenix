@@ -89,7 +89,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="pagination-previous" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=1">Previous</a>)
+                 ~s(href="/pets?page=1&amp;page_size=10">Previous</a>)
     end
 
     test "merges query parameters into existing parameters" do
@@ -107,7 +107,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="pagination-previous" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?category=dinosaurs&amp;page_size=10&amp;page=1">Previous</a>)
+                 ~s(href="/pets?category=dinosaurs&amp;page=1&amp;page_size=10">Previous</a>)
     end
 
     test "allows to overwrite previous link attributes and content" do
@@ -123,7 +123,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="prev" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=1" ) <>
+                 ~s(href="/pets?page=1&amp;page_size=10" ) <>
                  ~s(title="p-p-previous">) <>
                  ~s(<i class="fas fa-chevron-left"></i></a>)
     end
@@ -155,7 +155,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="pagination-next" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=3">Next</a>)
+                 ~s(href="/pets?page=3&amp;page_size=10">Next</a>)
     end
 
     test "allows to overwrite next link attributes and content" do
@@ -171,7 +171,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="next" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=3" ) <>
+                 ~s(href="/pets?page=3&amp;page_size=10" ) <>
                  ~s(title="back">) <>
                  ~s(<i class="fas fa-chevron-right"></i></a>)
     end
@@ -207,18 +207,18 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=1">1</a></li>)
+                 ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li><a aria-current="page" aria-label="Goto page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
+                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 3" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=3">3</a></li>)
+                 ~s(href="/pets?page=3&amp;page_size=10">3</a></li>)
 
       assert result =~ "</ul>"
     end
@@ -249,7 +249,7 @@ defmodule Flop.PhoenixTest do
                ~s(<li>) <>
                  ~s(<a aria-label="Goto page 1" beep="boop" class="p-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=1">) <>
+                 ~s(href="/pets?page=1&amp;page_size=10">) <>
                  ~s(1</a></li>)
 
       assert result =~
@@ -258,7 +258,7 @@ defmodule Flop.PhoenixTest do
                  ~s(aria-label="Goto page 2" beep="boop" ) <>
                  ~s(class="p-link is-current" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
+                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
     end
 
     test "allows to overwrite pagination link aria label" do
@@ -272,14 +272,14 @@ defmodule Flop.PhoenixTest do
                ~s(<li>) <>
                  ~s(<a aria-label="On to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=1">1</a></li>)
+                 ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" aria-label="On to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
+                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
     end
 
     test "adds order parameters to links" do
@@ -296,7 +296,7 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page_size=10&amp;page=#{page}&amp;) <>
+        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
           ~s(order_directions[]=asc&amp;order_directions[]=desc&amp;) <>
           ~s(order_by[]=fur_length&amp;order_by[]=curiosity)
       end
@@ -338,7 +338,7 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?) <>
+        ~s(/pets?page=#{page}&amp;) <>
           ~s(filters[0][field]=fur_length&amp;) <>
           ~s(filters[0][op]=%3E%3D&amp;) <>
           ~s(filters[0][value]=5&amp;) <>
@@ -346,7 +346,7 @@ defmodule Flop.PhoenixTest do
           ~s(filters[1][op]=in&amp;) <>
           ~s(filters[1][value][]=a_lot&amp;) <>
           ~s(filters[1][value][]=somewhat) <>
-          ~s(&amp;page_size=10&amp;page=#{page})
+          ~s(&amp;page_size=10)
       end
 
       assert result =~

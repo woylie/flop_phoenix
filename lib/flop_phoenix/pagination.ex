@@ -24,9 +24,11 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   def build_page_link_helper(meta, route_helper, route_helper_args) do
+    query_params = Flop.Phoenix.to_query(meta.flop)
+
     fn page ->
-      flop = %{meta.flop | page: page}
-      Flop.Phoenix.build_path(route_helper, route_helper_args, flop)
+      params = Keyword.put(query_params, :page, page)
+      Flop.Phoenix.build_path(route_helper, route_helper_args, params)
     end
   end
 
