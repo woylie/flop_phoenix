@@ -260,7 +260,9 @@ defmodule Flop.PhoenixTest do
           build(:meta_on_second_page,
             flop: %Flop{
               order_by: [:fur_length, :curiosity],
-              order_directions: [:asc, :desc]
+              order_directions: [:asc, :desc],
+              page: 2,
+              page_size: 10
             }
           )
         )
@@ -289,6 +291,8 @@ defmodule Flop.PhoenixTest do
         render_pagination(
           build(:meta_on_second_page,
             flop: %Flop{
+              page: 2,
+              page_size: 10,
               filters: [
                 %Flop.Filter{field: :fur_length, op: :>=, value: 5},
                 %Flop.Filter{
@@ -302,14 +306,15 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
+        ~s(/pets?page=#{page}&amp;) <>
           ~s(filters[0][field]=fur_length&amp;) <>
           ~s(filters[0][op]=%3E%3D&amp;) <>
           ~s(filters[0][value]=5&amp;) <>
           ~s(filters[1][field]=curiosity&amp;) <>
           ~s(filters[1][op]=in&amp;) <>
           ~s(filters[1][value][]=a_lot&amp;) <>
-          ~s(filters[1][value][]=somewhat)
+          ~s(filters[1][value][]=somewhat) <>
+          ~s(&amp;page_size=10)
       end
 
       assert result =~

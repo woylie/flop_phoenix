@@ -8,7 +8,7 @@ defmodule Flop.Phoenix.Factory do
     %Meta{
       current_offset: 0,
       current_page: 1,
-      flop: %Flop{},
+      flop: %Flop{page: 1, page_size: 10},
       has_next_page?: true,
       has_previous_page?: false,
       next_offset: 10,
@@ -25,7 +25,7 @@ defmodule Flop.Phoenix.Factory do
     %Meta{
       current_offset: 10,
       current_page: 2,
-      flop: %Flop{},
+      flop: %Flop{page: 2, page_size: 10},
       has_next_page?: true,
       has_previous_page?: true,
       next_offset: 10,
@@ -42,7 +42,7 @@ defmodule Flop.Phoenix.Factory do
     %Meta{
       current_offset: 40,
       current_page: 5,
-      flop: %Flop{},
+      flop: %Flop{page: 5, page_size: 10},
       has_next_page?: false,
       has_previous_page?: true,
       next_offset: 10,
@@ -59,7 +59,7 @@ defmodule Flop.Phoenix.Factory do
     %Meta{
       current_offset: 0,
       current_page: 1,
-      flop: %Flop{},
+      flop: %Flop{page: 1, page_size: 10},
       has_next_page?: false,
       has_previous_page?: false,
       next_offset: nil,
@@ -76,7 +76,7 @@ defmodule Flop.Phoenix.Factory do
     %Meta{
       current_offset: 0,
       current_page: 1,
-      flop: %Flop{},
+      flop: %Flop{page: 1, page_size: 10},
       has_next_page?: false,
       has_previous_page?: false,
       next_offset: nil,
