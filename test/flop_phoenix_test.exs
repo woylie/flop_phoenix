@@ -530,6 +530,22 @@ defmodule Flop.PhoenixTest do
                ~s(<table class="funky-table">)
     end
 
+    test "optionally adds a table container", %{assigns: assigns} do
+      refute render_table(%{assigns | opts: []}) =~
+               ~s(<div class="table-container">)
+
+      assert render_table(%{assigns | opts: [container: true]}) =~
+               ~s(<div class="table-container">)
+    end
+
+    test "allows to set container class", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | opts: [container: true, container_class: "container"]
+             }) =~
+               ~s(<div class="container">)
+    end
+
     test "doesn't render table if items list is empty", %{assigns: assigns} do
       refute render_table(%{assigns | items: []}) =~ ~s(<table)
     end

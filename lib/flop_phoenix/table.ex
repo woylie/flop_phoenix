@@ -5,13 +5,36 @@ defmodule Flop.Phoenix.Table do
 
   import Phoenix.LiveView.Helpers
 
-  def header(
-        {value, field},
-        %Flop.Meta{flop: flop},
-        path_helper,
-        path_helper_args,
-        opts
-      ) do
+  def render(assigns) do
+    ~L"""
+    <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
+      <thead>
+        <tr>
+          <%= for header <- @headers do %>
+            <%= header(header, @meta, @path_helper, @path_helper_args, @opts) %>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for item <- @items do %>
+          <tr>
+            <%= for column <- @row_func.(item, @opts) do %>
+              <td><%= column %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    """
+  end
+
+  defp header(
+         {value, field},
+         %Flop.Meta{flop: flop},
+         path_helper,
+         path_helper_args,
+         opts
+       ) do
     assigns = %{
       __changed__: nil,
       field: field,
@@ -44,7 +67,7 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  def header(value, _, _, _, _) do
+  defp header(value, _, _, _, _) do
     assigns = %{__changed__: nil, value: value}
 
     ~L"""

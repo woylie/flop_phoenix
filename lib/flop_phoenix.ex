@@ -349,6 +349,9 @@ defmodule Flop.Phoenix do
     sorted in ascending order. Defaults to `"▴"`.
   - `:symbol_desc` - The symbol that is used to indicate that the column is
     sorted in ascending order. Defaults to `"▾"`.
+  - `:container` - Wraps the table in a `<div>` if `true`. Defaults to `false`.
+  - `:container_class` - The CSS class for the table container. Defaults to
+    `"table-container"`.
 
   See the module documentation for examples.
   """
@@ -358,24 +361,13 @@ defmodule Flop.Phoenix do
   def table(assigns) do
     ~L"""
     <%= unless @items == [] do %>
-      <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
-        <thead>
-          <tr>
-            <%= for header <- @headers do %>
-              <%= Table.header(header, @meta, @path_helper, @path_helper_args, @opts) %>
-            <% end %>
-          </tr>
-        </thead>
-        <tbody>
-          <%= for item <- @items do %>
-            <tr>
-              <%= for column <- @row_func.(item, @opts) do %>
-                <td><%= column %></td>
-              <% end %>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <%= if @opts[:container] do %>
+        <div class="<%= Keyword.get(@opts, :container_class, "table-container") %>">
+          <%= Table.render(assigns) %>
+        </div>
+      <% else %>
+        <%= Table.render(assigns) %>
+      <% end %>
     <% end %>
     """
   end
