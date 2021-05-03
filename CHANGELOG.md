@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- Add function `Flop.Phoenix.to_query/1`, which converts a Flop struct into
+  a keyword list for query parameters.
+
 ## [0.5.1] - 2021-04-14
 
 ### Fixed
