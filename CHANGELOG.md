@@ -6,6 +6,8 @@
 
 - Add function `Flop.Phoenix.to_query/1`, which converts a Flop struct into
   a keyword list for query parameters.
+- Add function `Flop.Phoenix.build_path/3`, which applies Flop parameters to a
+  Phoenix path helper function.
 
 ## [0.5.1] - 2021-04-14
 
