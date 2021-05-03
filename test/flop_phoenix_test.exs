@@ -22,6 +22,8 @@ defmodule Flop.PhoenixTest do
   defp render_pagination(%Meta{} = meta, opts \\ []) do
     meta
     |> pagination(&route_helper/3, @route_helper_opts, opts)
+    |> to_iodata()
+    |> raw()
     |> safe_to_string()
   end
 
@@ -39,7 +41,8 @@ defmodule Flop.PhoenixTest do
 
   describe "pagination/4" do
     test "renders pagination wrapper" do
-      result = render_pagination(build(:meta_on_first_page))
+      result =
+        :meta_on_first_page |> build() |> render_pagination() |> String.trim()
 
       assert String.starts_with?(
                result,
@@ -85,6 +88,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=1">Previous</a>)
     end
 
@@ -96,10 +100,13 @@ defmodule Flop.PhoenixTest do
           &route_helper/3,
           @route_helper_opts ++ [[category: "dinosaurs"]]
         )
+        |> to_iodata()
+        |> raw()
         |> safe_to_string()
 
       assert result =~
                ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?category=dinosaurs&amp;page_size=10&amp;page=1">Previous</a>)
     end
 
@@ -114,7 +121,9 @@ defmodule Flop.PhoenixTest do
         )
 
       assert result =~
-               ~s(<a class="prev" href="/pets?page_size=10&amp;page=1" ) <>
+               ~s(<a class="prev" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page_size=10&amp;page=1" ) <>
                  ~s(title="p-p-previous">) <>
                  ~s(<i class="fas fa-chevron-left"></i></a>)
     end
@@ -145,6 +154,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=3">Next</a>)
     end
 
@@ -159,7 +169,9 @@ defmodule Flop.PhoenixTest do
         )
 
       assert result =~
-               ~s(<a class="next" href="/pets?page_size=10&amp;page=3" ) <>
+               ~s(<a class="next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page_size=10&amp;page=3" ) <>
                  ~s(title="back">) <>
                  ~s(<i class="fas fa-chevron-right"></i></a>)
     end
@@ -194,15 +206,18 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=1">1</a></li>)
 
       assert result =~
                ~s(<li><a aria-current="page" aria-label="Goto page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 3" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=3">3</a></li>)
 
       assert result =~ "</ul>"
@@ -232,8 +247,9 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li>) <>
-                 ~s(<a aria-label="Goto page 1" beep="boop" ) <>
-                 ~s(class="p-link" href="/pets?page_size=10&amp;page=1">) <>
+                 ~s(<a aria-label="Goto page 1" beep="boop" class="p-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page_size=10&amp;page=1">) <>
                  ~s(1</a></li>)
 
       assert result =~
@@ -241,6 +257,7 @@ defmodule Flop.PhoenixTest do
                  ~s(<a aria-current="page" ) <>
                  ~s(aria-label="Goto page 2" beep="boop" ) <>
                  ~s(class="p-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
     end
 
@@ -254,12 +271,14 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-label="On to page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=1">1</a></li>)
 
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" aria-label="On to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10&amp;page=2">2</a></li>)
     end
 
@@ -283,15 +302,19 @@ defmodule Flop.PhoenixTest do
       end
 
       assert result =~
-               ~s(<a class="pagination-previous" href=") <>
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href=") <>
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
       assert result =~
-               ~s(<a class="pagination-next" href=") <>
+               ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
     end
 
@@ -327,15 +350,18 @@ defmodule Flop.PhoenixTest do
       end
 
       assert result =~
-               ~s(<a class="pagination-previous" href=") <>
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
       assert result =~
-               ~s(<a class="pagination-next" href=") <>
+               ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
     end
 

@@ -112,11 +112,11 @@ defmodule Flop.Phoenix do
       defmodule MyAppWeb.FlopHelpers do
         use Phoenix.HTML
 
-        def pagination(meta, route_helper, route_helper_args) do
+        def pagination(meta, path_helper, path_helper_args) do
           Flop.Phoenix.pagination(
             meta,
-            route_helper,
-            route_helper_args,
+            path_helper,
+            path_helper_args,
             pagination_opts()
           )
         end
@@ -145,8 +145,8 @@ defmodule Flop.Phoenix do
 
       <%= live_component @socket, Flop.Phoenix.Live.PaginationComponent,
         meta: @meta,
-        route_helper: &Routes.pet_index_path/3,
-        route_helper_args: [@socket, :index],
+        path_helper: &Routes.pet_index_path/3,
+        path_helper_args: [@socket, :index],
         opts: pagination_opts()
         %>
 
@@ -192,7 +192,7 @@ defmodule Flop.Phoenix do
 
   ## Customization example
 
-      def pagination(meta, route_helper, route_helper_args) do
+      def pagination(meta, path_helper, path_helper_args) do
         opts = [
           ellipsis_attrs: [class: "ellipsis"],
           ellipsis_content: "‥",
@@ -207,7 +207,7 @@ defmodule Flop.Phoenix do
           wrapper_attrs: [class: "paginator"]
         ]
 
-        Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
+        Flop.Phoenix.pagination(meta, path_helper, path_helper_args, opts)
       end
 
       defp next_icon do
@@ -279,34 +279,38 @@ defmodule Flop.Phoenix do
 
   - `meta`: The meta information of the query as returned by the `Flop` query
     functions.
-  - `route_helper`: The route helper function that builds a path to the current
+  - `path_helper`: The path helper function that builds a path to the current
     page, e.g. `&Routes.pet_path/3`.
-  - `route_helper_args`: The arguments to be passed to the route helper
+  - `path_helper_args`: The arguments to be passed to the route helper
     function, e.g. `[@conn, :index]`. The page number and page size will be
     added as query parameters.
   - `opts`: Options to customize the pagination. See section Customization.
   """
   @spec pagination(Meta.t(), function, [any], keyword) ::
-          Phoenix.HTML.safe()
+          Phoenix.LiveView.Rendered.t()
 
-  def pagination(meta, route_helper, route_helper_args, opts \\ [])
+  def pagination(meta, path_helper, path_helper_args, opts \\ [])
 
   def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
 
-  def pagination(%Meta{} = meta, route_helper, route_helper_args, opts) do
-    opts = Pagination.init_opts(opts)
-    attrs = Pagination.build_attrs(opts)
+  def pagination(%Meta{} = meta, path_helper, path_helper_args, opts) do
+    assigns = %{
+      __changed__: nil,
+      meta: meta,
+      opts: Pagination.init_opts(opts),
+      page_link_helper:
+        Pagination.build_page_link_helper(meta, path_helper, path_helper_args)
+    }
 
-    page_link_helper =
-      Pagination.build_page_link_helper(meta, route_helper, route_helper_args)
-
-    content_tag :nav, attrs do
-      [
-        Pagination.previous_link(meta, page_link_helper, opts),
-        Pagination.next_link(meta, page_link_helper, opts),
-        Pagination.page_links(meta, page_link_helper, opts)
-      ]
-    end
+    ~L"""
+    <%= if @meta.total_pages > 1 do %>
+      <%= content_tag :nav, Pagination.build_attrs(@opts) do %>
+        <%= Pagination.previous_link(@meta, @page_link_helper, @opts) %>
+        <%= Pagination.next_link(@meta, @page_link_helper, @opts) %>
+        <%= Pagination.page_links(@meta, @page_link_helper, @opts) %>
+      <% end %>
+    <% end %>
+    """
   end
 
   @doc """

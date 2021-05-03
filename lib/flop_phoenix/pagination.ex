@@ -42,14 +42,8 @@ defmodule Flop.Phoenix.Pagination do
     if meta.has_previous_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
 
-      if opts[:live_view] do
-        live_patch attrs do
-          content
-        end
-      else
-        link attrs do
-          content
-        end
+      live_patch attrs do
+        content
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -72,14 +66,8 @@ defmodule Flop.Phoenix.Pagination do
     if meta.has_next_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
 
-      if opts[:live_view] do
-        live_patch attrs do
-          content
-        end
-      else
-        link attrs do
-          content
-        end
+      live_patch attrs do
+        content
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -141,15 +129,9 @@ defmodule Flop.Phoenix.Pagination do
         do: pagination_ellipsis(ellipsis_class, ellipsis_content),
         else: raw(nil)
 
-    link_func =
-      if opts[:live_view],
-        do: &live_patch/2,
-        else: &link/2
-
     first_link =
       if first > 1,
-        do:
-          page_link_tag(1, meta, link_attrs, aria_label, route_func, link_func),
+        do: page_link_tag(1, meta, link_attrs, aria_label, route_func),
         else: raw(nil)
 
     last_link =
@@ -160,14 +142,13 @@ defmodule Flop.Phoenix.Pagination do
             meta,
             link_attrs,
             aria_label,
-            route_func,
-            link_func
+            route_func
           ),
         else: raw(nil)
 
     links =
       for page <- range do
-        page_link_tag(page, meta, link_attrs, aria_label, route_func, link_func)
+        page_link_tag(page, meta, link_attrs, aria_label, route_func)
       end
 
     content_tag :ul, list_attrs do
@@ -186,8 +167,7 @@ defmodule Flop.Phoenix.Pagination do
          meta,
          link_attrs,
          aria_label,
-         route_func,
-         link_func
+         route_func
        ) do
     attrs =
       link_attrs
@@ -199,7 +179,7 @@ defmodule Flop.Phoenix.Pagination do
       |> Keyword.put(:to, route_func.(page))
 
     content_tag :li do
-      link_func.(page, attrs)
+      live_patch(page, attrs)
     end
   end
 
