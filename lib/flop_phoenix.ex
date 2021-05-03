@@ -267,6 +267,7 @@ defmodule Flop.Phoenix do
   Renders a table with sortable columns.
   """
   @doc since: "0.6.0"
+  @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     ~L"""
     <%= unless @items == [] do %>
@@ -321,7 +322,7 @@ defmodule Flop.Phoenix do
           )
       %>
       <span class="<%= @opts[:symbol_class] || "order-direction" %>">
-        <%= flop |> current_direction(field) |> render_arrow(@opts) %>
+        <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
       </span>
     </th>
     """
@@ -342,10 +343,10 @@ defmodule Flop.Phoenix do
 
     ~L"""
     <span class="<%= @opts[:symbol_class] || "order-direction" %>"><%=
-      if direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
-        Keyword.get(opts, :symbol_asc, "▴")
+      if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
+        Keyword.get(@opts, :symbol_asc, "▴")
       else
-        Keyword.get(opts, :symbol_desc, "▾")
+        Keyword.get(@opts, :symbol_desc, "▾")
       end
     %></span>
     """
