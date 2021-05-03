@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add `Flop.Phoenix.table/1` for rendering sortable tables.
 - Add function `Flop.Phoenix.to_query/1`, which converts a Flop struct into
   a keyword list for query parameters.
 - Add function `Flop.Phoenix.build_path/3`, which applies Flop parameters to a

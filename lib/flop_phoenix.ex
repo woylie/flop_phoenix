@@ -266,6 +266,7 @@ defmodule Flop.Phoenix do
   @doc """
   Renders a table with sortable columns.
   """
+  @doc since: "0.6.0"
   def table(assigns) do
     ~L"""
     <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
