@@ -4,11 +4,12 @@ defmodule Flop.PhoenixTest do
 
   import Flop.Phoenix
   import Flop.Phoenix.Factory
+  import Phoenix.HTML.Safe, only: [to_iodata: 1]
 
   alias Flop.Meta
   alias Plug.Conn.Query
 
-  doctest Flop.Phoenix
+  doctest Flop.Phoenix, import: true
 
   @route_helper_opts [%{}, :pets]
 
@@ -21,6 +22,16 @@ defmodule Flop.PhoenixTest do
   defp render_pagination(%Meta{} = meta, opts \\ []) do
     meta
     |> pagination(&route_helper/3, @route_helper_opts, opts)
+    |> to_iodata()
+    |> raw()
+    |> safe_to_string()
+  end
+
+  defp render_table(assigns) do
+    assigns
+    |> table()
+    |> to_iodata()
+    |> raw()
     |> safe_to_string()
   end
 
@@ -30,7 +41,8 @@ defmodule Flop.PhoenixTest do
 
   describe "pagination/4" do
     test "renders pagination wrapper" do
-      result = render_pagination(build(:meta_on_first_page))
+      result =
+        :meta_on_first_page |> build() |> render_pagination() |> String.trim()
 
       assert String.starts_with?(
                result,
@@ -76,6 +88,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=1&amp;page_size=10">Previous</a>)
     end
 
@@ -87,11 +100,14 @@ defmodule Flop.PhoenixTest do
           &route_helper/3,
           @route_helper_opts ++ [[category: "dinosaurs"]]
         )
+        |> to_iodata()
+        |> raw()
         |> safe_to_string()
 
       assert result =~
                ~s(<a class="pagination-previous" ) <>
-                 ~s(href="/pets?page=1&amp;category=dinosaurs&amp;page_size=10">Previous</a>)
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?category=dinosaurs&amp;page=1&amp;page_size=10">Previous</a>)
     end
 
     test "allows to overwrite previous link attributes and content" do
@@ -105,7 +121,9 @@ defmodule Flop.PhoenixTest do
         )
 
       assert result =~
-               ~s(<a class="prev" href="/pets?page=1&amp;page_size=10" ) <>
+               ~s(<a class="prev" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page=1&amp;page_size=10" ) <>
                  ~s(title="p-p-previous">) <>
                  ~s(<i class="fas fa-chevron-left"></i></a>)
     end
@@ -136,6 +154,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=3&amp;page_size=10">Next</a>)
     end
 
@@ -150,7 +169,9 @@ defmodule Flop.PhoenixTest do
         )
 
       assert result =~
-               ~s(<a class="next" href="/pets?page=3&amp;page_size=10" ) <>
+               ~s(<a class="next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page=3&amp;page_size=10" ) <>
                  ~s(title="back">) <>
                  ~s(<i class="fas fa-chevron-right"></i></a>)
     end
@@ -185,15 +206,18 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li><a aria-current="page" aria-label="Goto page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 3" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=3&amp;page_size=10">3</a></li>)
 
       assert result =~ "</ul>"
@@ -223,8 +247,9 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li>) <>
-                 ~s(<a aria-label="Goto page 1" beep="boop" ) <>
-                 ~s(class="p-link" href="/pets?page=1&amp;page_size=10">) <>
+                 ~s(<a aria-label="Goto page 1" beep="boop" class="p-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page=1&amp;page_size=10">) <>
                  ~s(1</a></li>)
 
       assert result =~
@@ -232,6 +257,7 @@ defmodule Flop.PhoenixTest do
                  ~s(<a aria-current="page" ) <>
                  ~s(aria-label="Goto page 2" beep="boop" ) <>
                  ~s(class="p-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
     end
 
@@ -245,12 +271,14 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-label="On to page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" aria-label="On to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
     end
 
@@ -260,7 +288,9 @@ defmodule Flop.PhoenixTest do
           build(:meta_on_second_page,
             flop: %Flop{
               order_by: [:fur_length, :curiosity],
-              order_directions: [:asc, :desc]
+              order_directions: [:asc, :desc],
+              page: 2,
+              page_size: 10
             }
           )
         )
@@ -272,15 +302,19 @@ defmodule Flop.PhoenixTest do
       end
 
       assert result =~
-               ~s(<a class="pagination-previous" href=") <>
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href=") <>
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
       assert result =~
-               ~s(<a class="pagination-next" href=") <>
+               ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
     end
 
@@ -289,6 +323,8 @@ defmodule Flop.PhoenixTest do
         render_pagination(
           build(:meta_on_second_page,
             flop: %Flop{
+              page: 2,
+              page_size: 10,
               filters: [
                 %Flop.Filter{field: :fur_length, op: :>=, value: 5},
                 %Flop.Filter{
@@ -302,26 +338,30 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
+        ~s(/pets?page=#{page}&amp;) <>
           ~s(filters[0][field]=fur_length&amp;) <>
           ~s(filters[0][op]=%3E%3D&amp;) <>
           ~s(filters[0][value]=5&amp;) <>
           ~s(filters[1][field]=curiosity&amp;) <>
           ~s(filters[1][op]=in&amp;) <>
           ~s(filters[1][value][]=a_lot&amp;) <>
-          ~s(filters[1][value][]=somewhat)
+          ~s(filters[1][value][]=somewhat) <>
+          ~s(&amp;page_size=10)
       end
 
       assert result =~
-               ~s(<a class="pagination-previous" href=") <>
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
       assert result =~
-               ~s(<a class="pagination-next" href=") <>
+               ~s(<a class="pagination-next" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" href=") <>
                  expected_url.(3) <> ~s(">Next</a>)
     end
 
@@ -465,6 +505,161 @@ defmodule Flop.PhoenixTest do
 
       expected = ~r/<span class="dotdotdot" title="dot">dot dot dot<\/span>/
       assert count_substrings(result, expected) == 2
+    end
+  end
+
+  describe "table/1" do
+    setup do
+      %{
+        assigns: %{
+          headers: ["name"],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{flop: %Flop{}},
+          path_helper: &route_helper/3,
+          path_helper_args: [%{}, :index],
+          opts: [],
+          row_func: fn %{name: name}, _opts -> [name] end
+        }
+      }
+    end
+
+    test "allows to set table class", %{assigns: assigns} do
+      assert render_table(%{assigns | opts: []}) =~ ~s(<table>)
+
+      assert render_table(%{assigns | opts: [table_class: "funky-table"]}) =~
+               ~s(<table class="funky-table">)
+    end
+
+    test "optionally adds a table container", %{assigns: assigns} do
+      refute render_table(%{assigns | opts: []}) =~
+               ~s(<div class="table-container">)
+
+      assert render_table(%{assigns | opts: [container: true]}) =~
+               ~s(<div class="table-container">)
+    end
+
+    test "allows to set container class", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | opts: [container: true, container_class: "container"]
+             }) =~
+               ~s(<div class="container">)
+    end
+
+    test "doesn't render table if items list is empty", %{assigns: assigns} do
+      refute render_table(%{assigns | items: []}) =~ ~s(<table)
+    end
+
+    test "displays headers without sorting function", %{assigns: assigns} do
+      html = render_table(%{assigns | headers: ["Name", "Age"]})
+      assert html =~ ~s(<th>Name</th>)
+      assert html =~ ~s(<th>Age</th>)
+    end
+
+    test "displays headers with sorting function", %{assigns: assigns} do
+      html = render_table(%{assigns | headers: ["Name", {"Age", :age}]})
+      assert html =~ ~s(<th>Name</th>)
+
+      assert html =~
+               ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
+    end
+
+    test "checks for sortability if for option is set", %{assigns: assigns} do
+      # without :for option
+      html =
+        render_table(%{
+          assigns
+          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}]
+        })
+
+      assert html =~ ~s(Name</a>)
+      assert html =~ ~s(Age</a>)
+      assert html =~ ~s(Species</a>)
+
+      # with :for option
+      html =
+        render_table(%{
+          assigns
+          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}],
+            opts: [for: Flop.Phoenix.Pet]
+        })
+
+      assert html =~ ~s(Name</a>)
+      assert html =~ ~s(Age</a>)
+      refute html =~ ~s(Species</a>)
+    end
+
+    test "renders order direction symbol", %{assigns: assigns} do
+      refute render_table(%{
+               assigns
+               | meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 }
+             }) =~ ~s(<span class="order-direction")
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 }
+             }) =~ ~s(<span class="order-direction">▴</span>)
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
+                 }
+             }) =~ ~s(<span class="order-direction">▾</span>)
+    end
+
+    test "allows to set symbol class", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 },
+                 opts: [symbol_class: "other-class"]
+             }) =~ ~s(<span class="other-class")
+    end
+
+    test "allows to override default symbols", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 },
+                 opts: [symbol_asc: "asc"]
+             }) =~ ~s(<span class="order-direction">asc</span>)
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
+                 },
+                 opts: [symbol_desc: "desc"]
+             }) =~ ~s(<span class="order-direction">desc</span>)
+    end
+
+    test "renders all items", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
+            opts: [appendix: "-chan"],
+            row_func: fn %{age: age, name: name}, opts ->
+              [name <> opts[:appendix], age]
+            end
+        })
+
+      assert html =~ ~s(<td>George-chan</td>)
+      assert html =~ ~s(<td>8</td>)
+      assert html =~ ~s(<td>Barbara-chan</td>)
+      assert html =~ ~s(<td>2</td>)
     end
   end
 end

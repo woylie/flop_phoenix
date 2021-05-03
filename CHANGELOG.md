@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## [0.6.0] - 2021-05-04
+
+### Added
+
+- Add `Flop.Phoenix.table/1` for rendering sortable tables.
+- Add function `Flop.Phoenix.to_query/1`, which converts a Flop struct into
+  a keyword list for query parameters.
+- Add function `Flop.Phoenix.build_path/3`, which applies Flop parameters to a
+  Phoenix path helper function.
+
+### Removed
+
+- Remove `Flop.Phoenix.Live.PaginationComponent` in favor of making
+  `Flop.Phoenix.pagination/4` work in both `.eex` and `.leex` templates.
+
 ## [0.5.1] - 2021-04-14
 
 ### Fixed
