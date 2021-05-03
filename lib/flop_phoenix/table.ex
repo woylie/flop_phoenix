@@ -61,7 +61,7 @@ defmodule Flop.Phoenix.Table do
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
         </span>
       <% else %>
-        <th><%= @value %></th>
+        <%= @value %>
       <% end %>
     </th>
     """
