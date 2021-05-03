@@ -301,6 +301,7 @@ defmodule Flop.Phoenix do
       "filters[0][field]=name&filters[0][op]=%3D~&filters[0][value]=Mag&filters[1][field]=age&filters[1][op]=%3E&filters[1][value]=25"
   """
   @spec to_query(Flop.t()) :: keyword
+  @doc since: "0.6.0"
   def to_query(%Flop{filters: filters} = flop) do
     filter_map =
       filters
@@ -331,4 +332,71 @@ defmodule Flop.Phoenix do
   defp maybe_add_param(params, _, []), do: params
   defp maybe_add_param(params, _, map) when map == %{}, do: params
   defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
+
+  @doc """
+  Takes a Phoenix path helper function, a list of path helper arguments and a
+  `Flop` struct and builds a path that includes query parameters for the `Flop`
+  struct.
+
+  ## Examples
+
+      iex> pet_path = fn _conn, :index, query ->
+      ...>   "/pets?" <> Plug.Conn.Query.encode(query)
+      ...> end
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path(pet_path, [%Plug.Conn{}, :index], flop)
+      "/pets?page_size=10&page=2"
+
+  We're defining fake path helpers for the scope of the doctests. In a real
+  Phoenix application, you would pass something like `&Routes.pet_path/3` as the
+  first argument.
+
+  If the path helper takes additional path parameters, just add them to the
+  second argument.
+
+      iex> user_pet_path = fn _conn, :index, id, query ->
+      ...>   "/users/\#{id}/pets?" <> Plug.Conn.Query.encode(query)
+      ...> end
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path(user_pet_path, [%Plug.Conn{}, :index, 123], flop)
+      "/users/123/pets?page_size=10&page=2"
+
+  If the last path helper argument is a query parameter list, the Flop
+  parameters are merged into it.
+
+      iex> pet_url = fn _conn, :index, query ->
+      ...>   "https://pets.flop/pets?" <> Plug.Conn.Query.encode(query)
+      ...> end
+      iex> flop = %Flop{order_by: :name, order_directions: [:desc]}
+      iex> build_path(pet_url, [%Plug.Conn{}, :index, [user_id: 123]], flop)
+      "https://pets.flop/pets?user_id=123&order_directions[]=desc&order_by=name"
+      iex> build_path(
+      ...>   pet_url,
+      ...>   [%Plug.Conn{}, :index, [category: "small", user_id: 123]],
+      ...>   flop
+      ...> )
+      "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
+  """
+
+  @doc since: "0.6.0"
+  @spec build_path(function, [any], Meta.t() | Flop.t()) :: String.t()
+  def build_path(path_helper, args, %Meta{flop: flop}),
+    do: build_path(path_helper, args, flop)
+
+  def build_path(path_helper, args, %Flop{} = flop)
+      when is_function(path_helper) and is_list(args) do
+    query_params = Flop.Phoenix.to_query(flop)
+
+    final_args =
+      case Enum.reverse(args) do
+        [last_arg | rest] when is_list(last_arg) ->
+          query_arg = Keyword.merge(last_arg, query_params)
+          Enum.reverse([query_arg | rest])
+
+        _ ->
+          args ++ [query_params]
+      end
+
+    apply(path_helper, final_args)
+  end
 end

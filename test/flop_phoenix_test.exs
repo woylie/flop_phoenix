@@ -91,7 +91,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<a class="pagination-previous" ) <>
-                 ~s(href="/pets?page=1&amp;category=dinosaurs&amp;page_size=10">Previous</a>)
+                 ~s(href="/pets?category=dinosaurs&amp;page=1&amp;page_size=10">Previous</a>)
     end
 
     test "allows to overwrite previous link attributes and content" do

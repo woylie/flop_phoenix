@@ -28,16 +28,14 @@ defmodule Flop.Phoenix.Pagination do
     [last_arg | rest] = Enum.reverse(route_helper_args)
 
     fn page ->
+      query_params = Keyword.put(query_params, :page, page)
+
       final_route_helper_args =
         if is_list(last_arg) do
-          query_arg =
-            last_arg
-            |> Keyword.merge(query_params)
-            |> Keyword.put(:page, page)
-
+          query_arg = Keyword.merge(last_arg, query_params)
           Enum.reverse([query_arg | rest])
         else
-          route_helper_args ++ [Keyword.put(query_params, :page, page)]
+          route_helper_args ++ [query_params]
         end
 
       apply(route_helper, final_route_helper_args)
