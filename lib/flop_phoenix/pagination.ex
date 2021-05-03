@@ -24,21 +24,9 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   def build_page_link_helper(meta, route_helper, route_helper_args) do
-    query_params = Flop.Phoenix.to_query(meta.flop)
-    [last_arg | rest] = Enum.reverse(route_helper_args)
-
     fn page ->
-      query_params = Keyword.put(query_params, :page, page)
-
-      final_route_helper_args =
-        if is_list(last_arg) do
-          query_arg = Keyword.merge(last_arg, query_params)
-          Enum.reverse([query_arg | rest])
-        else
-          route_helper_args ++ [query_params]
-        end
-
-      apply(route_helper, final_route_helper_args)
+      flop = %{meta.flop | page: page}
+      Flop.Phoenix.build_path(route_helper, route_helper_args, flop)
     end
   end
 

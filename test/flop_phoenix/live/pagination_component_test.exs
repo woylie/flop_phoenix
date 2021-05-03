@@ -52,6 +52,6 @@ defmodule Flop.Phoenix.Live.PaginationComponentTest do
            ) =~
              ~s(<a class="pagination-previous" data-phx-link="patch" ) <>
                ~s(data-phx-link-state="push" ) <>
-               ~s(href="/pets?page=1&amp;page_size=10">Previous</a>)
+               ~s(href="/pets?page_size=10&amp;page=1">Previous</a>)
   end
 end
