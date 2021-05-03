@@ -269,24 +269,26 @@ defmodule Flop.Phoenix do
   @doc since: "0.6.0"
   def table(assigns) do
     ~L"""
-    <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
-      <thead>
-        <tr>
-          <%= for header <- @headers do %>
-            <%= render_header(header, @meta, @path_helper, @path_helper_args, @opts) %>
-          <% end %>
-        </tr>
-      </thead>
-      <tbody>
-        <%= for item <- @items do %>
+    <%= unless @items == [] do %>
+      <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
+        <thead>
           <tr>
-            <%= for column <- @row_func.(item, @opts) do %>
-              <td><%= column %></td>
+            <%= for header <- @headers do %>
+              <%= render_header(header, @meta, @path_helper, @path_helper_args, @opts) %>
             <% end %>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <%= for item <- @items do %>
+            <tr>
+              <%= for column <- @row_func.(item, @opts) do %>
+                <td><%= column %></td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
     """
   end
 

@@ -4,6 +4,7 @@ defmodule Flop.PhoenixTest do
 
   import Flop.Phoenix
   import Flop.Phoenix.Factory
+  import Phoenix.HTML.Safe, only: [to_iodata: 1]
 
   alias Flop.Meta
   alias Plug.Conn.Query
@@ -21,6 +22,14 @@ defmodule Flop.PhoenixTest do
   defp render_pagination(%Meta{} = meta, opts \\ []) do
     meta
     |> pagination(&route_helper/3, @route_helper_opts, opts)
+    |> safe_to_string()
+  end
+
+  defp render_table(assigns) do
+    assigns
+    |> table()
+    |> to_iodata()
+    |> raw()
     |> safe_to_string()
   end
 
@@ -470,6 +479,33 @@ defmodule Flop.PhoenixTest do
 
       expected = ~r/<span class="dotdotdot" title="dot">dot dot dot<\/span>/
       assert count_substrings(result, expected) == 2
+    end
+  end
+
+  describe "table/1" do
+    setup do
+      %{
+        assigns: %{
+          headers: ["name"],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{},
+          path_helper: &route_helper/3,
+          path_helper_args: [%{}, :index],
+          opts: [],
+          row_func: fn %{name: name}, _ -> [name] end
+        }
+      }
+    end
+
+    test "allows to set table class", %{assigns: assigns} do
+      assert render_table(%{assigns | opts: []}) =~ ~s(<table>)
+
+      assert render_table(%{assigns | opts: [table_class: "funky-table"]}) =~
+               ~s(<table class="funky-table">)
+    end
+
+    test "doesn't render table if items list is empty", %{assigns: assigns} do
+      refute render_table(%{assigns | items: []}) =~ ~s(<table)
     end
   end
 end
