@@ -323,9 +323,7 @@ defmodule Flop.Phoenix do
     ]
 
     keys
-    |> Enum.reduce([], fn key, acc ->
-      maybe_add_param(acc, key, Map.get(flop, key))
-    end)
+    |> Enum.reduce([], &maybe_add_param(&2, &1, Map.get(flop, &1)))
     |> maybe_add_param(:filters, filter_map)
   end
 
