@@ -140,16 +140,6 @@ defmodule Flop.Phoenix do
         end
       end
 
-  You can now also call `pagination_opts/0` when rendering pagination LiveView
-  component:
-
-      <%= live_component @socket, Flop.Phoenix.Live.PaginationComponent,
-        meta: @meta,
-        path_helper: &Routes.pet_index_path/3,
-        path_helper_args: [@socket, :index],
-        opts: pagination_opts()
-        %>
-
   ### Page link options
 
   By default, page links for all pages are show. You can limit the number of
