@@ -150,7 +150,7 @@ defmodule Flop.Phoenix do
         opts: pagination_opts()
         %>
 
-  ## Page link options
+  ### Page link options
 
   By default, page links for all pages are show. You can limit the number of
   page links or disable them altogether by passing the `:page_links` option.
@@ -162,7 +162,7 @@ defmodule Flop.Phoenix do
     are always displayed. The `x` refers to the number of additional page links
     to show.
 
-  ## Attributes and CSS classes
+  ### Attributes and CSS classes
 
   You can overwrite the default attributes of the `<nav>` tag and the pagination
   links by passing these options:
@@ -177,20 +177,20 @@ defmodule Flop.Phoenix do
   - `:ellipsis_attrs`: attributes for the ellipsis element (`<span>`)
   - `:ellipsis_content`: content for the ellipsis element (`<span>`)
 
-  ## Pagination link aria label
+  ### Pagination link aria label
 
   For the page links, there is the `:pagination_link_aria_label` option to set
   the aria label. Since the page number is usually part of the aria label, you
   need to pass a function that takes the page number as an integer and returns
   the label as a string. The default is `&"Goto page \#{&1}"`.
 
-  ## Previous/next links
+  ### Previous/next links
 
   By default, the previous and next links contain the texts `Previous` and
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
 
-  ## Customization example
+  ### Customization example
 
       def pagination(meta, path_helper, path_helper_args) do
         opts = [
@@ -276,7 +276,7 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Table
 
   @doc """
-  Renders a pagination component.
+  Generates a pagination element.
 
   - `meta`: The meta information of the query as returned by the `Flop` query
     functions.
@@ -286,7 +286,10 @@ defmodule Flop.Phoenix do
     function, e.g. `[@conn, :index]`. The page number and page size will be
     added as query parameters.
   - `opts`: Options to customize the pagination. See section Customization.
+
+  See the module documentation for examples.
   """
+  @doc section: :generators
   @spec pagination(Meta.t(), function, [any], keyword) ::
           Phoenix.LiveView.Rendered.t()
 
@@ -315,7 +318,7 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
-  Renders a table with sortable columns.
+  Generates a table with sortable columns.
 
   The argument is a map with the following keys:
 
@@ -346,8 +349,11 @@ defmodule Flop.Phoenix do
     sorted in ascending order. Defaults to `"▴"`.
   - `:symbol_desc` - The symbol that is used to indicate that the column is
     sorted in ascending order. Defaults to `"▾"`.
+
+  See the module documentation for examples.
   """
   @doc since: "0.6.0"
+  @doc section: :generators
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     ~L"""
@@ -413,8 +419,9 @@ defmodule Flop.Phoenix do
       iex> f |> to_query() |> Plug.Conn.Query.encode()
       "filters[0][field]=name&filters[0][op]=%3D~&filters[0][value]=Mag&filters[1][field]=age&filters[1][op]=%3E&filters[1][value]=25"
   """
-  @spec to_query(Flop.t()) :: keyword
   @doc since: "0.6.0"
+  @doc section: :miscellaneous
+  @spec to_query(Flop.t()) :: keyword
   def to_query(%Flop{filters: filters} = flop) do
     filter_map =
       filters
@@ -447,8 +454,8 @@ defmodule Flop.Phoenix do
   defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
 
   @doc """
-  Takes a Phoenix path helper function, a list of path helper arguments and
-  builds a path that includes query parameters for the `Flop` struct.
+  Takes a Phoenix path helper function and a list of path helper arguments and
+  builds a path that includes query parameters for the given `Flop` struct.
 
   ## Examples
 
@@ -505,6 +512,7 @@ defmodule Flop.Phoenix do
   """
 
   @doc since: "0.6.0"
+  @doc section: :miscellaneous
   @spec build_path(function, [any], Meta.t() | Flop.t() | keyword) :: String.t()
   def build_path(path_helper, args, %Meta{flop: flop}),
     do: build_path(path_helper, args, flop)

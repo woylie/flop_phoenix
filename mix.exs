@@ -82,7 +82,11 @@ defmodule FlopPhoenix.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "CHANGELOG.md"]
+      extras: ["README.md", "CHANGELOG.md"],
+      groups_for_functions: [
+        Generators: &(&1[:section] == :generators),
+        Miscellaneous: &(&1[:section] == :miscellaneous)
+      ]
     ]
   end
 end
