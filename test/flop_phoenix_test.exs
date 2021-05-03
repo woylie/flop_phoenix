@@ -8,7 +8,7 @@ defmodule Flop.PhoenixTest do
   alias Flop.Meta
   alias Plug.Conn.Query
 
-  doctest Flop.Phoenix
+  doctest Flop.Phoenix, import: true
 
   @route_helper_opts [%{}, :pets]
 

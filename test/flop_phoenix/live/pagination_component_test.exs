@@ -8,8 +8,6 @@ defmodule Flop.Phoenix.Live.PaginationComponentTest do
   alias Flop.Phoenix.Live.PaginationComponent
   alias Plug.Conn.Query
 
-  doctest Flop.Phoenix
-
   @endpoint Flop.Phoenix.Endpoint
   @route_helper_opts [%{}, :pets]
 

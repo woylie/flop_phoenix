@@ -260,4 +260,77 @@ defmodule Flop.Phoenix do
       ]
     end
   end
+
+  @doc """
+  Converts a Flop struct into a keyword list that can be used as a query with
+  Phoenix route helper functions.
+
+  ## Examples
+
+      iex> to_query(%Flop{})
+      []
+
+      iex> f = %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
+      iex> to_query(f)
+      [order_directions: [:desc, :asc], order_by: [:name, :age]]
+      iex> f |> to_query |> Plug.Conn.Query.encode()
+      "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
+
+      iex> f = %Flop{page: 5, page_size: 20}
+      iex> to_query(f)
+      [page_size: 20, page: 5]
+
+      iex> f = %Flop{first: 20, after: "g3QAAAABZAAEbmFtZW0AAAAFQXBwbGU="}
+      iex> to_query(f)
+      [first: 20, after: "g3QAAAABZAAEbmFtZW0AAAAFQXBwbGU="]
+
+      iex> f = %Flop{
+      ...>   filters: [
+      ...>     %Flop.Filter{field: :name, op: :=~, value: "Mag"},
+      ...>     %Flop.Filter{field: :age, op: :>, value: 25}
+      ...>   ]
+      ...> }
+      iex> to_query(f)
+      [
+        filters: %{
+          0 => %{field: :name, op: :=~, value: "Mag"},
+          1 => %{field: :age, op: :>, value: 25}
+        }
+      ]
+      iex> f |> to_query() |> Plug.Conn.Query.encode()
+      "filters[0][field]=name&filters[0][op]=%3D~&filters[0][value]=Mag&filters[1][field]=age&filters[1][op]=%3E&filters[1][value]=25"
+  """
+  @spec to_query(Flop.t()) :: keyword
+  def to_query(%Flop{filters: filters} = flop) do
+    filter_map =
+      filters
+      |> Stream.with_index()
+      |> Enum.into(%{}, fn {filter, index} ->
+        {index, Map.from_struct(filter)}
+      end)
+
+    keys = [
+      :after,
+      :before,
+      :first,
+      :last,
+      :limit,
+      :offset,
+      :order_by,
+      :order_directions,
+      :page,
+      :page_size
+    ]
+
+    keys
+    |> Enum.reduce([], fn key, acc ->
+      maybe_add_param(acc, key, Map.get(flop, key))
+    end)
+    |> maybe_add_param(:filters, filter_map)
+  end
+
+  defp maybe_add_param(params, _, nil), do: params
+  defp maybe_add_param(params, _, []), do: params
+  defp maybe_add_param(params, _, map) when map == %{}, do: params
+  defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
 end
