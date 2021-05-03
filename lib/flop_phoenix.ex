@@ -308,10 +308,18 @@ defmodule Flop.Phoenix do
 
     ~L"""
     <th>
-      <%= live_patch @value,
-        to: Flop.Phoenix.build_path(@path_helper, @path_helper_args, Flop.push_order(@flop, @field))
+      <%= live_patch(@value,
+            to:
+              Flop.Phoenix.build_path(
+                @path_helper,
+                @path_helper_args,
+                Flop.push_order(@flop, @field)
+              )
+          )
       %>
-      <span class="<%= @opts[:symbol_class] || "order-direction" %>"><%= flop |> current_direction(field) |> render_arrow(@opts) %></span>
+      <span class="<%= @opts[:symbol_class] || "order-direction" %>">
+        <%= flop |> current_direction(field) |> render_arrow(@opts) %>
+      </span>
     </th>
     """
   end
