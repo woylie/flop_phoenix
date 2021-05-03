@@ -222,8 +222,8 @@ defmodule Flop.Phoenix do
 
   ## Sortable table
 
-  Let's say we want to add a sortable table for pets on the same page. In
-  `MyAppWeb.PetView`, define a function that returns the table headers:
+  To add a sortable table for pets on the same page, define a function in
+  `MyAppWeb.PetView` that returns the table headers:
 
       def table_headers do
         ["ID", {"Name", :name}, {"Age", :age}, ""]
@@ -231,12 +231,9 @@ defmodule Flop.Phoenix do
 
   This defines four header columns: One for the ID, which is not sortable, and
   columns for the name and the age, which are both sortable, and a fourth
-  column without a header value for the column that holds the links to the
-  detail pages.
-
-  This will result in the header values `"ID"`, `"Name"`, `"Age"`, and `""`,
-  where name and age will be linked so that they change the order on the `:name`
-  and `:age` field, respectively.
+  column without a header value. The last column will hold the links to the
+  detail pages. The name and age column headers will be linked, so that they the
+  order on the `:name` and `:age` field, respectively.
 
   Next, we define a function that returns the column values for a single pet:
 
@@ -245,8 +242,8 @@ defmodule Flop.Phoenix do
         [id, name, age, link("show", to: Routes.pet_path(conn, :show, id))]
       end
 
-  The controller already assigns the pets and the meta struct to the conn. Now
-  all you have to do is to add the table to your index template:
+  The controller already assigns the pets and the meta struct to the conn. All
+  that's left to do is to add the table to the index template:
 
       <%= table(%{
             items: @pets,
