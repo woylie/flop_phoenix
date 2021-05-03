@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.6.0] - 2021-05-04
+
 ### Added
 
 - Add `Flop.Phoenix.table/1` for rendering sortable tables.
