@@ -219,6 +219,55 @@ defmodule Flop.Phoenix do
         content_tag :i, class: "fas fa-chevron-left" do
         end
       end
+
+  ## Sortable table
+
+  Let's say we want to add a sortable table for pets on the same page. In
+  `MyAppWeb.PetView`, define a function that returns the table headers:
+
+      def table_headers do
+        ["ID", {"Name", :name}, {"Age", :age}, ""]
+      end
+
+  This defines four header columns: One for the ID, which is not sortable, and
+  columns for the name and the age, which are both sortable, and a fourth
+  column without a header value for the column that holds the links to the
+  detail pages.
+
+  This will result in the header values `"ID"`, `"Name"`, `"Age"`, and `""`,
+  where name and age will be linked so that they change the order on the `:name`
+  and `:age` field, respectively.
+
+  Next, we define a function that returns the column values for a single pet:
+
+      def table_row(%Pet{id: id, name: name, age: age}, opts) do
+        conn = Keyword.fetch!(opts, :conn)
+        [id, name, age, link("show", to: Routes.pet_path(conn, :show, id))]
+      end
+
+  The controller already assigns the pets and the meta struct to the conn. Now
+  all you have to do is to add the table to your index template:
+
+      <%= table(%{
+            items: @pets,
+            meta: @meta,
+            path_helper: &Routes.pet_path/3,
+            path_helper_args: [@conn, :index],
+            headers: table_headers(),
+            row_func: &table_row/2,
+            opts: [conn: @conn]
+        })
+      %>
+
+  ## LiveView
+
+  The functions in this module can be used in both `.eex` and `.leex` templates.
+
+  Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
+  lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
+  which will be ignored in `.eex` templates. When used in LiveView templates,
+  you will need to handle the new params in the `handle_params/3` callback of
+  your LiveView module.
   """
 
   use Phoenix.HTML
@@ -265,6 +314,34 @@ defmodule Flop.Phoenix do
 
   @doc """
   Renders a table with sortable columns.
+
+  The argument is a map with the following keys:
+
+  - `headers`: A list of header columns. Can be a list of strings (or markup),
+    or a list of `{value, field_name}` tuples.
+  - `items`: The list of items to be displayed in rows. This is the result list
+    returned by the query.
+  - `meta`: The `Flop.Meta` struct returned by the query function.
+  - `path_helper`: The Phoenix path or url helper that leads to the current
+    page.
+  - `path_helper_args`: The argument list for the path helper. For example, if
+    you would call `Routes.pet_path(@conn, :index)` to generate the path for the
+    current page, this would be `[@conn, :index]`.
+  - `opts`: Keyword list with additional options (see below). This list will
+    also be passed as the second argument to the row function.
+  - `row_func`: A function that takes one item of the `items` list and the
+    `opts` and returns the column values for that item's row.
+
+  ## Available options
+
+  - `:table_class` - The CSS class for the `<table>` element. No default.
+  - `:symbol_class` - The CSS class for the `<span>` element that wraps the
+    order direction indicator in the header columns. Defaults to
+    `"order-direction"`.
+  - `:symbol_asc` - The symbol that is used to indicate that the column is
+    sorted in ascending order. Defaults to `"▴"`.
+  - `:symbol_desc` - The symbol that is used to indicate that the column is
+    sorted in ascending order. Defaults to `"▾"`.
   """
   @doc since: "0.6.0"
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
