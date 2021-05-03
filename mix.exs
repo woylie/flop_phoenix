@@ -1,10 +1,13 @@
 defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/woylie/flop_phoenix"
+  @version "0.5.1"
+
   def project do
     [
       app: :flop_phoenix,
-      version: "0.5.1",
+      version: @version,
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -24,14 +27,11 @@ defmodule FlopPhoenix.MixProject do
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       name: "Flop Phoenix",
-      source_url: "https://github.com/woylie/flop_phoenix",
-      homepage_url: "https://github.com/woylie/flop_phoenix",
+      source_url: @source_url,
+      homepage_url: @source_url,
       description: description(),
       package: package(),
-      docs: [
-        main: "readme",
-        extras: ["README.md", "CHANGELOG.md"]
-      ],
+      docs: docs(),
       consolidate_protocols: Mix.env() != :test
     ]
   end
@@ -71,8 +71,18 @@ defmodule FlopPhoenix.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/woylie/flop_phoenix"},
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => "https://hexdocs.pm/flop_phoenix/changelog.html"
+      },
       files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*)
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md", "CHANGELOG.md"]
     ]
   end
 end
