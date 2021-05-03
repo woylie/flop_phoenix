@@ -548,6 +548,31 @@ defmodule Flop.PhoenixTest do
                ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
     end
 
+    test "checks for sortability if for option is set", %{assigns: assigns} do
+      # without :for option
+      html =
+        render_table(%{
+          assigns
+          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}]
+        })
+
+      assert html =~ ~s(Name</a>)
+      assert html =~ ~s(Age</a>)
+      assert html =~ ~s(Species</a>)
+
+      # with :for option
+      html =
+        render_table(%{
+          assigns
+          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}],
+            opts: [for: Flop.Phoenix.Pet]
+        })
+
+      assert html =~ ~s(Name</a>)
+      assert html =~ ~s(Age</a>)
+      refute html =~ ~s(Species</a>)
+    end
+
     test "renders order direction symbol", %{assigns: assigns} do
       refute render_table(%{
                assigns

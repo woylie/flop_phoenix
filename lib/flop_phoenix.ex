@@ -335,6 +335,8 @@ defmodule Flop.Phoenix do
 
   ## Available options
 
+  - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
+    only added for fields that are defined as sortable.
   - `:table_class` - The CSS class for the `<table>` element. No default.
   - `:symbol_class` - The CSS class for the `<span>` element that wraps the
     order direction indicator in the header columns. Defaults to
@@ -390,18 +392,22 @@ defmodule Flop.Phoenix do
 
     ~L"""
     <th>
-      <%= live_patch(@value,
-            to:
-              Flop.Phoenix.build_path(
-                @path_helper,
-                @path_helper_args,
-                Flop.push_order(@flop, @field)
-              )
-          )
-      %>
-      <span class="<%= @opts[:symbol_class] || "order-direction" %>">
-        <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
-      </span>
+      <%= if is_sortable?(field, opts[:for]) do %>
+        <%= live_patch(@value,
+              to:
+                Flop.Phoenix.build_path(
+                  @path_helper,
+                  @path_helper_args,
+                  Flop.push_order(@flop, @field)
+                )
+            )
+        %>
+        <span class="<%= @opts[:symbol_class] || "order-direction" %>">
+          <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
+        </span>
+      <% else %>
+        <th><%= @value %></th>
+      <% end %>
     </th>
     """
   end
@@ -413,6 +419,11 @@ defmodule Flop.Phoenix do
     <th><%= @value %></th>
     """
   end
+
+  defp is_sortable?(_, nil), do: true
+
+  defp is_sortable?(field, module),
+    do: field in (module |> struct() |> Flop.Schema.sortable())
 
   defp render_arrow(nil, _), do: ""
 
