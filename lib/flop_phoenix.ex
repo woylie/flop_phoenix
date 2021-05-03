@@ -201,13 +201,11 @@ defmodule Flop.Phoenix do
       end
 
       defp next_icon do
-        content_tag :i, class: "fas fa-chevron-right" do
-        end
+        tag :i, class: "fas fa-chevron-right"
       end
 
       defp previous_icon do
-        content_tag :i, class: "fas fa-chevron-left" do
-        end
+        tag :i, class: "fas fa-chevron-left"
       end
 
   ## Sortable table
