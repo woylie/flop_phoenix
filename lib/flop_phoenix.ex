@@ -337,14 +337,18 @@ defmodule Flop.Phoenix do
 
   defp render_arrow(nil, _), do: ""
 
-  defp render_arrow(direction, opts)
-       when direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
-    Keyword.get(opts, :symbol_asc, "▴")
-  end
+  defp render_arrow(direction, opts) do
+    assigns = %{__changed__: nil, direction: direction, opts: opts}
 
-  defp render_arrow(direction, opts)
-       when direction in [:desc, :desc_nulls_first, :desc_nulls_last] do
-    Keyword.get(opts, :symbol_desc, "▾")
+    ~L"""
+    <span class="<%= @opts[:symbol_class] || "order-direction" %>"><%=
+      if direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
+        Keyword.get(opts, :symbol_asc, "▴")
+      else
+        Keyword.get(opts, :symbol_desc, "▾")
+      end
+    %></span>
+    """
   end
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil

@@ -488,11 +488,11 @@ defmodule Flop.PhoenixTest do
         assigns: %{
           headers: ["name"],
           items: [%{name: "George"}],
-          meta: %Flop.Meta{},
+          meta: %Flop.Meta{flop: %Flop{}},
           path_helper: &route_helper/3,
           path_helper_args: [%{}, :index],
           opts: [],
-          row_func: fn %{name: name}, _ -> [name] end
+          row_func: fn %{name: name}, _opts -> [name] end
         }
       }
     end
@@ -506,6 +506,93 @@ defmodule Flop.PhoenixTest do
 
     test "doesn't render table if items list is empty", %{assigns: assigns} do
       refute render_table(%{assigns | items: []}) =~ ~s(<table)
+    end
+
+    test "displays headers without sorting function", %{assigns: assigns} do
+      html = render_table(%{assigns | headers: ["Name", "Age"]})
+      assert html =~ ~s(<th>Name</th>)
+      assert html =~ ~s(<th>Age</th>)
+    end
+
+    test "displays headers with sorting function", %{assigns: assigns} do
+      html = render_table(%{assigns | headers: ["Name", {"Age", :age}]})
+      assert html =~ ~s(<th>Name</th>)
+
+      assert html =~
+               ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
+    end
+
+    test "renders order direction symbol", %{assigns: assigns} do
+      refute render_table(%{
+               assigns
+               | meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 }
+             }) =~ ~s(<span class="order-direction")
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 }
+             }) =~ ~s(<span class="order-direction">▴</span>)
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
+                 }
+             }) =~ ~s(<span class="order-direction">▾</span>)
+    end
+
+    test "allows to set symbol class", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 },
+                 opts: [symbol_class: "other-class"]
+             }) =~ ~s(<span class="other-class")
+    end
+
+    test "allows to override default symbols", %{assigns: assigns} do
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
+                 },
+                 opts: [symbol_asc: "asc"]
+             }) =~ ~s(<span class="order-direction">asc</span>)
+
+      assert render_table(%{
+               assigns
+               | headers: [{"Name", :name}],
+                 meta: %Flop.Meta{
+                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
+                 },
+                 opts: [symbol_desc: "desc"]
+             }) =~ ~s(<span class="order-direction">desc</span>)
+    end
+
+    test "renders all items", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
+            opts: [appendix: "-chan"],
+            row_func: fn %{age: age, name: name}, opts ->
+              [name <> opts[:appendix], age]
+            end
+        })
+
+      assert html =~ ~s(<td>George-chan</td>)
+      assert html =~ ~s(<td>8</td>)
+      assert html =~ ~s(<td>Barbara-chan</td>)
+      assert html =~ ~s(<td>2</td>)
     end
   end
 end
