@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.6.1] - 2021-05-05
+
+### Fixed
+
+- Pagination helper generated invalid links when using `default_limit` option.
+
 ## [0.6.0] - 2021-05-04
 
 ### Added

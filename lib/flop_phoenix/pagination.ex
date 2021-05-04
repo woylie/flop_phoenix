@@ -24,12 +24,19 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   def build_page_link_helper(meta, route_helper, route_helper_args) do
-    query_params = Flop.Phoenix.to_query(meta.flop)
+    query_params =
+      meta.flop |> ensure_page_based_params() |> Flop.Phoenix.to_query()
 
     fn page ->
       params = Keyword.put(query_params, :page, page)
       Flop.Phoenix.build_path(route_helper, route_helper_args, params)
     end
+  end
+
+  defp ensure_page_based_params(%Flop{} = flop) do
+    # using default_limit without passing a page parameter produces a Flop
+    # with only the limit set
+    %{flop | limit: nil, page_size: flop.page_size || flop.limit}
   end
 
   @spec previous_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
