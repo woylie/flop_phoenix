@@ -506,6 +506,18 @@ defmodule Flop.PhoenixTest do
       expected = ~r/<span class="dotdotdot" title="dot">dot dot dot<\/span>/
       assert count_substrings(result, expected) == 2
     end
+
+    test "always uses page/page_size" do
+      result =
+        render_pagination(
+          build(:meta_on_second_page,
+            flop: %Flop{limit: 2, page: 2, page_size: nil}
+          )
+        )
+
+      assert result =~ "page_size=2"
+      refute result =~ "limit=2"
+    end
   end
 
   describe "table/1" do
