@@ -83,6 +83,7 @@ defmodule FlopPhoenix.MixProject do
     [
       main: "readme",
       extras: ["README.md", "CHANGELOG.md"],
+      source_ref: "main",
       groups_for_functions: [
         Generators: &(&1[:section] == :generators),
         Miscellaneous: &(&1[:section] == :miscellaneous)
