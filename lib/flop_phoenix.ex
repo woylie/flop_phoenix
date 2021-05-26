@@ -330,6 +330,8 @@ defmodule Flop.Phoenix do
   - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
     only added for fields that are defined as sortable.
   - `:table_class` - The CSS class for the `<table>` element. No default.
+  - `:th_wrapper_class` - The CSS class for the `<span>` element that wraps the
+    header link and the order direction symbol. No default.
   - `:symbol_class` - The CSS class for the `<span>` element that wraps the
     order direction indicator in the header columns. Defaults to
     `"order-direction"`.
