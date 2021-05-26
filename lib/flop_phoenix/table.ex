@@ -48,16 +48,16 @@ defmodule Flop.Phoenix.Table do
     ~L"""
     <th>
       <%= if is_sortable?(field, opts[:for]) do %>
-        <%= live_patch(@value,
-              to:
-                Flop.Phoenix.build_path(
-                  @path_helper,
-                  @path_helper_args,
-                  Flop.push_order(@flop, @field)
-                )
-            )
-        %>
-        <span class="<%= @opts[:symbol_class] || "order-direction" %>">
+        <span class="<%= @opts[:th_wrapper_class] %>">
+          <%= live_patch(@value,
+                to:
+                  Flop.Phoenix.build_path(
+                    @path_helper,
+                    @path_helper_args,
+                    Flop.push_order(@flop, @field)
+                  )
+              )
+          %>
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
         </span>
       <% else %>

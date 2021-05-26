@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- Add wrapper around sortable table header link and order direction indicator.
+
+### Fixed
+
+- Order direction indicator was wrapped twice.
+
 ## [0.6.1] - 2021-05-05
 
 ### Fixed
