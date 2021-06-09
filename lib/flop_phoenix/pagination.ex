@@ -36,7 +36,14 @@ defmodule Flop.Phoenix.Pagination do
   defp ensure_page_based_params(%Flop{} = flop) do
     # using default_limit without passing a page parameter produces a Flop
     # with only the limit set
-    %{flop | limit: nil, page_size: flop.page_size || flop.limit}
+
+    %{
+      flop
+      | limit: nil,
+        offset: nil,
+        page_size: flop.page_size || flop.limit,
+        page: flop.page
+    }
   end
 
   @spec previous_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
