@@ -164,6 +164,9 @@ defmodule Flop.Phoenix do
     `<span>` if disabled)
   - `:pagination_list_attrs`: attributes for the page link list (`<ul>`)
   - `:pagination_link_attrs`: attributes for the page links (`<a>`)
+  - `:current_link_attrs`: attributes for the page link to the current page
+    (`<a>`) - note that the `pagination_link_attrs` are not applied to the
+    current page link
   - `:ellipsis_attrs`: attributes for the ellipsis element (`<span>`)
   - `:ellipsis_content`: content for the ellipsis element (`<span>`)
 
