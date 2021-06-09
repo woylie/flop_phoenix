@@ -507,16 +507,18 @@ defmodule Flop.PhoenixTest do
       assert count_substrings(result, expected) == 2
     end
 
+    @tag :this
     test "always uses page/page_size" do
       result =
         render_pagination(
           build(:meta_on_second_page,
-            flop: %Flop{limit: 2, page: 2, page_size: nil}
+            flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
           )
         )
 
       assert result =~ "page_size=2"
       refute result =~ "limit=2"
+      refute result =~ "offset=3"
     end
   end
 
