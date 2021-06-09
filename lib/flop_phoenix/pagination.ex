@@ -8,10 +8,15 @@ defmodule Flop.Phoenix.Pagination do
   alias Flop.Meta
 
   @current_link_class "pagination-link is-current"
+  @ellipsis_class "pagination-ellipsis"
   @link_class "pagination-link"
   @next_link_class "pagination-next"
+  @pagination_list_class "pagination-list"
   @previous_link_class "pagination-previous"
   @wrapper_class "pagination"
+
+  @next_link_content "Next"
+  @previous_link_content "Previous"
 
   def init_opts(opts) do
     Keyword.put_new(opts || [], :page_links, :all)
@@ -55,7 +60,7 @@ defmodule Flop.Phoenix.Pagination do
       |> Keyword.get(:previous_link_attrs, [])
       |> Keyword.put_new(:class, @previous_link_class)
 
-    content = opts[:previous_link_content] || "Previous"
+    content = opts[:previous_link_content] || @previous_link_content
 
     if meta.has_previous_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
@@ -79,7 +84,7 @@ defmodule Flop.Phoenix.Pagination do
       |> Keyword.get(:next_link_attrs, [])
       |> Keyword.put_new(:class, @next_link_class)
 
-    content = opts[:next_link_content] || "Next"
+    content = opts[:next_link_content] || @next_link_content
 
     if meta.has_next_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
@@ -130,12 +135,12 @@ defmodule Flop.Phoenix.Pagination do
     list_attrs =
       opts
       |> Keyword.get(:pagination_list_attrs, [])
-      |> Keyword.put_new(:class, "pagination-list")
+      |> Keyword.put_new(:class, @pagination_list_class)
 
     ellipsis_attrs =
       opts
       |> Keyword.get(:ellipsis_attrs, [])
-      |> Keyword.put_new(:class, "pagination-ellipsis")
+      |> Keyword.put_new(:class, @ellipsis_class)
 
     ellipsis_content = Keyword.get(opts, :ellipsis_content, raw("&hellip;"))
 
