@@ -5,10 +5,13 @@
 ### Changed
 
 - Add wrapper around sortable table header link and order direction indicator.
+- Add option `current_link_attrs` to pagination builder. The
+  `pagination_link_attrs` is not applied to current links anymore.
 
 ### Fixed
 
 - Order direction indicator was wrapped twice.
+- A Flop struct with an offset was resulting in invalid pagination links.
 
 ## [0.6.1] - 2021-05-05
 
