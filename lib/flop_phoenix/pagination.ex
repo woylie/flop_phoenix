@@ -7,9 +7,16 @@ defmodule Flop.Phoenix.Pagination do
 
   alias Flop.Meta
 
+  @current_link_class "pagination-link is-current"
+  @ellipsis_class "pagination-ellipsis"
+  @link_class "pagination-link"
   @next_link_class "pagination-next"
+  @pagination_list_class "pagination-list"
   @previous_link_class "pagination-previous"
   @wrapper_class "pagination"
+
+  @next_link_content "Next"
+  @previous_link_content "Previous"
 
   def init_opts(opts) do
     Keyword.put_new(opts || [], :page_links, :all)
@@ -53,7 +60,7 @@ defmodule Flop.Phoenix.Pagination do
       |> Keyword.get(:previous_link_attrs, [])
       |> Keyword.put_new(:class, @previous_link_class)
 
-    content = opts[:previous_link_content] || "Previous"
+    content = opts[:previous_link_content] || @previous_link_content
 
     if meta.has_previous_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
@@ -77,7 +84,7 @@ defmodule Flop.Phoenix.Pagination do
       |> Keyword.get(:next_link_attrs, [])
       |> Keyword.put_new(:class, @next_link_class)
 
-    content = opts[:next_link_content] || "Next"
+    content = opts[:next_link_content] || @next_link_content
 
     if meta.has_next_page? do
       attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
@@ -116,18 +123,24 @@ defmodule Flop.Phoenix.Pagination do
     link_attrs =
       opts
       |> Keyword.get(:pagination_link_attrs, [])
-      |> Keyword.put_new(:class, "pagination-link")
+      |> Keyword.put_new(:class, @link_class)
       |> Keyword.put_new(:aria, [])
+
+    current_link_attrs =
+      opts
+      |> Keyword.get(:current_link_attrs, [])
+      |> Keyword.put_new(:class, @current_link_class)
+      |> Keyword.put_new(:aria, current: "page")
 
     list_attrs =
       opts
       |> Keyword.get(:pagination_list_attrs, [])
-      |> Keyword.put_new(:class, "pagination-list")
+      |> Keyword.put_new(:class, @pagination_list_class)
 
-    ellipsis_class =
+    ellipsis_attrs =
       opts
       |> Keyword.get(:ellipsis_attrs, [])
-      |> Keyword.put_new(:class, "pagination-ellipsis")
+      |> Keyword.put_new(:class, @ellipsis_class)
 
     ellipsis_content = Keyword.get(opts, :ellipsis_content, raw("&hellip;"))
 
@@ -137,17 +150,25 @@ defmodule Flop.Phoenix.Pagination do
 
     start_ellipsis =
       if first > 2,
-        do: pagination_ellipsis(ellipsis_class, ellipsis_content),
+        do: pagination_ellipsis(ellipsis_attrs, ellipsis_content),
         else: raw(nil)
 
     end_ellipsis =
       if last < meta.total_pages - 1,
-        do: pagination_ellipsis(ellipsis_class, ellipsis_content),
+        do: pagination_ellipsis(ellipsis_attrs, ellipsis_content),
         else: raw(nil)
 
     first_link =
       if first > 1,
-        do: page_link_tag(1, meta, link_attrs, aria_label, route_func),
+        do:
+          page_link_tag(
+            1,
+            meta,
+            link_attrs,
+            current_link_attrs,
+            aria_label,
+            route_func
+          ),
         else: raw(nil)
 
     last_link =
@@ -157,6 +178,7 @@ defmodule Flop.Phoenix.Pagination do
             meta.total_pages,
             meta,
             link_attrs,
+            current_link_attrs,
             aria_label,
             route_func
           ),
@@ -164,7 +186,14 @@ defmodule Flop.Phoenix.Pagination do
 
     links =
       for page <- range do
-        page_link_tag(page, meta, link_attrs, aria_label, route_func)
+        page_link_tag(
+          page,
+          meta,
+          link_attrs,
+          current_link_attrs,
+          aria_label,
+          route_func
+        )
       end
 
     content_tag :ul, list_attrs do
@@ -182,16 +211,19 @@ defmodule Flop.Phoenix.Pagination do
          page,
          meta,
          link_attrs,
+         current_link_attrs,
          aria_label,
          route_func
        ) do
     attrs =
-      link_attrs
+      if meta.current_page == page, do: current_link_attrs, else: link_attrs
+
+    attrs =
+      attrs
       |> Keyword.update!(
         :aria,
         &Keyword.put(&1, :label, aria_label.(page))
       )
-      |> add_current_attrs(meta.current_page == page)
       |> Keyword.put(:to, route_func.(page))
 
     content_tag :li do
@@ -223,13 +255,5 @@ defmodule Flop.Phoenix.Pagination do
         content
       end
     end
-  end
-
-  defp add_current_attrs(attrs, false), do: attrs
-
-  defp add_current_attrs(attrs, true) do
-    attrs
-    |> Keyword.update!(:aria, &Keyword.put(&1, :current, "page"))
-    |> Keyword.update!(:class, &"#{&1} is-current")
   end
 end

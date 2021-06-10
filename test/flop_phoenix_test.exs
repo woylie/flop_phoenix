@@ -252,11 +252,35 @@ defmodule Flop.PhoenixTest do
                  ~s(href="/pets?page=1&amp;page_size=10">) <>
                  ~s(1</a></li>)
 
+      # current link attributes are unchanged
+      assert result =~
+               ~s(<li>) <>
+                 ~s(<a aria-current="page" ) <>
+                 ~s(aria-label="Goto page 2" ) <>
+                 ~s(class="pagination-link is-current" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+    end
+
+    test "allows to overwrite current attributes" do
+      result =
+        render_pagination(
+          build(:meta_on_second_page),
+          current_link_attrs: [class: "link is-active", beep: "boop"]
+        )
+
+      assert result =~
+               ~s(<li>) <>
+                 ~s(<a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
+                 ~s(href="/pets?page=1&amp;page_size=10">) <>
+                 ~s(1</a></li>)
+
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" ) <>
                  ~s(aria-label="Goto page 2" beep="boop" ) <>
-                 ~s(class="p-link is-current" ) <>
+                 ~s(class="link is-active" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
     end
