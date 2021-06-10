@@ -183,10 +183,16 @@ defmodule Flop.Phoenix do
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
 
+  ### Hiding default parameters
+
+  Default values for page size and ordering are omitted from the query
+  parameters. If you pass the `:for` option, the Flop.Phoenix function will
+  pick up the default values from the schema module deriving `Flop.Schema`.
+
   ### Customization example
 
-      def pagination(meta, path_helper, path_helper_args) do
-        opts = [
+      def pagination(meta, path_helper, path_helper_args, opts) do
+        default_opts = [
           ellipsis_attrs: [class: "ellipsis"],
           ellipsis_content: "‥",
           next_link_attrs: [class: "next"],
@@ -200,6 +206,7 @@ defmodule Flop.Phoenix do
           wrapper_attrs: [class: "paginator"]
         ]
 
+        opts = Keyword.merge(default_opts, opts)
         Flop.Phoenix.pagination(meta, path_helper, path_helper_args, opts)
       end
 
@@ -294,7 +301,12 @@ defmodule Flop.Phoenix do
       meta: meta,
       opts: Pagination.init_opts(opts),
       page_link_helper:
-        Pagination.build_page_link_helper(meta, path_helper, path_helper_args)
+        Pagination.build_page_link_helper(
+          meta,
+          path_helper,
+          path_helper_args,
+          opts
+        )
     }
 
     ~L"""
@@ -369,6 +381,12 @@ defmodule Flop.Phoenix do
   Converts a Flop struct into a keyword list that can be used as a query with
   Phoenix route helper functions.
 
+  Default limits and default order parameters set via the application
+  environment are omitted. You can pass the `:for` option to pick up the
+  default options from a schema module deriving `Flop.Schema`. You can also
+  pass `default_limit` and `default_order` as options directly. The function
+  uses `Flop.get_option/2` internally to retrieve the default options.
+
   ## Examples
 
       iex> to_query(%Flop{})
@@ -403,11 +421,15 @@ defmodule Flop.Phoenix do
       ]
       iex> f |> to_query() |> Plug.Conn.Query.encode()
       "filters[0][field]=name&filters[0][op]=%3D~&filters[0][value]=Mag&filters[1][field]=age&filters[1][op]=%3E&filters[1][value]=25"
+
+      iex> f = %Flop{page: 5, page_size: 20}
+      iex> to_query(f, default_limit: 20)
+      [page: 5]
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
   @spec to_query(Flop.t()) :: keyword
-  def to_query(%Flop{filters: filters} = flop) do
+  def to_query(%Flop{filters: filters} = flop, opts \\ []) do
     filter_map =
       filters
       |> Stream.with_index()
@@ -420,29 +442,54 @@ defmodule Flop.Phoenix do
       :before,
       :first,
       :last,
-      :limit,
       :offset,
-      :order_by,
-      :order_directions,
-      :page,
-      :page_size
+      :page
     ]
+
+    default_limit = Flop.get_option(:default_limit, opts)
+    default_order = Flop.get_option(:default_order, opts)
 
     keys
     |> Enum.reduce([], &maybe_add_param(&2, &1, Map.get(flop, &1)))
+    |> maybe_add_param(:page_size, flop.page_size, default_limit)
+    |> maybe_add_param(:limit, flop.limit, default_limit)
+    |> maybe_add_order_params(flop, default_order)
     |> maybe_add_param(:filters, filter_map)
   end
 
-  defp maybe_add_param(params, _, nil), do: params
-  defp maybe_add_param(params, _, []), do: params
-  defp maybe_add_param(params, _, map) when map == %{}, do: params
-  defp maybe_add_param(params, :page, 1), do: params
-  defp maybe_add_param(params, :offset, 0), do: params
-  defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
+  defp maybe_add_param(params, key, value, default \\ nil)
+  defp maybe_add_param(params, _, nil, _), do: params
+  defp maybe_add_param(params, _, [], _), do: params
+  defp maybe_add_param(params, _, map, _) when map == %{}, do: params
+  defp maybe_add_param(params, :page, 1, _), do: params
+  defp maybe_add_param(params, :offset, 0, _), do: params
+  defp maybe_add_param(params, _, val, val), do: params
+  defp maybe_add_param(params, key, val, _), do: Keyword.put(params, key, val)
+
+  defp maybe_add_order_params(
+         params,
+         %Flop{order_by: order_by, order_directions: order_directions},
+         %{order_by: order_by, order_directions: order_directions}
+       ),
+       do: params
+
+  defp maybe_add_order_params(
+         params,
+         %Flop{order_by: order_by, order_directions: order_directions},
+         _
+       ) do
+    params
+    |> maybe_add_param(:order_by, order_by)
+    |> maybe_add_param(:order_directions, order_directions)
+  end
 
   @doc """
   Takes a Phoenix path helper function and a list of path helper arguments and
   builds a path that includes query parameters for the given `Flop` struct.
+
+  Default values for `limit`, `page_size`, `order_by` and `order_directions` are
+  omit from the query parameters. To pick up the default parameters from a
+  schema module deriving `Flop.Schema`, you need to pass the `:for` option.
 
   ## Examples
 
@@ -497,18 +544,20 @@ defmodule Flop.Phoenix do
       ...> )
       "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
   """
-
   @doc since: "0.6.0"
   @doc section: :miscellaneous
-  @spec build_path(function, [any], Meta.t() | Flop.t() | keyword) :: String.t()
-  def build_path(path_helper, args, %Meta{flop: flop}),
-    do: build_path(path_helper, args, flop)
+  @spec build_path(function, [any], Meta.t() | Flop.t() | keyword, keyword) ::
+          String.t()
+  def build_path(path_helper, args, meta_or_flop_or_params, opts \\ [])
 
-  def build_path(path_helper, args, %Flop{} = flop) do
-    build_path(path_helper, args, Flop.Phoenix.to_query(flop))
+  def build_path(path_helper, args, %Meta{flop: flop}, opts),
+    do: build_path(path_helper, args, flop, opts)
+
+  def build_path(path_helper, args, %Flop{} = flop, opts) do
+    build_path(path_helper, args, Flop.Phoenix.to_query(flop, opts))
   end
 
-  def build_path(path_helper, args, flop_params)
+  def build_path(path_helper, args, flop_params, _opts)
       when is_function(path_helper) and
              is_list(args) and
              is_list(flop_params) do

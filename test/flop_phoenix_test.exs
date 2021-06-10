@@ -320,9 +320,10 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page=#{page}&amp;page_size=10&amp;) <>
+        ~s(/pets?page=#{page}&amp;) <>
           ~s(order_directions[]=asc&amp;order_directions[]=desc&amp;) <>
-          ~s(order_by[]=fur_length&amp;order_by[]=curiosity)
+          ~s(order_by[]=fur_length&amp;order_by[]=curiosity&amp;) <>
+          ~s(page_size=10)
       end
 
       assert result =~
@@ -711,6 +712,65 @@ defmodule Flop.PhoenixTest do
     test "does not add params for first page/offset" do
       refute %Flop{page: 1} |> to_query() |> Keyword.has_key?(:page)
       refute %Flop{offset: 0} |> to_query() |> Keyword.has_key?(:offset)
+    end
+
+    test "does not add limit/page_size if it matches default" do
+      opts = [default_limit: 20]
+
+      assert %Flop{page_size: 10}
+             |> to_query(opts)
+             |> Keyword.has_key?(:page_size)
+
+      assert %Flop{limit: 10}
+             |> to_query(opts)
+             |> Keyword.has_key?(:limit)
+
+      refute %Flop{page_size: 20}
+             |> to_query(opts)
+             |> Keyword.has_key?(:page_size)
+
+      refute %Flop{limit: 20}
+             |> to_query(opts)
+             |> Keyword.has_key?(:limit)
+    end
+
+    test "does not order params if they match the default" do
+      opts = [
+        default_order: %{
+          order_by: [:name, :age],
+          order_directions: [:asc, :desc]
+        }
+      ]
+
+      # order_by does not match default
+      query =
+        to_query(
+          %Flop{order_by: [:name, :email], order_directions: [:asc, :desc]},
+          opts
+        )
+
+      assert Keyword.has_key?(query, :order_by)
+      assert Keyword.has_key?(query, :order_directions)
+
+      # order_directions does not match default
+      query =
+        to_query(
+          %Flop{order_by: [:name, :age], order_directions: [:desc, :desc]},
+          opts
+        )
+
+      assert Keyword.has_key?(query, :order_by)
+      assert Keyword.has_key?(query, :order_directions)
+
+      # order_by and order_directions match default
+      query =
+        to_query(
+          %Flop{order_by: [:name, :age], order_directions: [:asc, :desc]},
+          opts
+        )
+
+      refute Keyword.has_key?(query, :order_by)
+      refute Keyword.has_key?(query, :order_directions)
     end
   end
 end

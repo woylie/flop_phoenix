@@ -30,9 +30,9 @@ defmodule Flop.Phoenix.Pagination do
     |> Keyword.put_new(:aria, label: "pagination")
   end
 
-  def build_page_link_helper(meta, route_helper, route_helper_args) do
+  def build_page_link_helper(meta, route_helper, route_helper_args, opts) do
     query_params =
-      meta.flop |> ensure_page_based_params() |> Flop.Phoenix.to_query()
+      meta.flop |> ensure_page_based_params() |> Flop.Phoenix.to_query(opts)
 
     fn page ->
       params = Keyword.put(query_params, :page, page)
