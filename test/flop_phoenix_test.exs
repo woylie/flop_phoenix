@@ -700,4 +700,17 @@ defmodule Flop.PhoenixTest do
       assert html =~ ~s(<td>2</td>)
     end
   end
+
+  describe "to_query/2" do
+    test "does not add empty values" do
+      refute %Flop{limit: nil} |> to_query() |> Keyword.has_key?(:limit)
+      refute %Flop{order_by: []} |> to_query() |> Keyword.has_key?(:order_by)
+      refute %Flop{filters: %{}} |> to_query() |> Keyword.has_key?(:filters)
+    end
+
+    test "does not add params for first page/offset" do
+      refute %Flop{page: 1} |> to_query() |> Keyword.has_key?(:page)
+      refute %Flop{offset: 0} |> to_query() |> Keyword.has_key?(:offset)
+    end
+  end
 end

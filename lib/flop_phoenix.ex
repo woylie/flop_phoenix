@@ -436,6 +436,8 @@ defmodule Flop.Phoenix do
   defp maybe_add_param(params, _, nil), do: params
   defp maybe_add_param(params, _, []), do: params
   defp maybe_add_param(params, _, map) when map == %{}, do: params
+  defp maybe_add_param(params, :page, 1), do: params
+  defp maybe_add_param(params, :offset, 0), do: params
   defp maybe_add_param(params, key, value), do: Keyword.put(params, key, value)
 
   @doc """
