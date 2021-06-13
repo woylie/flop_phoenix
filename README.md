@@ -80,7 +80,7 @@ In your index template, you can now add a sortable table and pagination links:
   })
 %>
 
-<%= pagination(@meta, &Routes.pet_path/3, [@conn, :index]) %>
+<%= pagination(@meta, &Routes.pet_path/3, [@conn, :index], for: MyApp.Pet) %>
 ```
 
 The second argument of `Flop.Phoenix.pagination/4` is the path helper function,
@@ -93,6 +93,9 @@ want to add path parameters, you can do it like this:
 
 This works the same as the `path_helper` and `path_helper_args` values of
 `Flop.Phoenix.table/1`.
+
+The `for` option allows Flop Phoenix to hide the `order` and `page_size`
+parameters if they match the default values defines with `Flop.Schema`.
 
 To keep your template clean, it is recommended to define a `table_headers/1`
 and `table_row/2` function in your view. The `opts` are passed as a second
