@@ -54,7 +54,8 @@ defmodule Flop.Phoenix.Table do
                   Flop.Phoenix.build_path(
                     @path_helper,
                     @path_helper_args,
-                    Flop.push_order(@flop, @field)
+                    Flop.push_order(@flop, @field),
+                    @opts
                   )
               )
           %>
