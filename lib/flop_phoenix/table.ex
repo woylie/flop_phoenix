@@ -7,24 +7,24 @@ defmodule Flop.Phoenix.Table do
 
   def render(assigns) do
     ~L"""
-    <table<%= if @opts[:table_class] do %> class="<%= @opts[:table_class] %>"<% end %>>
-      <thead>
-        <tr>
-          <%= for header <- @headers do %>
-            <%= header(header, @meta, @path_helper, @path_helper_args, @opts) %>
-          <% end %>
-        </tr>
+    <%= content_tag :table, @opts[:table_attrs] do %>
+      <thead><%=
+        content_tag :tr, @opts[:thead_tr_attrs] do %><%=
+          for header <- @headers do %><%=
+            header(header, @meta, @path_helper, @path_helper_args, @opts)
+          %><% end %>
+        <% end %>
       </thead>
       <tbody>
         <%= for item <- @items do %>
-          <tr>
-            <%= for column <- @row_func.(item, @opts) do %>
-              <td><%= column %></td>
+          <%= content_tag :tr, @opts[:tbody_tr_attrs] do %><%=
+            for column <- @row_func.(item, @opts) do %><%=
+              content_tag :td, @opts[:tbody_td_attrs] do %><%= column %><% end %>
             <% end %>
-          </tr>
+          <% end %>
         <% end %>
       </tbody>
-    </table>
+    <% end %>
     """
   end
 
@@ -46,9 +46,9 @@ defmodule Flop.Phoenix.Table do
     }
 
     ~L"""
-    <th>
+    <%= content_tag :th, @opts[:thead_th_attrs] do %>
       <%= if is_sortable?(field, opts[:for]) do %>
-        <span class="<%= @opts[:th_wrapper_class] %>">
+        <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
           <%= live_patch(@value,
                 to:
                   Flop.Phoenix.build_path(
@@ -60,19 +60,17 @@ defmodule Flop.Phoenix.Table do
               )
           %>
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
-        </span>
-      <% else %>
-        <%= @value %>
-      <% end %>
-    </th>
+        <% end %>
+      <% else %><%= @value %><% end %>
+    <% end %>
     """
   end
 
-  defp header(value, _, _, _, _) do
-    assigns = %{__changed__: nil, value: value}
+  defp header(value, _, _, _, opts) do
+    assigns = %{__changed__: nil, opts: opts, value: value}
 
     ~L"""
-    <th><%= @value %></th>
+    <%= content_tag :th, @opts[:thead_th_attrs] do %><%= @value %><% end %>
     """
   end
 
@@ -87,13 +85,13 @@ defmodule Flop.Phoenix.Table do
     assigns = %{__changed__: nil, direction: direction, opts: opts}
 
     ~L"""
-    <span class="<%= @opts[:symbol_class] || "order-direction" %>"><%=
+    <%= content_tag :span, @opts[:symbol_attrs] do %><%=
       if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
-        Keyword.get(@opts, :symbol_asc, "▴")
+        @opts[:symbol_asc]
       else
-        Keyword.get(@opts, :symbol_desc, "▾")
+        @opts[:symbol_desc]
       end
-    %></span>
+    %><% end %>
     """
   end
 
