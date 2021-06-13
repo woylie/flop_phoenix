@@ -7,7 +7,9 @@
 - Add wrapper around sortable table header link and order direction indicator.
 - Add option `current_link_attrs` to pagination builder. The
   `pagination_link_attrs` is not applied to current links anymore.
-- Hide `page=1` and `offset=0` when building query parameters.
+- Omit `page=1` and `offset=0` when building query parameters.
+- Omit default values for order and limit/page size parameters when building
+  query parameters.
 
 ### Fixed
 
