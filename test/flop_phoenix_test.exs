@@ -570,10 +570,11 @@ defmodule Flop.PhoenixTest do
       }
     end
 
-    test "allows to set table class", %{assigns: assigns} do
+    test "allows to set table attributes", %{assigns: assigns} do
       assert render_table(%{assigns | opts: []}) =~ ~s(<table>)
+      opts = [table_attrs: [class: "funky-table"]]
 
-      assert render_table(%{assigns | opts: [table_class: "funky-table"]}) =~
+      assert render_table(%{assigns | opts: opts}) =~
                ~s(<table class="funky-table">)
     end
 
@@ -585,12 +586,27 @@ defmodule Flop.PhoenixTest do
                ~s(<div class="table-container">)
     end
 
-    test "allows to set container class", %{assigns: assigns} do
-      assert render_table(%{
-               assigns
-               | opts: [container: true, container_class: "container"]
-             }) =~
-               ~s(<div class="container">)
+    test "allows to set container attributes", %{assigns: assigns} do
+      opts = [container: true, container_attrs: [class: "container", id: "a"]]
+
+      assert render_table(%{assigns | opts: opts}) =~
+               ~s(<div class="container" id="a">)
+    end
+
+    test "allows to set tr and td classes", %{assigns: assigns} do
+      opts = [
+        thead_tr_attrs: [class: "mungo"],
+        thead_th_attrs: [class: "bean"],
+        tbody_tr_attrs: [class: "salt"],
+        tbody_td_attrs: [class: "tolerance"]
+      ]
+
+      html = render_table(%{assigns | opts: opts})
+
+      assert html =~ ~s(<tr class="mungo"><th)
+      assert html =~ ~s(<th class="bean">)
+      assert html =~ ~s(<tr class="salt"><td)
+      assert html =~ ~s(<td class="tolerance">)
     end
 
     test "doesn't render table if items list is empty", %{assigns: assigns} do
@@ -662,13 +678,17 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to set symbol class", %{assigns: assigns} do
+      meta = %Flop.Meta{
+        flop: %Flop{order_by: [:name], order_directions: [:asc]}
+      }
+
+      opts = [symbol_attrs: [class: "other-class"]]
+
       assert render_table(%{
                assigns
                | headers: [{"Name", :name}],
-                 meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
-                 },
-                 opts: [symbol_class: "other-class"]
+                 meta: meta,
+                 opts: opts
              }) =~ ~s(<span class="other-class")
     end
 
@@ -707,6 +727,17 @@ defmodule Flop.PhoenixTest do
       assert html =~ ~s(<td>8</td>)
       assert html =~ ~s(<td>Barbara-chan</td>)
       assert html =~ ~s(<td>2</td>)
+    end
+
+    test "renders notice if item list is empty", %{assigns: assigns} do
+      html = render_table(%{assigns | items: []})
+      assert String.trim(html) == "<p>No results.</p>"
+    end
+
+    test "allows to set no_results_content", %{assigns: assigns} do
+      opts = [no_results_content: ~E"<div>Nothing!</div>"]
+      html = render_table(%{assigns | items: [], opts: opts})
+      assert String.trim(html) == "<div>Nothing!</div>"
     end
   end
 

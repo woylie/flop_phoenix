@@ -273,6 +273,21 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
 
+  @default_table_opts [
+    container: false,
+    container_attrs: [class: "table-container"],
+    no_results_content: content_tag(:p, do: "No results."),
+    symbol_asc: "▴",
+    symbol_attrs: [class: "order-direction"],
+    symbol_desc: "▾",
+    table_attrs: [],
+    tbody_td_attrs: [],
+    tbody_tr_attrs: [],
+    th_wrapper_attrs: [],
+    thead_th_attrs: [],
+    thead_tr_attrs: []
+  ]
+
   @doc """
   Generates a pagination element.
 
@@ -344,32 +359,59 @@ defmodule Flop.Phoenix do
 
   - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
     only added for fields that are defined as sortable.
-  - `:table_class` - The CSS class for the `<table>` element. No default.
-  - `:th_wrapper_class` - The CSS class for the `<span>` element that wraps the
-    header link and the order direction symbol. No default.
-  - `:symbol_class` - The CSS class for the `<span>` element that wraps the
-    order direction indicator in the header columns. Defaults to
-    `"order-direction"`.
+    Default: `#{inspect(@default_table_opts[:for])}`.
+  - `:table_attrs` - The attributes for the `<table>` element.
+    Default: `#{inspect(@default_table_opts[:table_attrs])}`.
+  - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
+    header link and the order direction symbol.
+    Default: `#{inspect(@default_table_opts[:th_wrapper_attrs])}`.
+  - `:symbol_attrs` - The attributes for the `<span>` element that wraps the
+    order direction indicator in the header columns.
+    Default: `#{inspect(@default_table_opts[:symbol_attrs])}`.
   - `:symbol_asc` - The symbol that is used to indicate that the column is
-    sorted in ascending order. Defaults to `"▴"`.
+    sorted in ascending order.
+    Default: `#{inspect(@default_table_opts[:symbol_asc])}`.
   - `:symbol_desc` - The symbol that is used to indicate that the column is
-    sorted in ascending order. Defaults to `"▾"`.
-  - `:container` - Wraps the table in a `<div>` if `true`. Defaults to `false`.
-  - `:container_class` - The CSS class for the table container. Defaults to
-    `"table-container"`.
+    sorted in ascending order.
+    Default: `#{inspect(@default_table_opts[:symbol_desc])}`.
+  - `:container` - Wraps the table in a `<div>` if `true`.
+    Default: `#{inspect(@default_table_opts[:container])}`.
+  - `:container_attrs` - The attributes for the table container.
+    Default: `#{inspect(@default_table_opts[:container_attrs])}`.
+  - `:no_results_content` - Any content that should be rendered if there are no
+    results. Default: `<p>No results.</p>`.
+  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<thead>`. Default: `#{inspect(@default_table_opts[:thead_tr_attrs])}`.
+  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
+    `<thead>`. Default: `#{inspect(@default_table_opts[:thead_th_attrs])}`.
+  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
+  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
+    `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
 
   See the module documentation for examples.
   """
+
   @doc since: "0.6.0"
   @doc section: :generators
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
+    assigns =
+      Map.update(
+        assigns,
+        :opts,
+        @default_table_opts,
+        &Keyword.merge(@default_table_opts, &1)
+      )
+
     ~L"""
-    <%= unless @items == [] do %>
+    <%= if @items == [] do %>
+      <%= @opts[:no_results_content] %>
+    <% else %>
       <%= if @opts[:container] do %>
-        <div class="<%= Keyword.get(@opts, :container_class, "table-container") %>">
+        <%= content_tag :div, @opts[:container_attrs] do %>
           <%= Table.render(assigns) %>
-        </div>
+        <% end %>
       <% else %>
         <%= Table.render(assigns) %>
       <% end %>

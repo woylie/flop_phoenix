@@ -2,14 +2,34 @@
 
 ## Unreleased
 
-### Changed
+## [0.7.0] - 2021-06-13
+
+### Added
 
 - Add wrapper around sortable table header link and order direction indicator.
-- Add option `current_link_attrs` to pagination builder. The
-  `pagination_link_attrs` is not applied to current links anymore.
+- Add option `current_link_attrs` to pagination builder.
+- Add options `thead_tr_attrs`, `thead_th_attrs`, `tbody_tr_attrs` and
+  `tbody_td_attrs` to table generator.
+- Add option `no_results_content` to table generator, which sets the content
+  that is going to be displayed instead of the table if the item list is empty.
+  A default option is applied, so make sure to set the option and/or remove your
+  own no results messages from your templates when making the upgrade.
+
+### Changed
+
+- The table options `table_class`, `th_wrapper_class`, `symbol_class` and
+  `container_class` were replaced in favour of `table_attrs`,
+  `th_wrapper_attrs`, `symbol_attrs` and `container_attrs` for more flexibility
+  and consistency with the pagination generator. To update, rename the options
+  in your code and wrap the values in keyword lists with a `class` key
+  (e.g. `container_class: "table-container"` =>
+  `container_attrs: [class: "table-container"]`).
+- The `pagination_link_attrs` is not applied to current links anymore. Use
+  `current_link_attrs` to set the attributes for the current link.
 - Omit `page=1` and `offset=0` when building query parameters.
 - Omit default values for order and limit/page size parameters when building
   query parameters.
+- Requires Flop `~> 0.11.0`.
 
 ### Fixed
 
