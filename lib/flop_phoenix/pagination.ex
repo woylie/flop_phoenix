@@ -35,10 +35,13 @@ defmodule Flop.Phoenix.Pagination do
       meta.flop |> ensure_page_based_params() |> Flop.Phoenix.to_query(opts)
 
     fn page ->
-      params = Keyword.put(query_params, :page, page)
+      params = maybe_put_page(query_params, page)
       Flop.Phoenix.build_path(route_helper, route_helper_args, params)
     end
   end
+
+  defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
+  defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
 
   defp ensure_page_based_params(%Flop{} = flop) do
     # using default_limit without passing a page parameter produces a Flop

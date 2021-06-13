@@ -89,7 +89,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="pagination-previous" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10">Previous</a>)
+                 ~s(href="/pets?page_size=10">Previous</a>)
     end
 
     test "merges query parameters into existing parameters" do
@@ -107,7 +107,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="pagination-previous" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?category=dinosaurs&amp;page=1&amp;page_size=10">Previous</a>)
+                 ~s(href="/pets?category=dinosaurs&amp;page_size=10">Previous</a>)
     end
 
     test "allows to overwrite previous link attributes and content" do
@@ -123,7 +123,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<a class="prev" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10" ) <>
+                 ~s(href="/pets?page_size=10" ) <>
                  ~s(title="p-p-previous">) <>
                  ~s(<i class="fas fa-chevron-left"></i></a>)
     end
@@ -207,7 +207,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
+                 ~s(href="/pets?page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li><a aria-current="page" aria-label="Goto page 2" ) <>
@@ -249,7 +249,7 @@ defmodule Flop.PhoenixTest do
                ~s(<li>) <>
                  ~s(<a aria-label="Goto page 1" beep="boop" class="p-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10">) <>
+                 ~s(href="/pets?page_size=10">) <>
                  ~s(1</a></li>)
 
       # current link attributes are unchanged
@@ -273,7 +273,7 @@ defmodule Flop.PhoenixTest do
                ~s(<li>) <>
                  ~s(<a aria-label="Goto page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10">) <>
+                 ~s(href="/pets?page_size=10">) <>
                  ~s(1</a></li>)
 
       assert result =~
@@ -296,7 +296,7 @@ defmodule Flop.PhoenixTest do
                ~s(<li>) <>
                  ~s(<a aria-label="On to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=1&amp;page_size=10">1</a></li>)
+                 ~s(href="/pets?page_size=10">1</a></li>)
 
       assert result =~
                ~s(<li>) <>
@@ -320,10 +320,14 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page=#{page}&amp;) <>
+        default =
           ~s(order_directions[]=asc&amp;order_directions[]=desc&amp;) <>
-          ~s(order_by[]=fur_length&amp;order_by[]=curiosity&amp;) <>
-          ~s(page_size=10)
+            ~s(order_by[]=fur_length&amp;order_by[]=curiosity&amp;) <>
+            ~s(page_size=10)
+
+        if page == 1,
+          do: "/pets?" <> default,
+          else: ~s(/pets?page=#{page}&amp;) <> default
       end
 
       assert result =~
@@ -363,15 +367,19 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_url = fn page ->
-        ~s(/pets?page=#{page}&amp;) <>
+        default =
           ~s(filters[0][field]=fur_length&amp;) <>
-          ~s(filters[0][op]=%3E%3D&amp;) <>
-          ~s(filters[0][value]=5&amp;) <>
-          ~s(filters[1][field]=curiosity&amp;) <>
-          ~s(filters[1][op]=in&amp;) <>
-          ~s(filters[1][value][]=a_lot&amp;) <>
-          ~s(filters[1][value][]=somewhat) <>
-          ~s(&amp;page_size=10)
+            ~s(filters[0][op]=%3E%3D&amp;) <>
+            ~s(filters[0][value]=5&amp;) <>
+            ~s(filters[1][field]=curiosity&amp;) <>
+            ~s(filters[1][op]=in&amp;) <>
+            ~s(filters[1][value][]=a_lot&amp;) <>
+            ~s(filters[1][value][]=somewhat) <>
+            ~s(&amp;page_size=10)
+
+        if page == 1,
+          do: "/pets?" <> default,
+          else: ~s(/pets?page=#{page}&amp;) <> default
       end
 
       assert result =~
