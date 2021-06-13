@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.7.0] - 2021-06-13
+
 ### Added
 
 - Add wrapper around sortable table header link and order direction indicator.
@@ -27,6 +29,7 @@
 - Omit `page=1` and `offset=0` when building query parameters.
 - Omit default values for order and limit/page size parameters when building
   query parameters.
+- Requires Flop `~> 0.11.0`.
 
 ### Fixed
 
