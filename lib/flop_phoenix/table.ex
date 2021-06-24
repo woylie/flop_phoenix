@@ -49,16 +49,22 @@ defmodule Flop.Phoenix.Table do
     <%= content_tag :th, @opts[:thead_th_attrs] do %>
       <%= if is_sortable?(field, opts[:for]) do %>
         <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
-          <%= live_patch(@value,
-                to:
-                  Flop.Phoenix.build_path(
-                    @path_helper,
-                    @path_helper_args,
-                    Flop.push_order(@flop, @field),
-                    @opts
-                  )
-              )
-          %>
+          <%= if event = opts[:event_name] do %>
+            <%= link to: "#", phx_click: event, phx_value_order: @field do %>
+              <%= @value %>
+            <% end %>
+          <% else %>
+            <%= live_patch(@value,
+                  to:
+                    Flop.Phoenix.build_path(
+                      @path_helper,
+                      @path_helper_args,
+                      Flop.push_order(@flop, @field),
+                      @opts
+                    )
+                )
+            %>
+          <% end %>
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
         <% end %>
       <% else %><%= @value %><% end %>
