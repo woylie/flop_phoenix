@@ -266,10 +266,12 @@ defmodule Flop.Phoenix do
 
   ### Event Based Pagination and Sorting
   To make `Flop.Phoenix` use event based pagination and sorting you must set the
-  `:event_name` option on the pagination and table generators. This will generate
+  `:live_event` option on the pagination and table generators. This will generate
   an `<a>` tag with `phx-click` and `phx-value` attributes set. You will need to handle
   the event using `handle_event/3` callbacks of your LiveView module using the
-  event name you set in options.
+  event name you set in options. If you want to target a component to handle pagination
+  and sorting, you can set the `:live_target` option. This option will tell `Flop.Phoenix`
+  to add and set the `phx-target` attribute.
 
       def handle_event("pagiante_pets", %{"page" => page}, socket) do
         flop = Flop.Phoenix.ensure_page_based_params(socket.assigns.meta.flop)
@@ -414,8 +416,10 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
-  - `:event_name`: If set, tells `Flop.Phoenix` to use event based sorting.
-    Default: nil
+  - `:live_event`: If set, tells `Flop.Phoenix` to use event based sorting.
+    Default: `#{inspect(@default_table_opts[:live_event])}`.
+  - `:live_target`: Tells `Flop.Phoenix` to send the `:live_event` to a specific
+    stateful compoenent. Default: `#{inspect(@default_table_opts[:live_target])}`.
 
   See the module documentation for examples.
   """
