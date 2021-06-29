@@ -32,7 +32,7 @@ defmodule Flop.Phoenix.Pagination do
 
   def build_page_link_helper(meta, route_helper, route_helper_args, opts) do
     query_params =
-      meta.flop |> ensure_page_based_params() |> Flop.Phoenix.to_query(opts)
+      meta.flop |> Flop.Phoenix.ensure_page_based_params() |> Flop.Phoenix.to_query(opts)
 
     fn page ->
       params = maybe_put_page(query_params, page)
@@ -42,19 +42,6 @@ defmodule Flop.Phoenix.Pagination do
 
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
-
-  defp ensure_page_based_params(%Flop{} = flop) do
-    # using default_limit without passing a page parameter produces a Flop
-    # with only the limit set
-
-    %{
-      flop
-      | limit: nil,
-        offset: nil,
-        page_size: flop.page_size || flop.limit,
-        page: flop.page
-    }
-  end
 
   @spec previous_link(Meta.t(), function, keyword) :: Phoenix.HTML.safe()
   def previous_link(%Meta{} = meta, page_link_helper, opts) do
@@ -66,10 +53,23 @@ defmodule Flop.Phoenix.Pagination do
     content = opts[:previous_link_content] || @previous_link_content
 
     if meta.has_previous_page? do
-      attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
+      if event = opts[:live_event] do
+        attrs =
+          attrs
+          |> Keyword.put(:phx_click, event)
+          |> maybe_put_target(opts[:live_target])
+          |> Keyword.put(:phx_value_page, meta.previous_page)
+          |> Keyword.put(:to, "#")
 
-      live_patch attrs do
-        content
+        link attrs do
+          content
+        end
+      else
+        attrs = Keyword.put(attrs, :to, page_link_helper.(meta.previous_page))
+
+        live_patch attrs do
+          content
+        end
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -90,10 +90,23 @@ defmodule Flop.Phoenix.Pagination do
     content = opts[:next_link_content] || @next_link_content
 
     if meta.has_next_page? do
-      attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
+      if event = opts[:live_event] do
+        attrs =
+          attrs
+          |> Keyword.put(:phx_click, event)
+          |> maybe_put_target(opts[:live_target])
+          |> Keyword.put(:phx_value_page, meta.next_page)
+          |> Keyword.put(:to, "#")
 
-      live_patch attrs do
-        content
+        link attrs do
+          content
+        end
+      else
+        attrs = Keyword.put(attrs, :to, page_link_helper.(meta.next_page))
+
+        live_patch attrs do
+          content
+        end
       end
     else
       attrs = Keyword.put(attrs, :disabled, "disabled")
@@ -170,7 +183,8 @@ defmodule Flop.Phoenix.Pagination do
             link_attrs,
             current_link_attrs,
             aria_label,
-            route_func
+            route_func,
+            opts
           ),
         else: raw(nil)
 
@@ -183,7 +197,8 @@ defmodule Flop.Phoenix.Pagination do
             link_attrs,
             current_link_attrs,
             aria_label,
-            route_func
+            route_func,
+            opts
           ),
         else: raw(nil)
 
@@ -195,7 +210,8 @@ defmodule Flop.Phoenix.Pagination do
           link_attrs,
           current_link_attrs,
           aria_label,
-          route_func
+          route_func,
+          opts
         )
       end
 
@@ -216,7 +232,8 @@ defmodule Flop.Phoenix.Pagination do
          link_attrs,
          current_link_attrs,
          aria_label,
-         route_func
+         route_func,
+         opts
        ) do
     attrs =
       if meta.current_page == page, do: current_link_attrs, else: link_attrs
@@ -229,8 +246,23 @@ defmodule Flop.Phoenix.Pagination do
       )
       |> Keyword.put(:to, route_func.(page))
 
-    content_tag :li do
-      live_patch(page, attrs)
+    if event = opts[:live_event] do
+      attrs =
+        attrs
+        |> Keyword.put(:phx_click, event)
+        |> maybe_put_target(opts[:live_target])
+        |> Keyword.put(:phx_value_page, page)
+        |> Keyword.put(:to, "#")
+
+      content_tag :li do
+        link attrs do
+          page
+        end
+      end
+    else
+      content_tag :li do
+        live_patch(page, attrs)
+      end
     end
   end
 
@@ -259,4 +291,7 @@ defmodule Flop.Phoenix.Pagination do
       end
     end
   end
+
+  defp maybe_put_target(attrs, nil), do: attrs
+  defp maybe_put_target(attrs, live_target), do: Keyword.put(attrs, :phx_target, live_target)
 end

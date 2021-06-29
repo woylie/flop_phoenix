@@ -49,16 +49,20 @@ defmodule Flop.Phoenix.Table do
     <%= content_tag :th, @opts[:thead_th_attrs] do %>
       <%= if is_sortable?(field, opts[:for]) do %>
         <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
-          <%= live_patch(@value,
-                to:
-                  Flop.Phoenix.build_path(
-                    @path_helper,
-                    @path_helper_args,
-                    Flop.push_order(@flop, @field),
-                    @opts
-                  )
-              )
-          %>
+          <%= if opts[:live_event] do %>
+            <%= sort_link(@opts, @field, @value) %>
+          <% else %>
+            <%= live_patch(@value,
+                  to:
+                    Flop.Phoenix.build_path(
+                      @path_helper,
+                      @path_helper_args,
+                      Flop.push_order(@flop, @field),
+                      @opts
+                    )
+                )
+            %>
+          <% end %>
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
         <% end %>
       <% else %><%= @value %><% end %>
@@ -94,6 +98,25 @@ defmodule Flop.Phoenix.Table do
     %><% end %>
     """
   end
+
+  defp sort_link(opts, field, value) do
+    attrs =
+      Keyword.new()
+      |> Keyword.put(:phx_click, opts[:live_event])
+      |> Keyword.put(:phx_value_order, field)
+      |> Keyword.put(:to, "#")
+      |> maybe_put_target(opts[:live_target])
+
+    assigns = %{__changed__: nil, value: value, attrs: attrs}
+    ~L"""
+      <%= link @attrs do %>
+        <%= @value %>
+      <% end %>
+    """
+  end
+
+  defp maybe_put_target(attrs, nil), do: attrs
+  defp maybe_put_target(attrs, live_target), do: Keyword.put(attrs, :phx_target, live_target)
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil
 
