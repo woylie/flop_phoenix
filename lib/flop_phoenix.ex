@@ -417,10 +417,11 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
-  - `:live_event`: If set, tells `Flop.Phoenix` to use event based sorting.
-    Default: `#{inspect(@default_table_opts[:live_event])}`.
-  - `:live_target`: Tells `Flop.Phoenix` to send the `:live_event` to a specific
-    stateful compoenent. Default: `#{inspect(@default_table_opts[:live_target])}`.
+  - `:live_event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
+    to the header links. Default:
+    `#{inspect(@default_table_opts[:live_event])}`.
+  - `:live_target`: Sets the `phx-target` attribute for the header links.
+    Default: `#{inspect(@default_table_opts[:live_target])}`.
 
   See the module documentation for examples.
   """
@@ -650,8 +651,8 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
-  Takes a Flop struct and ensures that pagination uses the `:page` and `:page_size` parameters
-  and `:offset` and `:limit` are set to nil.
+  Takes a `Flop` struct and ensures that the only pagination parameters set are
+  `:page` and `:page_size`. `:offset` and `:limit` are set to nil.
 
   Using `:default_limit` without passing a page parameter produces a Flop
   with only the limit set.
@@ -660,10 +661,13 @@ defmodule Flop.Phoenix do
 
     iex> flop = %Flop{limit: 2}
     iex> ensure_page_based_params(flop)
-    %Flop{after: nil, before: nil, filters: [], first: nil, last: nil, limit: nil,offset: nil,order_by: nil,order_directions: nil,page: nil,page_size: 2}
-
+    %Flop{
+      limit: nil,
+      offset: nil,
+      page: nil,
+      page_size: 2
+    }
   """
-
   @spec ensure_page_based_params(Flop.t()) :: Flop.t()
   def ensure_page_based_params(%Flop{} = flop) do
     %{
