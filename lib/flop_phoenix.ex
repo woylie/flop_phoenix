@@ -317,6 +317,43 @@ defmodule Flop.Phoenix do
     thead_tr_attrs: []
   ]
 
+  @typedoc """
+  Defines the available options for `Flop.Phoenix.table/1`.
+  """
+  @type pagination_option ::
+          {:container, boolean}
+          | {:ellipsis_attrs, keyword}
+          | {:ellipsis_content, Phoenix.HTML.safe() | binary}
+          | {:next_link_attrs, keyword}
+          | {:next_link_content, Phoenix.HTML.safe() | binary}
+          | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
+          | {:pagination_link_aria_label, (pos_integer -> binary)}
+          | {:pagination_link_attrs, keyword}
+          | {:pagination_list_attrs, keyword}
+          | {:previous_link_attrs, keyword}
+          | {:previous_link_content, Phoenix.HTML.safe() | binary}
+          | {:wrapper_attrs, keyword}
+
+  @typedoc """
+  Defines the available options for `Flop.Phoenix.table/1`.
+  """
+  @type table_option ::
+          {:container, boolean}
+          | {:container_attrs, keyword}
+          | {:event, binary | atom}
+          | {:for, module}
+          | {:no_results_content, Phoenix.HTML.safe() | binary}
+          | {:symbol_asc, Phoenix.HTML.safe() | binary}
+          | {:symbol_attrs, keyword}
+          | {:symbol_desc, Phoenix.HTML.safe() | binary}
+          | {:table_attrs, keyword}
+          | {:target, binary | atom}
+          | {:tbody_td_attrs, keyword}
+          | {:tbody_tr_attrs, keyword}
+          | {:th_wrapper_attrs, keyword}
+          | {:thead_th_attrs, keyword}
+          | {:thead_tr_attrs, keyword}
+
   @doc """
   Generates a pagination element.
 
@@ -332,7 +369,7 @@ defmodule Flop.Phoenix do
   See the module documentation for examples.
   """
   @doc section: :generators
-  @spec pagination(Meta.t(), function, [any], keyword) ::
+  @spec pagination(Meta.t(), function, [any], [pagination_option()]) ::
           Phoenix.LiveView.Rendered.t()
 
   def pagination(meta, path_helper, path_helper_args, opts \\ [])
