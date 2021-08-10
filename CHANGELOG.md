@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Support safe HTML tuples in unsortable table headers.
+
 ## [0.7.0] - 2021-06-13
 
 ### Added
