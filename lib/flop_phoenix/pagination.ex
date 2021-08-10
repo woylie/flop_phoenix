@@ -187,23 +187,8 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp page_link_tag(
-         %{meta: %{current_page: current_page}, opts: opts, page: page} =
-           assigns
-       ) do
-    assigns =
-      assign(
-        assigns,
-        :attrs,
-        add_page_link_aria_label(
-          if(current_page == page,
-            do: opts[:current_link_attrs],
-            else: opts[:pagination_link_attrs]
-          ),
-          page,
-          opts
-        )
-      )
+  defp page_link_tag(%{meta: meta, opts: opts, page: page} = assigns) do
+    assigns = assign(assigns, :attrs, attrs_for_page_link(page, meta, opts))
 
     ~H"""
     <%= if @event do %>
@@ -264,6 +249,15 @@ defmodule Flop.Phoenix.Pagination do
 
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
+
+  defp attrs_for_page_link(page, meta, opts) do
+    attrs =
+      if meta.current_page == page,
+        do: opts[:current_link_attrs],
+        else: opts[:pagination_link_attrs]
+
+    add_page_link_aria_label(attrs, page, opts)
+  end
 
   defp add_to_attr(attrs, page_link_helper, page) do
     Keyword.put(attrs, :to, page_link_helper.(page))
