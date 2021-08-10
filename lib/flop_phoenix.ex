@@ -294,6 +294,7 @@ defmodule Flop.Phoenix do
       end
   """
 
+  use Phoenix.Component
   use Phoenix.HTML
 
   import Phoenix.LiveView.Helpers
@@ -506,16 +507,32 @@ defmodule Flop.Phoenix do
     assigns =
       Map.update(assigns, :opts, Table.default_opts(), &Table.init_opts/1)
 
-    ~L"""
+    ~H"""
     <%= if @items == [] do %>
       <%= @opts[:no_results_content] %>
     <% else %>
       <%= if @opts[:container] do %>
-        <%= content_tag :div, @opts[:container_attrs] do %>
-          <%= Table.render(assigns) %>
-        <% end %>
+        <div {@opts[:container_attrs]}>
+          <Table.render
+            headers={@headers}
+            items={@items}
+            meta={@meta}
+            opts={@opts}
+            path_helper={@path_helper}
+            path_helper_args={@path_helper_args}
+            row_func={@row_func}
+          />
+        </div>
       <% else %>
-        <%= Table.render(assigns) %>
+        <Table.render
+          headers={@headers}
+          items={@items}
+          meta={@meta}
+          opts={@opts}
+          path_helper={@path_helper}
+          path_helper_args={@path_helper_args}
+          row_func={@row_func}
+        />
       <% end %>
     <% end %>
     """

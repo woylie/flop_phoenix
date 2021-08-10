@@ -704,9 +704,9 @@ defmodule Flop.PhoenixTest do
 
       html = render_table(%{assigns | opts: opts})
 
-      assert html =~ ~s(<tr class="mungo"><th)
+      assert html =~ ~s(<tr class="mungo">)
       assert html =~ ~s(<th class="bean">)
-      assert html =~ ~s(<tr class="salt"><td)
+      assert html =~ ~s(<tr class="salt">)
       assert html =~ ~s(<td class="tolerance">)
     end
 

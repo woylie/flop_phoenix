@@ -37,55 +37,46 @@ defmodule Flop.Phoenix.Table do
   end
 
   def render(assigns) do
-    ~L"""
-    <%= content_tag :table, @opts[:table_attrs] do %>
-      <thead><%=
-        content_tag :tr, @opts[:thead_tr_attrs] do %><%=
-          for header <- @headers do %><%=
-            header(header, @meta, @path_helper, @path_helper_args, @opts)
-          %><% end %>
-        <% end %>
+    ~H"""
+    <table {@opts[:table_attrs]}>
+      <thead>
+        <tr {@opts[:thead_tr_attrs]}><%=
+          for header <- @headers do %>
+            <.header_column
+              flop={@meta.flop}
+              header={header}
+              opts={@opts}
+              path_helper={@path_helper}
+              path_helper_args={@path_helper_args}
+            />
+          <% end %>
+        </tr>
       </thead>
       <tbody>
         <%= for item <- @items do %>
-          <%= content_tag :tr, @opts[:tbody_tr_attrs] do %><%=
-            for column <- @row_func.(item, @opts) do %><%=
-              content_tag :td, @opts[:tbody_td_attrs] do %><%= column %><% end %>
+          <tr {@opts[:tbody_tr_attrs]}>
+            <%= for column <- @row_func.(item, @opts) do %>
+              <td {@opts[:tbody_td_attrs]}><%= column %></td>
             <% end %>
-          <% end %>
+          </tr>
         <% end %>
       </tbody>
-    <% end %>
+    </table>
     """
   end
 
-  defp header({:safe, value}, _, _, _, opts) do
-    not_sortable_header(%{opts: opts, value: {:safe, value}})
-  end
+  defp header_column(assigns) do
+    assigns =
+      assigns
+      |> assign(:field, header_field(assigns.header))
+      |> assign(:value, header_value(assigns.header))
 
-  defp header(
-         {value, field},
-         %Flop.Meta{flop: flop},
-         path_helper,
-         path_helper_args,
-         opts
-       ) do
-    assigns = %{
-      __changed__: nil,
-      field: field,
-      flop: flop,
-      opts: opts,
-      path_helper: path_helper,
-      path_helper_args: path_helper_args,
-      value: value
-    }
-
-    if is_sortable?(field, opts[:for]) do
-      ~L"""
-      <%= content_tag :th, @opts[:thead_th_attrs] do %>
-        <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
-          <%= if opts[:event] do %>
-            <%= sort_link(%{field: @field, opts: @opts, value: @value}) %>
+    ~H"""
+    <%= if is_sortable?(@field, @opts[:for]) do %>
+      <th {@opts[:thead_th_attrs]}>
+        <span {@opts[:th_wrapper_attrs]}>
+          <%= if @opts[:event] do %>
+            <.sort_link field={@field} opts={@opts} value={@value} />
           <% else %>
             <%= live_patch(@value,
                   to:
@@ -98,22 +89,12 @@ defmodule Flop.Phoenix.Table do
                 )
             %>
           <% end %>
-          <%= arrow(%{direction: current_direction(@flop, @field), opts: @opts}) %>
-        <% end %>
-      <% end %>
-      """
-    else
-      not_sortable_header(%{opts: opts, value: value})
-    end
-  end
-
-  defp header(value, _, _, _, opts) do
-    not_sortable_header(%{opts: opts, value: value})
-  end
-
-  defp not_sortable_header(assigns) do
-    ~H"""
-    <th {@opts[:thead_th_attrs]}><%= @value %></th>
+          <.arrow direction={current_direction(@flop, @field)} opts={@opts} />
+        </span>
+      </th>
+    <% else %>
+      <th {@opts[:thead_th_attrs]}><%= @value %></th>
+    <% end %>
     """
   end
 
@@ -157,9 +138,18 @@ defmodule Flop.Phoenix.Table do
   defp get_order_direction(_, nil), do: :asc
   defp get_order_direction(index, directions), do: Enum.at(directions, index)
 
+  defp is_sortable?(nil, _), do: false
   defp is_sortable?(_, nil), do: true
 
   defp is_sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
+
+  defp header_field({:safe, _}), do: nil
+  defp header_field({_value, field}), do: field
+  defp header_field(_value), do: nil
+
+  defp header_value({:safe, _} = value), do: value
+  defp header_value({value, _field}), do: value
+  defp header_value(value), do: value
 end
