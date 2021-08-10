@@ -5,6 +5,31 @@ defmodule Flop.Phoenix.Table do
 
   import Phoenix.LiveView.Helpers
 
+  @spec default_opts() :: [Flop.Phoenix.table_option()]
+  def default_opts do
+    [
+      container: false,
+      container_attrs: [class: "table-container"],
+      no_results_content: content_tag(:p, do: "No results."),
+      symbol_asc: "▴",
+      symbol_attrs: [class: "order-direction"],
+      symbol_desc: "▾",
+      table_attrs: [],
+      tbody_td_attrs: [],
+      tbody_tr_attrs: [],
+      th_wrapper_attrs: [],
+      thead_th_attrs: [],
+      thead_tr_attrs: []
+    ]
+  end
+
+  @spec init_opts([Flop.Phoenix.table_option()]) :: [
+          Flop.Phoenix.table_option()
+        ]
+  def init_opts(opts) do
+    Keyword.merge(default_opts(), opts)
+  end
+
   def render(assigns) do
     ~L"""
     <%= content_tag :table, @opts[:table_attrs] do %>

@@ -302,21 +302,6 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
 
-  @default_table_opts [
-    container: false,
-    container_attrs: [class: "table-container"],
-    no_results_content: content_tag(:p, do: "No results."),
-    symbol_asc: "▴",
-    symbol_attrs: [class: "order-direction"],
-    symbol_desc: "▾",
-    table_attrs: [],
-    tbody_td_attrs: [],
-    tbody_tr_attrs: [],
-    th_wrapper_attrs: [],
-    thead_th_attrs: [],
-    thead_tr_attrs: []
-  ]
-
   @typedoc """
   Defines the available options for `Flop.Phoenix.table/1`.
   """
@@ -336,6 +321,42 @@ defmodule Flop.Phoenix do
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.table/1`.
+
+  - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
+    only added for fields that are defined as sortable.
+    Default: `#{inspect(Table.default_opts()[:for])}`.
+  - `:table_attrs` - The attributes for the `<table>` element.
+    Default: `#{inspect(Table.default_opts()[:table_attrs])}`.
+  - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
+    header link and the order direction symbol.
+    Default: `#{inspect(Table.default_opts()[:th_wrapper_attrs])}`.
+  - `:symbol_attrs` - The attributes for the `<span>` element that wraps the
+    order direction indicator in the header columns.
+    Default: `#{inspect(Table.default_opts()[:symbol_attrs])}`.
+  - `:symbol_asc` - The symbol that is used to indicate that the column is
+    sorted in ascending order.
+    Default: `#{inspect(Table.default_opts()[:symbol_asc])}`.
+  - `:symbol_desc` - The symbol that is used to indicate that the column is
+    sorted in ascending order.
+    Default: `#{inspect(Table.default_opts()[:symbol_desc])}`.
+  - `:container` - Wraps the table in a `<div>` if `true`.
+    Default: `#{inspect(Table.default_opts()[:container])}`.
+  - `:container_attrs` - The attributes for the table container.
+    Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
+  - `:no_results_content` - Any content that should be rendered if there are no
+    results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
+  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_tr_attrs])}`.
+  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
+    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
+  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
+  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
+    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
+  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute. Default: `#{inspect(Table.default_opts()[:event])}`.
+  - `:target`: Sets the `phx-target` attribute for the header links.
+    Default: `#{inspect(Table.default_opts()[:target])}`.
   """
   @type table_option ::
           {:container, boolean}
@@ -416,48 +437,11 @@ defmodule Flop.Phoenix do
   - `path_helper_args`: The argument list for the path helper. For example, if
     you would call `Routes.pet_path(@conn, :index)` to generate the path for the
     current page, this would be `[@conn, :index]`.
-  - `opts`: Keyword list with additional options (see below). This list will
-    also be passed as the second argument to the row function.
+  - `opts`: Keyword list with additional options (see
+    `t:Flop.Phoenix.table_option/0`). This list will also be passed as the
+    second argument to the row function.
   - `row_func`: A function that takes one item of the `items` list and the
     `opts` and returns the column values for that item's row.
-
-  ## Available options
-
-  - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
-    only added for fields that are defined as sortable.
-    Default: `#{inspect(@default_table_opts[:for])}`.
-  - `:table_attrs` - The attributes for the `<table>` element.
-    Default: `#{inspect(@default_table_opts[:table_attrs])}`.
-  - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
-    header link and the order direction symbol.
-    Default: `#{inspect(@default_table_opts[:th_wrapper_attrs])}`.
-  - `:symbol_attrs` - The attributes for the `<span>` element that wraps the
-    order direction indicator in the header columns.
-    Default: `#{inspect(@default_table_opts[:symbol_attrs])}`.
-  - `:symbol_asc` - The symbol that is used to indicate that the column is
-    sorted in ascending order.
-    Default: `#{inspect(@default_table_opts[:symbol_asc])}`.
-  - `:symbol_desc` - The symbol that is used to indicate that the column is
-    sorted in ascending order.
-    Default: `#{inspect(@default_table_opts[:symbol_desc])}`.
-  - `:container` - Wraps the table in a `<div>` if `true`.
-    Default: `#{inspect(@default_table_opts[:container])}`.
-  - `:container_attrs` - The attributes for the table container.
-    Default: `#{inspect(@default_table_opts[:container_attrs])}`.
-  - `:no_results_content` - Any content that should be rendered if there are no
-    results. Default: `<p>No results.</p>`.
-  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<thead>`. Default: `#{inspect(@default_table_opts[:thead_tr_attrs])}`.
-  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
-    `<thead>`. Default: `#{inspect(@default_table_opts[:thead_th_attrs])}`.
-  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
-  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
-    `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
-  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute. Default: `#{inspect(@default_table_opts[:event])}`.
-  - `:target`: Sets the `phx-target` attribute for the header links.
-    Default: `#{inspect(@default_table_opts[:target])}`.
 
   See the module documentation for examples.
   """
@@ -467,12 +451,7 @@ defmodule Flop.Phoenix do
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns =
-      Map.update(
-        assigns,
-        :opts,
-        @default_table_opts,
-        &Keyword.merge(@default_table_opts, &1)
-      )
+      Map.update(assigns, :opts, Table.default_opts(), &Table.init_opts/1)
 
     ~L"""
     <%= if @items == [] do %>
