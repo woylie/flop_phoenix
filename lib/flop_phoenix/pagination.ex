@@ -79,10 +79,9 @@ defmodule Flop.Phoenix.Pagination do
         <% end %>
       <% else %>
         <%= live_patch(
+          @content,
           add_to_attr(@attrs, @page_link_helper, @meta.previous_page)
-        ) do %>
-          <%= @content %>
-        <% end %>
+        ) %>
       <% end %>
     <% else %>
       <span {Keyword.put(@attrs, :disabled, "disabled")}><%= @content %></span>
@@ -99,10 +98,9 @@ defmodule Flop.Phoenix.Pagination do
         <% end %>
       <% else %>
         <%= live_patch(
+          @content,
           add_to_attr(@attrs, @page_link_helper, @meta.next_page)
-        ) do %>
-          <%= @content %>
-        <% end %>
+        ) %>
       <% end %>
     <% else %>
       <span {Keyword.put(@attrs, :disabled, "disabled")}><%= @content %></span>
@@ -198,10 +196,9 @@ defmodule Flop.Phoenix.Pagination do
     <% else %>
       <li>
         <%= live_patch(
-              @page,
-              Keyword.put(@attrs, :to, @page_link_helper.(@page))
-            )
-        %>
+          @page,
+          Keyword.put(@attrs, :to, @page_link_helper.(@page))
+        ) %>
       </li>
     <% end %>
     """
