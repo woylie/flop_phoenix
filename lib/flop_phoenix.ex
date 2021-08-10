@@ -412,6 +412,13 @@ defmodule Flop.Phoenix do
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
 
+  @type pagination_assigns :: %{
+          meta: Flop.Meta.t(),
+          path_helper: function(),
+          path_helper_args: [any],
+          opts: [table_option()]
+        }
+
   @doc """
   Generates a pagination element.
 
@@ -429,36 +436,28 @@ defmodule Flop.Phoenix do
   See the module documentation for examples.
   """
   @doc section: :generators
-  @spec pagination(Meta.t(), function, [any], [pagination_option()]) ::
-          Phoenix.LiveView.Rendered.t()
+  @spec pagination(pagination_assigns()) :: Phoenix.LiveView.Rendered.t()
+  def pagination(assigns) do
+    assigns =
+      Map.update(
+        assigns,
+        :opts,
+        Pagination.default_opts(),
+        &Pagination.init_opts/1
+      )
 
-  def pagination(meta, path_helper, path_helper_args, opts \\ [])
-
-  def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
-
-  def pagination(%Meta{} = meta, path_helper, path_helper_args, opts) do
-    opts = Pagination.init_opts(opts)
-
-    assigns = %{
-      __changed__: nil,
-      meta: meta,
-      opts: opts,
-      page_link_helper:
-        Pagination.build_page_link_helper(
-          meta,
-          path_helper,
-          path_helper_args,
-          opts
-        )
-    }
-
-    ~L"""
+    ~H"""
     <%= if @meta.total_pages > 1 do %>
-      <%= content_tag :nav, @opts[:wrapper_attrs] do %>
-        <%= Pagination.previous_link(@meta, @page_link_helper, @opts) %>
-        <%= Pagination.next_link(@meta, @page_link_helper, @opts) %>
-        <%= Pagination.page_links(@meta, @page_link_helper, @opts) %>
-      <% end %>
+      <Pagination.render
+        meta={@meta}
+        opts={@opts}
+        page_link_helper={Pagination.build_page_link_helper(
+          @meta,
+          @path_helper,
+          @path_helper_args,
+          @opts
+        )}
+      />
     <% end %>
     """
   end

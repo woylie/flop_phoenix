@@ -52,6 +52,7 @@ defmodule FlopPhoenix.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
+      {:floki, "~> 0.31.0", only: :test},
       {:flop, "~> 0.11.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:phoenix_live_view,
