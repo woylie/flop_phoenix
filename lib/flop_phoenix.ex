@@ -303,12 +303,48 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Table
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.table/1`.
+  Defines the available options for `Flop.Phoenix.pagination/4`.
+
+  - `:current_link_attrs` - The attributes for the link to the current page.
+    Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
+  - `:ellipsis_attrs` - The attributes for the `<span>` that wraps the
+    ellipsis.
+    Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
+  - `:ellipsis_content` - The content for the ellipsis element.
+    Default: `#{inspect(Pagination.default_opts()[:ellipsis_content])}`.
+  - `:for` - The schema module deriving `Flop.Schema`. If set, `Flop.Phoenix`
+    will remove default parameters from the query parameters.
+    Default: `#{inspect(Pagination.default_opts()[:for])}`.
+  - `:next_link_attrs` - The attributes for the link to the next page.
+    Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
+  - `:next_link_content` - The content for the link to the next page.
+    Default: `#{inspect(Pagination.default_opts()[:next_link_content])}`.
+  - `:page_links` - Specifies how many page links should be rendered.
+    Default: `#{inspect(Pagination.default_opts()[:page_links])}`.
+    - `:all` - Renders all page links.
+    - `{:ellipsis, n}` - Renders `n` page links. Renders ellipsis elements if
+      there are more pages than displayed.
+    - `:hide` - Does not render any page links.
+  - `:pagination_link_aria_label` - 1-arity function that takes a page number
+    and returns an aria label for the corresponding page link.
+    Default: `&"Go to page \#{&1}"`.
+  - `:pagination_link_attrs` - The attributes for the pagination links.
+    Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
+  - `:pagination_list_attrs` - The attributes for the pagination list.
+    Default: `#{inspect(Pagination.default_opts()[:pagination_list_attrs])}`.
+  - `:previous_link_attrs` - The attributes for the link to the previous page.
+    Default: `#{inspect(Pagination.default_opts()[:previous_link_attrs])}`.
+  - `:previous_link_content` - The content for the link to the previous page.
+    Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
+  - `:wrappers_attrs` - The attributes for the `<nav>` element that wraps the
+    pagination links.
+    Default: `#{inspect(Pagination.default_opts()[:wrappers_attrs])}`.
   """
   @type pagination_option ::
-          {:container, boolean}
+          {:current_link_attrs, keyword}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
+          | {:for, module}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
@@ -322,41 +358,41 @@ defmodule Flop.Phoenix do
   @typedoc """
   Defines the available options for `Flop.Phoenix.table/1`.
 
+  - `:container` - Wraps the table in a `<div>` if `true`.
+    Default: `#{inspect(Table.default_opts()[:container])}`.
+  - `:container_attrs` - The attributes for the table container.
+    Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
+  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute. Default: `#{inspect(Table.default_opts()[:event])}`.
   - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
     only added for fields that are defined as sortable.
     Default: `#{inspect(Table.default_opts()[:for])}`.
+  - `:no_results_content` - Any content that should be rendered if there are no
+    results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
   - `:table_attrs` - The attributes for the `<table>` element.
     Default: `#{inspect(Table.default_opts()[:table_attrs])}`.
   - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
     header link and the order direction symbol.
     Default: `#{inspect(Table.default_opts()[:th_wrapper_attrs])}`.
-  - `:symbol_attrs` - The attributes for the `<span>` element that wraps the
-    order direction indicator in the header columns.
-    Default: `#{inspect(Table.default_opts()[:symbol_attrs])}`.
   - `:symbol_asc` - The symbol that is used to indicate that the column is
     sorted in ascending order.
     Default: `#{inspect(Table.default_opts()[:symbol_asc])}`.
+  - `:symbol_attrs` - The attributes for the `<span>` element that wraps the
+    order direction indicator in the header columns.
+    Default: `#{inspect(Table.default_opts()[:symbol_attrs])}`.
   - `:symbol_desc` - The symbol that is used to indicate that the column is
     sorted in ascending order.
     Default: `#{inspect(Table.default_opts()[:symbol_desc])}`.
-  - `:container` - Wraps the table in a `<div>` if `true`.
-    Default: `#{inspect(Table.default_opts()[:container])}`.
-  - `:container_attrs` - The attributes for the table container.
-    Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
-  - `:no_results_content` - Any content that should be rendered if there are no
-    results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
-  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_tr_attrs])}`.
-  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
-    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
-  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
-  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
-    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
-  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute. Default: `#{inspect(Table.default_opts()[:event])}`.
   - `:target`: Sets the `phx-target` attribute for the header links.
     Default: `#{inspect(Table.default_opts()[:target])}`.
+  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
+    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
+  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
+  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
+    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
+  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_tr_attrs])}`.
   """
   @type table_option ::
           {:container, boolean}
@@ -385,7 +421,9 @@ defmodule Flop.Phoenix do
   - `path_helper_args`: The arguments to be passed to the route helper
     function, e.g. `[@conn, :index]`. The page number and page size will be
     added as query parameters.
-  - `opts`: Options to customize the pagination. See section Customization.
+  - `opts`: Options to customize the pagination. See
+    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
+    function are deep merged into the default options.
 
   See the module documentation for examples.
   """
@@ -398,10 +436,12 @@ defmodule Flop.Phoenix do
   def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
 
   def pagination(%Meta{} = meta, path_helper, path_helper_args, opts) do
+    opts = Pagination.init_opts(opts)
+
     assigns = %{
       __changed__: nil,
       meta: meta,
-      opts: Pagination.init_opts(opts),
+      opts: opts,
       page_link_helper:
         Pagination.build_page_link_helper(
           meta,
@@ -413,7 +453,7 @@ defmodule Flop.Phoenix do
 
     ~L"""
     <%= if @meta.total_pages > 1 do %>
-      <%= content_tag :nav, Pagination.build_attrs(@opts) do %>
+      <%= content_tag :nav, @opts[:wrapper_attrs] do %>
         <%= Pagination.previous_link(@meta, @page_link_helper, @opts) %>
         <%= Pagination.next_link(@meta, @page_link_helper, @opts) %>
         <%= Pagination.page_links(@meta, @page_link_helper, @opts) %>
@@ -439,13 +479,13 @@ defmodule Flop.Phoenix do
     current page, this would be `[@conn, :index]`.
   - `opts`: Keyword list with additional options (see
     `t:Flop.Phoenix.table_option/0`). This list will also be passed as the
-    second argument to the row function.
+    second argument to the row function. Note that the options passed to the
+    function are deep merged into the default options.
   - `row_func`: A function that takes one item of the `items` list and the
     `opts` and returns the column values for that item's row.
 
   See the module documentation for examples.
   """
-
   @doc since: "0.6.0"
   @doc section: :generators
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
@@ -674,15 +714,17 @@ defmodule Flop.Phoenix do
 
   ## Examples
 
-    iex> flop = %Flop{limit: 2}
-    iex> ensure_page_based_params(flop)
-    %Flop{
-      limit: nil,
-      offset: nil,
-      page: nil,
-      page_size: 2
-    }
+      iex> flop = %Flop{limit: 2}
+      iex> ensure_page_based_params(flop)
+      %Flop{
+        limit: nil,
+        offset: nil,
+        page: nil,
+        page_size: 2
+      }
   """
+  @doc since: "0.8.0"
+  @doc section: :miscellaneous
   @spec ensure_page_based_params(Flop.t()) :: Flop.t()
   def ensure_page_based_params(%Flop{} = flop) do
     %{

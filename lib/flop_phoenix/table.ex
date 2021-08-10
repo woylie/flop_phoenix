@@ -5,6 +5,8 @@ defmodule Flop.Phoenix.Table do
 
   import Phoenix.LiveView.Helpers
 
+  alias Flop.Phoenix.Misc
+
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -27,7 +29,7 @@ defmodule Flop.Phoenix.Table do
           Flop.Phoenix.table_option()
         ]
   def init_opts(opts) do
-    Keyword.merge(default_opts(), opts)
+    Misc.deep_merge(default_opts(), opts)
   end
 
   def render(assigns) do
