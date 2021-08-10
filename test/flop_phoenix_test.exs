@@ -92,6 +92,31 @@ defmodule Flop.PhoenixTest do
                  ~s(href="/pets?page_size=10">Previous</a>)
     end
 
+    test "renders previous link when using click event handling" do
+      result = render_pagination(build(:meta_on_second_page), event: "paginate")
+
+      assert result =~
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-value-page="1">) <>
+                 ~s(Previous</a>)
+    end
+
+    test "adds phx-target to previous link" do
+      result =
+        render_pagination(build(:meta_on_second_page),
+          event: "paginate",
+          target: "here"
+        )
+
+      assert result =~
+               ~s(<a class="pagination-previous" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-target=\"here\" ) <>
+                 ~s(phx-value-page="1">) <>
+                 ~s(Previous</a>)
+    end
+
     test "merges query parameters into existing parameters" do
       result =
         :meta_on_second_page
@@ -136,6 +161,14 @@ defmodule Flop.PhoenixTest do
                  ~s(Previous</span>)
     end
 
+    test "disables previous link if on first page when using click handlers" do
+      result = render_pagination(build(:meta_on_first_page), event: "e")
+
+      assert result =~
+               ~s(<span class="pagination-previous" disabled="disabled">) <>
+                 ~s(Previous</span>)
+    end
+
     test "allows to overwrite previous link class and content if disabled" do
       result =
         render_pagination(
@@ -158,6 +191,31 @@ defmodule Flop.PhoenixTest do
                  ~s(href="/pets?page=3&amp;page_size=10">Next</a>)
     end
 
+    test "renders next link when using click event handling" do
+      result = render_pagination(build(:meta_on_second_page), event: "paginate")
+
+      assert result =~
+               ~s(<a class="pagination-next" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-value-page="3">) <>
+                 ~s(Next</a>)
+    end
+
+    test "adds phx-target to next link" do
+      result =
+        render_pagination(build(:meta_on_second_page),
+          event: "paginate",
+          target: "here"
+        )
+
+      assert result =~
+               ~s(<a class="pagination-next" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-target=\"here\" ) <>
+                 ~s(phx-value-page="3">) <>
+                 ~s(Next</a>)
+    end
+
     test "allows to overwrite next link attributes and content" do
       result =
         render_pagination(
@@ -178,6 +236,14 @@ defmodule Flop.PhoenixTest do
 
     test "disables next link if on last page" do
       result = render_pagination(build(:meta_on_last_page))
+
+      assert result =~
+               ~s(<span class="pagination-next" disabled="disabled">) <>
+                 ~s(Next</span>)
+    end
+
+    test "renders next link on last page when using click event handling" do
+      result = render_pagination(build(:meta_on_last_page), event: "paginate")
 
       assert result =~
                ~s(<span class="pagination-next" disabled="disabled">) <>
@@ -223,8 +289,43 @@ defmodule Flop.PhoenixTest do
       assert result =~ "</ul>"
     end
 
+    test "renders page links when using click event handling" do
+      result = render_pagination(build(:meta_on_second_page), event: "paginate")
+
+      assert result =~
+               ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-value-page="1">) <>
+                 ~s(1</a>)
+    end
+
+    test "adds phx-target to page link" do
+      result =
+        render_pagination(build(:meta_on_second_page),
+          event: "paginate",
+          target: "here"
+        )
+
+      assert result =~
+               ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
+                 ~s(href="#" phx-click="paginate" ) <>
+                 ~s(phx-target=\"here\" ) <>
+                 ~s(phx-value-page="1">) <>
+                 ~s(1</a>)
+    end
+
     test "doesn't render pagination links if set to hide" do
       result = render_pagination(build(:meta_on_second_page), page_links: :hide)
+      refute result =~ "pagination-list"
+    end
+
+    test "doesn't render pagination links if set to hide when passing event" do
+      result =
+        render_pagination(build(:meta_on_second_page),
+          page_links: :hide,
+          event: "paginate"
+        )
+
       refute result =~ "pagination-list"
     end
 
@@ -630,6 +731,34 @@ defmodule Flop.PhoenixTest do
 
       assert html =~
                ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
+    end
+
+    test "renders links with click handler", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | headers: ["Name", {"Age", :age}],
+            opts: [event: "sort"]
+        })
+
+      assert html =~ ~s(<th>Name</th>)
+      assert html =~ ~s(<a href="#" phx-click="sort" phx-value-order="age">)
+    end
+
+    test "adds phx-target to header links", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | headers: ["Name", {"Age", :age}],
+            opts: [event: "sort", target: "here"]
+        })
+
+      assert html =~ ~s(<th>Name</th>)
+
+      assert html =~
+               ~s(<a href="#" phx-click="sort" ) <>
+                 ~s(phx-target="here" ) <>
+                 ~s(phx-value-order="age">)
     end
 
     test "checks for sortability if for option is set", %{assigns: assigns} do
