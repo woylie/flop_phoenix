@@ -143,11 +143,6 @@ defmodule Flop.Phoenix.Pagination do
       <%= if @first > 1 do %>
         <.page_link_tag
           aria_label={@opts[:pagination_link_aria_label].(1)}
-          attrs={
-            if @meta.current_page == 1,
-              do: @opts[:current_link_attrs],
-              else: @opts[:pagination_link_attrs]
-          }
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -166,11 +161,6 @@ defmodule Flop.Phoenix.Pagination do
       <%= for page <- @range do %>
         <.page_link_tag
           aria_label={@opts[:pagination_link_aria_label].(page)}
-          attrs={
-            if @meta.current_page == page,
-              do: @opts[:current_link_attrs],
-              else: @opts[:pagination_link_attrs]
-          }
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -189,11 +179,6 @@ defmodule Flop.Phoenix.Pagination do
       <%= if @last < @meta.total_pages do %>
         <.page_link_tag
           aria_label={@opts[:pagination_link_aria_label].(@meta.total_pages)}
-          attrs={
-            if @meta.current_page == @meta.total_pages,
-              do: @opts[:current_link_attrs],
-              else: @opts[:pagination_link_attrs]
-          }
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -205,18 +190,24 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp page_link_tag(assigns) do
+  defp page_link_tag(
+         %{meta: %{current_page: current_page}, opts: opts, page: page} =
+           assigns
+       ) do
     assigns =
       assign(
         assigns,
         :attrs,
-        assigns.attrs
+        if(current_page == page,
+          do: opts[:current_link_attrs],
+          else: opts[:pagination_link_attrs]
+        )
         |> Keyword.update(
           :aria,
           [label: assigns.aria_label],
           &Keyword.put(&1, :label, assigns.aria_label)
         )
-        |> Keyword.put(:to, assigns.page_link_helper.(assigns.page))
+        |> Keyword.put(:to, assigns.page_link_helper.(page))
       )
 
     ~H"""
