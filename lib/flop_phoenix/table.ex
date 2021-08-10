@@ -57,7 +57,7 @@ defmodule Flop.Phoenix.Table do
   end
 
   defp header({:safe, value}, _, _, _, opts) do
-    not_sortable_header({:safe, value}, opts)
+    not_sortable_header(%{opts: opts, value: {:safe, value}})
   end
 
   defp header(
@@ -100,19 +100,17 @@ defmodule Flop.Phoenix.Table do
       <% end %>
       """
     else
-      not_sortable_header(value, opts)
+      not_sortable_header(%{opts: opts, value: value})
     end
   end
 
   defp header(value, _, _, _, opts) do
-    not_sortable_header(value, opts)
+    not_sortable_header(%{opts: opts, value: value})
   end
 
-  defp not_sortable_header(value, opts) do
-    assigns = %{__changed__: nil, opts: opts, value: value}
-
-    ~L"""
-    <%= content_tag :th, @opts[:thead_th_attrs] do %><%= @value %><% end %>
+  defp not_sortable_header(assigns) do
+    ~H"""
+    <th {@opts[:thead_th_attrs]}><%= @value %></th>
     """
   end
 
