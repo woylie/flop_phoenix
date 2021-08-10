@@ -26,6 +26,9 @@ defmodule Flop.Phoenix.Table do
     ]
   end
 
+  @doc """
+  Deep merges the given options into the default options.
+  """
   @spec init_opts([Flop.Phoenix.table_option()]) :: [
           Flop.Phoenix.table_option()
         ]
