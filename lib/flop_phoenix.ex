@@ -142,7 +142,7 @@ defmodule Flop.Phoenix do
 
   ### Page link options
 
-  By default, page links for all pages are show. You can limit the number of
+  By default, page links for all pages are shown. You can limit the number of
   page links or disable them altogether by passing the `:page_links` option.
 
   - `:all`: Show all page links (default).
