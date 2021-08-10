@@ -1,6 +1,7 @@
 defmodule Flop.Phoenix.Table do
   @moduledoc false
 
+  use Phoenix.Component
   use Phoenix.HTML
 
   import Phoenix.LiveView.Helpers
@@ -81,7 +82,7 @@ defmodule Flop.Phoenix.Table do
       <%= content_tag :th, @opts[:thead_th_attrs] do %>
         <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
           <%= if opts[:event] do %>
-            <%= sort_link(@opts, @field, @value) %>
+            <%= sort_link(%{field: @field, opts: @opts, value: @value}) %>
           <% else %>
             <%= live_patch(@value,
                   to:
@@ -136,21 +137,18 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  defp sort_link(opts, field, value) do
-    attrs =
-      Keyword.new()
-      |> Keyword.put(:phx_click, opts[:event])
-      |> Keyword.put(:phx_value_order, field)
-      |> Keyword.put(:to, "#")
-      |> Misc.maybe_put(:phx_target, opts[:target])
-
-    assigns = %{__changed__: nil, value: value, attrs: attrs}
-
-    ~L"""
-      <%= link @attrs do %>
-        <%= @value %>
-      <% end %>
+  defp sort_link(assigns) do
+    ~H"""
+    <%= link sort_link_attrs(@field, @opts) do %><%= @value %><% end %>
     """
+  end
+
+  defp sort_link_attrs(field, opts) do
+    []
+    |> Keyword.put(:phx_value_order, field)
+    |> Keyword.put(:to, "#")
+    |> Misc.maybe_put(:phx_click, opts[:event])
+    |> Misc.maybe_put(:phx_target, opts[:target])
   end
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil
