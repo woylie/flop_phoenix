@@ -263,6 +263,34 @@ defmodule Flop.Phoenix do
   which will be ignored in `.eex` templates. When used in LiveView templates,
   you will need to handle the new params in the `handle_params/3` callback of
   your LiveView module.
+
+  ### Event Based Pagination and Sorting
+  To make `Flop.Phoenix` use event based pagination and sorting you must set the
+  `:live_event` option on the pagination and table generators. This will generate
+  an `<a>` tag with `phx-click` and `phx-value` attributes set. You will need to handle
+  the event using `handle_event/3` callbacks of your LiveView module using the
+  event name you set in options. If you want to target a component to handle pagination
+  and sorting, you can set the `:live_target` option. This option will tell `Flop.Phoenix`
+  to add and set the `phx-target` attribute.
+
+      def handle_event("pagiante_pets", %{"page" => page}, socket) do
+        flop = Flop.Phoenix.ensure_page_based_params(socket.assigns.meta.flop)
+        params = %{flop | page: page}
+
+        with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+          {:noreply, assign(socket, pets: pets, meta: meta)}
+        end
+      end
+
+      def handle_event("order_pets", %{"order" => order}, socket) do
+        order = String.to_atom(order)
+        flop = Flop.push_order(socket.assigns.meta.flop, order)
+
+        with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
+          {:noreply, assign(socket, pets: pets, meta: meta)}
+        end
+      end
+
   """
 
   use Phoenix.HTML
@@ -388,6 +416,10 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
+  - `:live_event`: If set, tells `Flop.Phoenix` to use event based sorting.
+    Default: `#{inspect(@default_table_opts[:live_event])}`.
+  - `:live_target`: Tells `Flop.Phoenix` to send the `:live_event` to a specific
+    stateful compoenent. Default: `#{inspect(@default_table_opts[:live_target])}`.
 
   See the module documentation for examples.
   """
@@ -614,5 +646,31 @@ defmodule Flop.Phoenix do
       end
 
     apply(path_helper, final_args)
+  end
+
+  @doc """
+  Takes a Flop struct and ensures that pagination uses the `:page` and `:page_size` parameters
+  and `:offset` and `:limit` are set to nil.
+
+  Using `:default_limit` without passing a page parameter produces a Flop
+  with only the limit set.
+
+  ## Examples
+
+    iex> flop = %Flop{limit: 2}
+    iex> ensure_page_based_params(flop)
+    %Flop{after: nil, before: nil, filters: [], first: nil, last: nil, limit: nil,offset: nil,order_by: nil,order_directions: nil,page: nil,page_size: 2}
+
+  """
+
+  @spec ensure_page_based_params(Flop.t()) :: Flop.t()
+  def ensure_page_based_params(%Flop{} = flop) do
+    %{
+      flop
+      | limit: nil,
+        offset: nil,
+        page_size: flop.page_size || flop.limit,
+        page: flop.page
+    }
   end
 end
