@@ -118,6 +118,7 @@ defmodule Flop.Phoenix.Table do
       |> maybe_put_target(opts[:live_target])
 
     assigns = %{__changed__: nil, value: value, attrs: attrs}
+
     ~L"""
       <%= link @attrs do %>
         <%= @value %>
@@ -126,7 +127,9 @@ defmodule Flop.Phoenix.Table do
   end
 
   defp maybe_put_target(attrs, nil), do: attrs
-  defp maybe_put_target(attrs, live_target), do: Keyword.put(attrs, :phx_target, live_target)
+
+  defp maybe_put_target(attrs, live_target),
+    do: Keyword.put(attrs, :phx_target, live_target)
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil
 

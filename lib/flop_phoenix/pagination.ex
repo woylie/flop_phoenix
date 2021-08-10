@@ -32,7 +32,9 @@ defmodule Flop.Phoenix.Pagination do
 
   def build_page_link_helper(meta, route_helper, route_helper_args, opts) do
     query_params =
-      meta.flop |> Flop.Phoenix.ensure_page_based_params() |> Flop.Phoenix.to_query(opts)
+      meta.flop
+      |> Flop.Phoenix.ensure_page_based_params()
+      |> Flop.Phoenix.to_query(opts)
 
     fn page ->
       params = maybe_put_page(query_params, page)
@@ -293,5 +295,7 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   defp maybe_put_target(attrs, nil), do: attrs
-  defp maybe_put_target(attrs, live_target), do: Keyword.put(attrs, :phx_target, live_target)
+
+  defp maybe_put_target(attrs, live_target),
+    do: Keyword.put(attrs, :phx_target, live_target)
 end
