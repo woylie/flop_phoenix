@@ -619,6 +619,11 @@ defmodule Flop.PhoenixTest do
       assert html =~ ~s(<th>Age</th>)
     end
 
+    test "displays headers with safe HTML values", %{assigns: assigns} do
+      html = render_table(%{assigns | headers: [{:safe, "<span>Hello</span>"}]})
+      assert html =~ ~s(<th><span>Hello</span></th>)
+    end
+
     test "displays headers with sorting function", %{assigns: assigns} do
       html = render_table(%{assigns | headers: ["Name", {"Age", :age}]})
       assert html =~ ~s(<th>Name</th>)

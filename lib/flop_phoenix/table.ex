@@ -28,6 +28,10 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
+  defp header({:safe, value}, _, _, _, opts) do
+    not_sortable_header({:safe, value}, opts)
+  end
+
   defp header(
          {value, field},
          %Flop.Meta{flop: flop},
@@ -45,9 +49,9 @@ defmodule Flop.Phoenix.Table do
       value: value
     }
 
-    ~L"""
-    <%= content_tag :th, @opts[:thead_th_attrs] do %>
-      <%= if is_sortable?(field, opts[:for]) do %>
+    if is_sortable?(field, opts[:for]) do
+      ~L"""
+      <%= content_tag :th, @opts[:thead_th_attrs] do %>
         <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
           <%= live_patch(@value,
                 to:
@@ -61,12 +65,18 @@ defmodule Flop.Phoenix.Table do
           %>
           <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
         <% end %>
-      <% else %><%= @value %><% end %>
-    <% end %>
-    """
+      <% end %>
+      """
+    else
+      not_sortable_header(value, opts)
+    end
   end
 
   defp header(value, _, _, _, opts) do
+    not_sortable_header(value, opts)
+  end
+
+  defp not_sortable_header(value, opts) do
     assigns = %{__changed__: nil, opts: opts, value: value}
 
     ~L"""
