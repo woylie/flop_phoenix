@@ -272,7 +272,7 @@ defmodule Flop.Phoenix do
   will need to handle the event using `handle_event/3` callbacks of your
   LiveView module using the event name you set in the options. If you want to
   target a component to handle pagination and sorting, you can set the
-  `:live_target` option. This option will tell `Flop.Phoenix` to add and set
+  `:target` option. This option will tell `Flop.Phoenix` to add and set
   the `phx-target` attribute.
 
       def handle_event("pagiante_pets", %{"page" => page}, socket) do
@@ -420,8 +420,8 @@ defmodule Flop.Phoenix do
   - `:live_event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
     to the header links. Default:
     `#{inspect(@default_table_opts[:live_event])}`.
-  - `:live_target`: Sets the `phx-target` attribute for the header links.
-    Default: `#{inspect(@default_table_opts[:live_target])}`.
+  - `:target`: Sets the `phx-target` attribute for the header links.
+    Default: `#{inspect(@default_table_opts[:target])}`.
 
   See the module documentation for examples.
   """
