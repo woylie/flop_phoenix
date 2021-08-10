@@ -438,13 +438,7 @@ defmodule Flop.Phoenix do
   @doc section: :generators
   @spec pagination(pagination_assigns()) :: Phoenix.LiveView.Rendered.t()
   def pagination(assigns) do
-    assigns =
-      Map.update(
-        assigns,
-        :opts,
-        Pagination.default_opts(),
-        &Pagination.init_opts/1
-      )
+    assigns = assign(assigns, :opts, Pagination.init_opts(assigns.opts))
 
     ~H"""
     <%= if @meta.total_pages > 1 do %>
@@ -503,8 +497,7 @@ defmodule Flop.Phoenix do
   @doc section: :generators
   @spec table(table_assigns()) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
-    assigns =
-      Map.update(assigns, :opts, Table.default_opts(), &Table.init_opts/1)
+    assigns = assign(assigns, :opts, Table.init_opts(assigns.opts))
 
     ~H"""
     <%= if @items == [] do %>

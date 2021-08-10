@@ -21,6 +21,7 @@ defmodule Flop.PhoenixTest do
 
   defp render_pagination(%Meta{} = meta, opts \\ []) do
     %{
+      __changed__: nil,
       meta: meta,
       path_helper: &route_helper/3,
       path_helper_args: @route_helper_opts,
@@ -34,6 +35,7 @@ defmodule Flop.PhoenixTest do
 
   defp render_table(assigns) do
     assigns
+    |> Map.put(:__changed__, nil)
     |> table()
     |> to_iodata()
     |> raw()
@@ -144,6 +146,7 @@ defmodule Flop.PhoenixTest do
     test "merges query parameters into existing parameters" do
       html =
         %{
+          __changed__: nil,
           meta: build(:meta_on_second_page),
           path_helper: &route_helper/3,
           path_helper_args: @route_helper_opts ++ [[category: "dinosaurs"]],
