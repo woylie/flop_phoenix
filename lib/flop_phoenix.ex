@@ -267,7 +267,7 @@ defmodule Flop.Phoenix do
   ### Event Based Pagination and Sorting
 
   To make `Flop.Phoenix` use event based pagination and sorting, you must set
-  the `:live_event` option on the pagination and table generators. This will
+  the `:event` option on the pagination and table generators. This will
   generate an `<a>` tag with `phx-click` and `phx-value` attributes set. You
   will need to handle the event using `handle_event/3` callbacks of your
   LiveView module using the event name you set in the options. If you want to
@@ -417,9 +417,9 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
-  - `:live_event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
+  - `:event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
     to the header links. Default:
-    `#{inspect(@default_table_opts[:live_event])}`.
+    `#{inspect(@default_table_opts[:event])}`.
   - `:target`: Sets the `phx-target` attribute for the header links.
     Default: `#{inspect(@default_table_opts[:target])}`.
 

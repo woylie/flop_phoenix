@@ -53,7 +53,7 @@ defmodule Flop.Phoenix.Table do
       ~L"""
       <%= content_tag :th, @opts[:thead_th_attrs] do %>
         <%= content_tag :span, @opts[:th_wrapper_attrs] do %>
-          <%= if opts[:live_event] do %>
+          <%= if opts[:event] do %>
             <%= sort_link(@opts, @field, @value) %>
           <% else %>
             <%= live_patch(@value,
@@ -112,7 +112,7 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(opts, field, value) do
     attrs =
       Keyword.new()
-      |> Keyword.put(:phx_click, opts[:live_event])
+      |> Keyword.put(:phx_click, opts[:event])
       |> Keyword.put(:phx_value_order, field)
       |> Keyword.put(:to, "#")
       |> maybe_put_target(opts[:live_target])

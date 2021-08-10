@@ -55,7 +55,7 @@ defmodule Flop.Phoenix.Pagination do
     content = opts[:previous_link_content] || @previous_link_content
 
     if meta.has_previous_page? do
-      if event = opts[:live_event] do
+      if event = opts[:event] do
         attrs =
           attrs
           |> Keyword.put(:phx_click, event)
@@ -92,7 +92,7 @@ defmodule Flop.Phoenix.Pagination do
     content = opts[:next_link_content] || @next_link_content
 
     if meta.has_next_page? do
-      if event = opts[:live_event] do
+      if event = opts[:event] do
         attrs =
           attrs
           |> Keyword.put(:phx_click, event)
@@ -248,7 +248,7 @@ defmodule Flop.Phoenix.Pagination do
       )
       |> Keyword.put(:to, route_func.(page))
 
-    if event = opts[:live_event] do
+    if event = opts[:event] do
       attrs =
         attrs
         |> Keyword.put(:phx_click, event)
