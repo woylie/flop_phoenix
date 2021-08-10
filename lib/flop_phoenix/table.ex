@@ -116,11 +116,6 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  defp is_sortable?(_, nil), do: true
-
-  defp is_sortable?(field, module),
-    do: field in (module |> struct() |> Flop.Schema.sortable())
-
   defp arrow(assigns) do
     ~H"""
     <%= if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do %>
@@ -160,4 +155,10 @@ defmodule Flop.Phoenix.Table do
   defp get_order_direction(nil, _), do: nil
   defp get_order_direction(_, nil), do: :asc
   defp get_order_direction(index, directions), do: Enum.at(directions, index)
+
+  defp is_sortable?(_, nil), do: true
+
+  defp is_sortable?(field, module) do
+    field in (module |> struct() |> Flop.Schema.sortable())
+  end
 end
