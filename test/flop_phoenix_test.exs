@@ -205,18 +205,18 @@ defmodule Flop.PhoenixTest do
       assert result =~ ~s(<ul class="pagination-list">)
 
       assert result =~
-               ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+               ~s(<li><a aria-label="Go to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10">1</a></li>)
 
       assert result =~
-               ~s(<li><a aria-current="page" aria-label="Goto page 2" ) <>
+               ~s(<li><a aria-current="page" aria-label="Go to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
 
       assert result =~
-               ~s(<li><a aria-label="Goto page 3" class="pagination-link" ) <>
+               ~s(<li><a aria-label="Go to page 3" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=3&amp;page_size=10">3</a></li>)
 
@@ -247,7 +247,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li>) <>
-                 ~s(<a aria-label="Goto page 1" beep="boop" class="p-link" ) <>
+                 ~s(<a aria-label="Go to page 1" beep="boop" class="p-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10">) <>
                  ~s(1</a></li>)
@@ -256,7 +256,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" ) <>
-                 ~s(aria-label="Goto page 2" ) <>
+                 ~s(aria-label="Go to page 2" ) <>
                  ~s(class="pagination-link is-current" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
@@ -271,7 +271,7 @@ defmodule Flop.PhoenixTest do
 
       assert result =~
                ~s(<li>) <>
-                 ~s(<a aria-label="Goto page 1" class="pagination-link" ) <>
+                 ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page_size=10">) <>
                  ~s(1</a></li>)
@@ -279,7 +279,7 @@ defmodule Flop.PhoenixTest do
       assert result =~
                ~s(<li>) <>
                  ~s(<a aria-current="page" ) <>
-                 ~s(aria-label="Goto page 2" beep="boop" ) <>
+                 ~s(aria-label="Go to page 2" beep="boop" ) <>
                  ~s(class="link is-active" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
@@ -337,7 +337,7 @@ defmodule Flop.PhoenixTest do
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
-               ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+               ~s(<li><a aria-label="Go to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
@@ -388,7 +388,7 @@ defmodule Flop.PhoenixTest do
                  expected_url.(1) <> ~s(">Previous</a>)
 
       assert result =~
-               ~s(<li><a aria-label="Goto page 1" class="pagination-link" ) <>
+               ~s(<li><a aria-label="Go to page 1" class="pagination-link" ) <>
                  ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
                  ~s(href=") <> expected_url.(1) <> ~s(">1</a></li>)
 
