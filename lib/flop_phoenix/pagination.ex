@@ -65,7 +65,7 @@ defmodule Flop.Phoenix.Pagination do
         attrs =
           attrs
           |> Keyword.put(:phx_click, event)
-          |> maybe_put_target(opts[:target])
+          |> Misc.maybe_put(:phx_target, opts[:target])
           |> Keyword.put(:phx_value_page, meta.previous_page)
           |> Keyword.put(:to, "#")
 
@@ -98,7 +98,7 @@ defmodule Flop.Phoenix.Pagination do
         attrs =
           attrs
           |> Keyword.put(:phx_click, event)
-          |> maybe_put_target(opts[:target])
+          |> Misc.maybe_put(:phx_target, opts[:target])
           |> Keyword.put(:phx_value_page, meta.next_page)
           |> Keyword.put(:to, "#")
 
@@ -238,7 +238,7 @@ defmodule Flop.Phoenix.Pagination do
       attrs =
         attrs
         |> Keyword.put(:phx_click, event)
-        |> maybe_put_target(opts[:target])
+        |> Misc.maybe_put(:phx_target, opts[:target])
         |> Keyword.put(:phx_value_page, page)
         |> Keyword.put(:to, "#")
 
@@ -279,9 +279,4 @@ defmodule Flop.Phoenix.Pagination do
       end
     end
   end
-
-  defp maybe_put_target(attrs, nil), do: attrs
-
-  defp maybe_put_target(attrs, target),
-    do: Keyword.put(attrs, :phx_target, target)
 end
