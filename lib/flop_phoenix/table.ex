@@ -95,7 +95,7 @@ defmodule Flop.Phoenix.Table do
                 )
             %>
           <% end %>
-          <%= @flop |> current_direction(@field) |> render_arrow(@opts) %>
+          <%= arrow(%{direction: current_direction(@flop, @field), opts: @opts}) %>
         <% end %>
       <% end %>
       """
@@ -121,19 +121,14 @@ defmodule Flop.Phoenix.Table do
   defp is_sortable?(field, module),
     do: field in (module |> struct() |> Flop.Schema.sortable())
 
-  defp render_arrow(nil, _), do: ""
-
-  defp render_arrow(direction, opts) do
-    assigns = %{__changed__: nil, direction: direction, opts: opts}
-
-    ~L"""
-    <%= content_tag :span, @opts[:symbol_attrs] do %><%=
-      if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
-        @opts[:symbol_asc]
-      else
-        @opts[:symbol_desc]
-      end
-    %><% end %>
+  defp arrow(assigns) do
+    ~H"""
+    <%= if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do %>
+      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_asc] %></span>
+    <% end %>
+    <%= if @direction in [:desc, :desc_nulls_first, :desc_nulls_last] do %>
+      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_desc] %></span>
+    <% end %>
     """
   end
 
