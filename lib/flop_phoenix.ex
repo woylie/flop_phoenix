@@ -142,7 +142,7 @@ defmodule Flop.Phoenix do
 
   ### Page link options
 
-  By default, page links for all pages are show. You can limit the number of
+  By default, page links for all pages are shown. You can limit the number of
   page links or disable them altogether by passing the `:page_links` option.
 
   - `:all`: Show all page links (default).
@@ -263,6 +263,35 @@ defmodule Flop.Phoenix do
   which will be ignored in `.eex` templates. When used in LiveView templates,
   you will need to handle the new params in the `handle_params/3` callback of
   your LiveView module.
+
+  ### Event Based Pagination and Sorting
+
+  To make `Flop.Phoenix` use event based pagination and sorting, you must set
+  the `:event` option on the pagination and table generators. This will
+  generate an `<a>` tag with `phx-click` and `phx-value` attributes set. You
+  will need to handle the event using `handle_event/3` callbacks of your
+  LiveView module using the event name you set in the options. If you want to
+  target a component to handle pagination and sorting, you can set the
+  `:target` option. This option will tell `Flop.Phoenix` to add and set
+  the `phx-target` attribute.
+
+      def handle_event("pagiante_pets", %{"page" => page}, socket) do
+        flop = Flop.Phoenix.ensure_page_based_params(socket.assigns.meta.flop)
+        params = %{flop | page: page}
+
+        with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+          {:noreply, assign(socket, pets: pets, meta: meta)}
+        end
+      end
+
+      def handle_event("order_pets", %{"order" => order}, socket) do
+        order = String.to_atom(order)
+        flop = Flop.push_order(socket.assigns.meta.flop, order)
+
+        with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
+          {:noreply, assign(socket, pets: pets, meta: meta)}
+        end
+      end
   """
 
   use Phoenix.HTML
@@ -388,6 +417,11 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
+  - `:event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
+    to the header links. Default:
+    `#{inspect(@default_table_opts[:event])}`.
+  - `:target`: Sets the `phx-target` attribute for the header links.
+    Default: `#{inspect(@default_table_opts[:target])}`.
 
   See the module documentation for examples.
   """
@@ -614,5 +648,34 @@ defmodule Flop.Phoenix do
       end
 
     apply(path_helper, final_args)
+  end
+
+  @doc """
+  Takes a `Flop` struct and ensures that the only pagination parameters set are
+  `:page` and `:page_size`. `:offset` and `:limit` are set to nil.
+
+  Using `:default_limit` without passing a page parameter produces a Flop
+  with only the limit set.
+
+  ## Examples
+
+    iex> flop = %Flop{limit: 2}
+    iex> ensure_page_based_params(flop)
+    %Flop{
+      limit: nil,
+      offset: nil,
+      page: nil,
+      page_size: 2
+    }
+  """
+  @spec ensure_page_based_params(Flop.t()) :: Flop.t()
+  def ensure_page_based_params(%Flop{} = flop) do
+    %{
+      flop
+      | limit: nil,
+        offset: nil,
+        page_size: flop.page_size || flop.limit,
+        page: flop.page
+    }
   end
 end
