@@ -55,8 +55,7 @@ defmodule FlopPhoenix.MixProject do
       {:floki, "~> 0.31.0", only: :test},
       {:flop, "~> 0.11.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
-      {:phoenix_live_view,
-       github: "phoenixframework/phoenix_live_view", override: true},
+      {:phoenix_live_view, "~> 0.16.0"},
       {:plug, "~> 1.10"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
