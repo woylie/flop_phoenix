@@ -454,9 +454,8 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_tr_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(@default_table_opts[:tbody_td_attrs])}`.
-  - `:event`: If set, tells `Flop.Phoenix` to add a `phx-click` attribute
-    to the header links. Default:
-    `#{inspect(@default_table_opts[:event])}`.
+  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute. Default: `#{inspect(@default_table_opts[:event])}`.
   - `:target`: Sets the `phx-target` attribute for the header links.
     Default: `#{inspect(@default_table_opts[:target])}`.
 
