@@ -265,13 +265,15 @@ defmodule Flop.Phoenix do
   your LiveView module.
 
   ### Event Based Pagination and Sorting
-  To make `Flop.Phoenix` use event based pagination and sorting you must set the
-  `:live_event` option on the pagination and table generators. This will generate
-  an `<a>` tag with `phx-click` and `phx-value` attributes set. You will need to handle
-  the event using `handle_event/3` callbacks of your LiveView module using the
-  event name you set in options. If you want to target a component to handle pagination
-  and sorting, you can set the `:live_target` option. This option will tell `Flop.Phoenix`
-  to add and set the `phx-target` attribute.
+
+  To make `Flop.Phoenix` use event based pagination and sorting, you must set
+  the `:live_event` option on the pagination and table generators. This will
+  generate an `<a>` tag with `phx-click` and `phx-value` attributes set. You
+  will need to handle the event using `handle_event/3` callbacks of your
+  LiveView module using the event name you set in the options. If you want to
+  target a component to handle pagination and sorting, you can set the
+  `:live_target` option. This option will tell `Flop.Phoenix` to add and set
+  the `phx-target` attribute.
 
       def handle_event("pagiante_pets", %{"page" => page}, socket) do
         flop = Flop.Phoenix.ensure_page_based_params(socket.assigns.meta.flop)
@@ -290,7 +292,6 @@ defmodule Flop.Phoenix do
           {:noreply, assign(socket, pets: pets, meta: meta)}
         end
       end
-
   """
 
   use Phoenix.HTML
