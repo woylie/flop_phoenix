@@ -462,6 +462,19 @@ defmodule Flop.Phoenix do
     """
   end
 
+  @type table_assigns :: %{
+          headers: [
+            binary | Phoenix.HTML.safe() | {binary | Phoenix.HTML.safe(), atom}
+          ],
+          items: [any],
+          meta: Flop.Meta.t(),
+          path_helper: function(),
+          path_helper_args: [any],
+          opts: [table_option()],
+          row_func:
+            (any, [table_option | {atom, any}] -> binary | Phoenix.HTML.safe())
+        }
+
   @doc """
   Generates a table with sortable columns.
 
@@ -488,7 +501,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.6.0"
   @doc section: :generators
-  @spec table(map) :: Phoenix.LiveView.Rendered.t()
+  @spec table(table_assigns()) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns =
       Map.update(assigns, :opts, Table.default_opts(), &Table.init_opts/1)
