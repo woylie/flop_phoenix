@@ -328,27 +328,34 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders page links" do
-      result = render_pagination(build(:meta_on_second_page))
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination()
+        |> Floki.parse_fragment!()
 
-      assert result =~ ~s(<ul class="pagination-list">)
+      assert [_] = Floki.find(html, "ul[class='pagination-list']")
 
-      assert result =~
-               ~s(<li><a aria-label="Go to page 1" class="pagination-link" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10">1</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.attribute(link, "class") == ["pagination-link"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert Floki.text(link) == "1"
 
-      assert result =~
-               ~s(<li><a aria-current="page" aria-label="Go to page 2" ) <>
-                 ~s(class="pagination-link is-current" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert Floki.text(link) == "2"
 
-      assert result =~
-               ~s(<li><a aria-label="Go to page 3" class="pagination-link" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=3&amp;page_size=10">3</a></li>)
-
-      assert result =~ "</ul>"
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 3']")
+      assert Floki.attribute(link, "class") == ["pagination-link"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
+      assert Floki.text(link) == "3"
     end
 
     test "renders page links when using click event handling" do
@@ -402,71 +409,69 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite pagination link attributes" do
-      result =
-        render_pagination(
-          build(:meta_on_second_page),
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(
           pagination_link_attrs: [class: "p-link", beep: "boop"]
         )
+        |> Floki.parse_fragment!()
 
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-label="Go to page 1" beep="boop" class="p-link" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10">) <>
-                 ~s(1</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.attribute(link, "beep") == ["boop"]
+      assert Floki.attribute(link, "class") == ["p-link"]
 
       # current link attributes are unchanged
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-current="page" ) <>
-                 ~s(aria-label="Go to page 2" ) <>
-                 ~s(class="pagination-link is-current" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert Floki.attribute(link, "beep") == []
+      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
     end
 
     test "allows to overwrite current attributes" do
-      result =
-        render_pagination(
-          build(:meta_on_second_page),
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(
           current_link_attrs: [class: "link is-active", beep: "boop"]
         )
+        |> Floki.parse_fragment!()
 
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10">) <>
-                 ~s(1</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.attribute(link, "class") == ["pagination-link"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert Floki.text(link) == "1"
 
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-current="page" ) <>
-                 ~s(aria-label="Go to page 2" beep="boop" ) <>
-                 ~s(class="link is-active" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert Floki.attribute(link, "beep") == ["boop"]
+      assert Floki.attribute(link, "class") == ["link is-active"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert Floki.text(link) == "2"
     end
 
     test "allows to overwrite pagination link aria label" do
-      result =
-        render_pagination(
-          build(:meta_on_second_page),
-          pagination_link_aria_label: &"On to page #{&1}"
-        )
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(pagination_link_aria_label: &"On to page #{&1}")
+        |> Floki.parse_fragment!()
 
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-label="On to page 1" class="pagination-link" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page_size=10">1</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='On to page 1']")
+      assert Floki.attribute(link, "class") == ["pagination-link"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert Floki.text(link) == "1"
 
-      assert result =~
-               ~s(<li>) <>
-                 ~s(<a aria-current="page" aria-label="On to page 2" ) <>
-                 ~s(class="pagination-link is-current" ) <>
-                 ~s(data-phx-link="patch" data-phx-link-state="push" ) <>
-                 ~s(href="/pets?page=2&amp;page_size=10">2</a></li>)
+      assert [link] = Floki.find(html, "a[aria-label='On to page 2']")
+      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert Floki.text(link) == "2"
     end
 
     test "adds order parameters to links" do

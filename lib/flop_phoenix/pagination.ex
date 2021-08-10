@@ -142,7 +142,6 @@ defmodule Flop.Phoenix.Pagination do
     <ul {@opts[:pagination_list_attrs]}>
       <%= if @first > 1 do %>
         <.page_link_tag
-          aria_label={@opts[:pagination_link_aria_label].(1)}
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -160,7 +159,6 @@ defmodule Flop.Phoenix.Pagination do
 
       <%= for page <- @range do %>
         <.page_link_tag
-          aria_label={@opts[:pagination_link_aria_label].(page)}
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -178,7 +176,6 @@ defmodule Flop.Phoenix.Pagination do
 
       <%= if @last < @meta.total_pages do %>
         <.page_link_tag
-          aria_label={@opts[:pagination_link_aria_label].(@meta.total_pages)}
           event={@opts[:event]}
           meta={@meta}
           opts={@opts}
@@ -198,16 +195,14 @@ defmodule Flop.Phoenix.Pagination do
       assign(
         assigns,
         :attrs,
-        if(current_page == page,
-          do: opts[:current_link_attrs],
-          else: opts[:pagination_link_attrs]
+        add_page_link_aria_label(
+          if(current_page == page,
+            do: opts[:current_link_attrs],
+            else: opts[:pagination_link_attrs]
+          ),
+          page,
+          opts
         )
-        |> Keyword.update(
-          :aria,
-          [label: assigns.aria_label],
-          &Keyword.put(&1, :label, assigns.aria_label)
-        )
-        |> Keyword.put(:to, assigns.page_link_helper.(page))
       )
 
     ~H"""
@@ -216,7 +211,13 @@ defmodule Flop.Phoenix.Pagination do
         <%= link @page, add_phx_attrs(@attrs, @event, @page, @opts) %>
       </li>
     <% else %>
-      <li><%= live_patch(@page, @attrs) %></li>
+      <li>
+        <%= live_patch(
+              @page,
+              Keyword.put(@attrs, :to, @page_link_helper.(@page))
+            )
+        %>
+      </li>
     <% end %>
     """
   end
@@ -274,5 +275,16 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.maybe_put(:phx_target, opts[:target])
     |> Keyword.put(:phx_value_page, page)
     |> Keyword.put(:to, "#")
+  end
+
+  defp add_page_link_aria_label(attrs, page, opts) do
+    aria_label = opts[:pagination_link_aria_label].(page)
+
+    Keyword.update(
+      attrs,
+      :aria,
+      [label: aria_label],
+      &Keyword.put(&1, :label, aria_label)
+    )
   end
 end
