@@ -733,6 +733,34 @@ defmodule Flop.PhoenixTest do
                ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
     end
 
+    test "renders links with click handler", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | headers: ["Name", {"Age", :age}],
+            opts: [event: "sort"]
+        })
+
+      assert html =~ ~s(<th>Name</th>)
+      assert html =~ ~s(<a href="#" phx-click="sort" phx-value-order="age">)
+    end
+
+    test "adds phx-target to header links", %{assigns: assigns} do
+      html =
+        render_table(%{
+          assigns
+          | headers: ["Name", {"Age", :age}],
+            opts: [event: "sort", target: "here"]
+        })
+
+      assert html =~ ~s(<th>Name</th>)
+
+      assert html =~
+               ~s(<a href="#" phx-click="sort" ) <>
+                 ~s(phx-target="here" ) <>
+                 ~s(phx-value-order="age">)
+    end
+
     test "checks for sortability if for option is set", %{assigns: assigns} do
       # without :for option
       html =

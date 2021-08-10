@@ -142,7 +142,7 @@ defmodule Flop.Phoenix.Table do
       |> Keyword.put(:phx_click, opts[:event])
       |> Keyword.put(:phx_value_order, field)
       |> Keyword.put(:to, "#")
-      |> maybe_put_target(opts[:live_target])
+      |> Misc.maybe_put(:phx_target, opts[:target])
 
     assigns = %{__changed__: nil, value: value, attrs: attrs}
 
@@ -152,11 +152,6 @@ defmodule Flop.Phoenix.Table do
       <% end %>
     """
   end
-
-  defp maybe_put_target(attrs, nil), do: attrs
-
-  defp maybe_put_target(attrs, live_target),
-    do: Keyword.put(attrs, :phx_target, live_target)
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil
 
