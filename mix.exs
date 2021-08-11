@@ -73,16 +73,16 @@ defmodule FlopPhoenix.MixProject do
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
-        "Changelog" => "https://hexdocs.pm/flop_phoenix/changelog.html"
+        "Changelog" => @source_url <> "/blob/main/CHANGELOG.md"
       },
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*)
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*)
     ]
   end
 
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: ["README.md"],
       source_ref: "main",
       groups_for_functions: [
         Generators: &(&1[:section] == :generators),
