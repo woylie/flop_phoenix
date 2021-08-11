@@ -235,13 +235,43 @@ defmodule Flop.Phoenix.Pagination do
   def build_page_link_helper(meta, route_helper, route_helper_args, opts) do
     query_params =
       meta.flop
-      |> Flop.Phoenix.ensure_page_based_params()
+      |> ensure_page_based_params()
       |> Flop.Phoenix.to_query(opts)
 
     fn page ->
       params = maybe_put_page(query_params, page)
       Flop.Phoenix.build_path(route_helper, route_helper_args, params)
     end
+  end
+
+  @doc """
+  Takes a `Flop` struct and ensures that the only pagination parameters set are
+  `:page` and `:page_size`. `:offset` and `:limit` are set to nil.
+
+  ## Examples
+
+      iex> flop = %Flop{limit: 2}
+      iex> ensure_page_based_params(flop)
+      %Flop{
+        limit: nil,
+        offset: nil,
+        page: nil,
+        page_size: 2
+      }
+  """
+  @spec ensure_page_based_params(Flop.t()) :: Flop.t()
+  def ensure_page_based_params(%Flop{} = flop) do
+    %{
+      flop
+      | after: nil,
+        before: nil,
+        first: nil,
+        last: nil,
+        limit: nil,
+        offset: nil,
+        page_size: flop.page_size || flop.limit,
+        page: flop.page
+    }
   end
 
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
