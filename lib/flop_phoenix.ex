@@ -68,7 +68,7 @@ defmodule Flop.Phoenix do
 
       <%= pagination(@meta, &Routes.pet_path/3, [@conn, :index]) %>
 
-  The second argument of `Flop.Phoenix.pagination/4` is the route helper
+  The second argument of `Flop.Phoenix.pagination/1` is the route helper
   function, and the third argument is a list of arguments for that route helper.
   If you want to add path parameters, you can do that like this:
 
@@ -304,7 +304,7 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Table
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.pagination/4`.
+  Defines the available options for `Flop.Phoenix.pagination/1`.
 
   - `:current_link_attrs` - The attributes for the link to the current page.
     Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.

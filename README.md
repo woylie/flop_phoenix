@@ -83,7 +83,7 @@ In your index template, you can now add a sortable table and pagination links:
 <%= pagination(@meta, &Routes.pet_path/3, [@conn, :index], for: MyApp.Pet) %>
 ```
 
-The second argument of `Flop.Phoenix.pagination/4` is the path helper function,
+The second argument of `Flop.Phoenix.pagination/1` is the path helper function,
 and the third argument is a list of arguments for that path helper. If you
 want to add path parameters, you can do it like this:
 
