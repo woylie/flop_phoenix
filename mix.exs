@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.7.0"
+  @version "0.8.0"
 
   def project do
     [
@@ -53,7 +53,7 @@ defmodule FlopPhoenix.MixProject do
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
       {:floki, "~> 0.31.0", only: :test},
-      {:flop, "~> 0.11.0"},
+      {:flop, "~> 0.12.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:phoenix_live_view, "~> 0.16.0"},
       {:plug, "~> 1.10"},

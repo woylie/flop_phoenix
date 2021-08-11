@@ -136,10 +136,7 @@ defmodule Flop.Phoenix do
   option.
 
       def handle_event("paginate-pets", %{"page" => page}, socket) do
-        flop =
-          socket.assigns.meta.flop
-          |> Flop.Phoenix.ensure_page_based_params()
-          |> Map.put(:page, page)
+        flop = Flop.set_page(socket.assigns.meta.flop, page)
 
         with {:ok, {pets, meta}} <- Pets.list_pets(params) do
           {:noreply, assign(socket, pets: pets, meta: meta)}
@@ -147,7 +144,6 @@ defmodule Flop.Phoenix do
       end
 
       def handle_event("order_pets", %{"order" => order}, socket) do
-        order = String.to_existing_atom(order)
         flop = Flop.push_order(socket.assigns.meta.flop, order)
 
         with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
@@ -619,36 +615,5 @@ defmodule Flop.Phoenix do
       end
 
     apply(path_helper, final_args)
-  end
-
-  @doc """
-  Takes a `Flop` struct and ensures that the only pagination parameters set are
-  `:page` and `:page_size`. `:offset` and `:limit` are set to nil.
-
-  Using `:default_limit` without passing a page parameter produces a Flop
-  with only the limit set.
-
-  ## Examples
-
-      iex> flop = %Flop{limit: 2}
-      iex> ensure_page_based_params(flop)
-      %Flop{
-        limit: nil,
-        offset: nil,
-        page: nil,
-        page_size: 2
-      }
-  """
-  @doc since: "0.8.0"
-  @doc section: :miscellaneous
-  @spec ensure_page_based_params(Flop.t()) :: Flop.t()
-  def ensure_page_based_params(%Flop{} = flop) do
-    %{
-      flop
-      | limit: nil,
-        offset: nil,
-        page_size: flop.page_size || flop.limit,
-        page: flop.page
-    }
   end
 end
