@@ -1,78 +1,10 @@
 defmodule Flop.Phoenix do
   @moduledoc """
-  View helper functions for Phoenix and Flop.
+  Components for Phoenix and Flop.
 
-  ## Pagination
+  ## Introduction
 
-  `Flop.meta/3` returns a `Flop.Meta` struct, which holds information such as
-  the total item count, the total page count, the current page etc. This is all
-  you need to render pagination links. `Flop.run/3`, `Flop.validate_and_run/3`
-  and `Flop.validate_and_run!/3` all return the query results alongside the
-  meta information.
-
-  If you set up your context as described in the
-  [Flop documentation](https://hexdocs.pm/flop), you will have a `list` function
-  similar to the following:
-
-      @spec list_pets(Flop.t() | map) ::
-              {:ok, {[Pet.t()], Flop.Meta.t}} | {:error, Changeset.t()}
-      def list_pets(flop \\\\ %{}) do
-        Flop.validate_and_run(Pet, flop, for: Pet)
-      end
-
-  ### Controller
-
-  You can call this function from your controller to get both the data and the
-  meta data and pass both to your template.
-
-      defmodule MyAppWeb.PetController do
-        use MyAppWeb, :controller
-
-        alias Flop
-        alias MyApp.Pets
-        alias MyApp.Pets.Pet
-
-        action_fallback MyAppWeb.FallbackController
-
-        def index(conn, params) do
-          with {:ok, {pets, meta}} <- Pets.list_pets(params) do
-            render(conn, "index.html", meta: meta, pets: pets)
-          end
-        end
-      end
-
-  ### View
-
-  To make the `Flop.Phoenix` functions available in all templates, locate the
-  `view_helpers/0` macro in `my_app_web.ex` and add another import statement:
-
-      defp view_helpers do
-        quote do
-          # ...
-
-          import Flop.Phoenix
-
-          # ...
-        end
-      end
-
-  ### Template
-
-  In your index template, you can now add pagination links like this:
-
-      <h1>Listing Pets</h1>
-
-      <table>
-      # ...
-      </table>
-
-      <%= pagination(@meta, &Routes.pet_path/3, [@conn, :index]) %>
-
-  The second argument of `Flop.Phoenix.pagination/4` is the route helper
-  function, and the third argument is a list of arguments for that route helper.
-  If you want to add path parameters, you can do that like this:
-
-      <%= pagination(@meta, &Routes.owner_pet_path/4, [@conn, :index, @owner]) %>
+  Please refer to the [Readme](README.md) for an introduction.
 
   ## Customization
 
@@ -85,17 +17,17 @@ defmodule Flop.Phoenix do
           <li><span class="pagination-ellipsis">&hellip;</span></li>
           <li>
             <a aria-current="page"
-               aria-label="Goto page 1"
+               aria-label="Go to page 1"
                class="pagination-link is-current"
                href="/pets?page=1&amp;page_size=10">1</a>
           </li>
           <li>
-            <a aria-label="Goto page 2"
+            <a aria-label="Go to page 2"
                class="pagination-link"
                href="/pets?page=2&amp;page_size=10">2</a>
           </li>
           <li>
-            <a aria-label="Goto page 3"
+            <a aria-label="Go to page 3"
                class="pagination-link"
                href="/pets?page=3&amp;page_size=2">3</a>
           </li>
@@ -103,181 +35,111 @@ defmodule Flop.Phoenix do
         </ul>
       </nav>
 
-  You can customize the css classes and add additional HTML attributes. It is
-  recommended to set up the customization once in a view helper module, so that
-  your templates aren't cluttered with options.
+  If you want to customize the pagination or table markup, you probably want
+  to do that once for all templates, so that your templates aren't cluttered
+  with options.
 
-  Create a new file called `views/flop_helpers.ex`:
+  To do that, create a new file `live/flop_components.ex` (or
+  `views/flop_helpers.ex`, or `views/component_helpers.ex`).
 
-      defmodule MyAppWeb.FlopHelpers do
-        use Phoenix.HTML
+      defmodule MyAppWeb.FlopComponents do
+        use Phoenix.Component
 
-        def pagination(meta, path_helper, path_helper_args) do
-          Flop.Phoenix.pagination(
-            meta,
-            path_helper,
-            path_helper_args,
-            pagination_opts()
-          )
+        def pagination(assigns) do
+          ~H\"""
+          <Flop.Phoenix.pagination
+            meta={@meta},
+            path_helper={@path_helper},
+            path_helper_args{@path_helper_args},
+            opts={pagination_opts(@opts)}
+          />
+          \"""
         end
 
-        def pagination_opts do
-          [
-            # ...
+        defp pagination_opts(opts) do
+          default_opts = [
+            ellipsis_attrs: [class: "ellipsis"],
+            ellipsis_content: "‥",
+            next_link_attrs: [class: "next"],
+            next_link_content: next_icon(),
+            page_links: {:ellipsis, 7},
+            pagination_link_aria_label: &"\#{&1}ページ目へ",
+            pagination_link_attrs: [class: "page-link"],
+            pagination_list_attrs: [class: "page-links"],
+            previous_link_attrs: [class: "prev"],
+            previous_link_content: previous_icon(),
+            wrapper_attrs: [class: "paginator"]
           ]
+
+          Keyword.merge(default_opts, opts)
+        end
+
+        defp next_icon do
+          tag :i, class: "fas fa-chevron-right"
+        end
+
+        defp previous_icon do
+          tag :i, class: "fas fa-chevron-left"
         end
       end
 
-  Change the import in `my_app_web.ex`:
+  You can do this similarly for `Flop.Phoenix.table/1`
+
+  To make the functions available in all templates, import the module in
+  `my_app_web.ex`.
 
       defp view_helpers do
         quote do
           # ...
 
-          import MyAppWeb.FlopHelpers
+          import MyAppWeb.FlopComponents
 
           # ...
         end
       end
 
-  ### Page link options
-
-  By default, page links for all pages are shown. You can limit the number of
-  page links or disable them altogether by passing the `:page_links` option.
-
-  - `:all`: Show all page links (default).
-  - `:hide`: Don't show any page links. Only the previous/next links will be
-    shown.
-  - `{:ellipsis, x}`: Limits the number of page links. The first and last page
-    are always displayed. The `x` refers to the number of additional page links
-    to show.
-
-  ### Attributes and CSS classes
-
-  You can overwrite the default attributes of the `<nav>` tag and the pagination
-  links by passing these options:
-
-  - `:wrapper_attrs`: attributes for the `<nav>` tag
-  - `:previous_link_attrs`: attributes for the previous link (`<a>` if active,
-    `<span>` if disabled)
-  - `:next_link_attrs`: attributes for the next link (`<a>` if active,
-    `<span>` if disabled)
-  - `:pagination_list_attrs`: attributes for the page link list (`<ul>`)
-  - `:pagination_link_attrs`: attributes for the page links (`<a>`)
-  - `:current_link_attrs`: attributes for the page link to the current page
-    (`<a>`) - note that the `pagination_link_attrs` are not applied to the
-    current page link
-  - `:ellipsis_attrs`: attributes for the ellipsis element (`<span>`)
-  - `:ellipsis_content`: content for the ellipsis element (`<span>`)
-
-  ### Pagination link aria label
-
-  For the page links, there is the `:pagination_link_aria_label` option to set
-  the aria label. Since the page number is usually part of the aria label, you
-  need to pass a function that takes the page number as an integer and returns
-  the label as a string. The default is `&"Goto page \#{&1}"`.
-
-  ### Previous/next links
-
-  By default, the previous and next links contain the texts `Previous` and
-  `Next`. To change this, you can pass the `:previous_link_content` and
-  `:next_link_content` options.
-
-  ### Hiding default parameters
+  ## Hiding default parameters
 
   Default values for page size and ordering are omitted from the query
   parameters. If you pass the `:for` option, the Flop.Phoenix function will
   pick up the default values from the schema module deriving `Flop.Schema`.
 
-  ### Customization example
-
-      def pagination(meta, path_helper, path_helper_args, opts) do
-        default_opts = [
-          ellipsis_attrs: [class: "ellipsis"],
-          ellipsis_content: "‥",
-          next_link_attrs: [class: "next"],
-          next_link_content: next_icon(),
-          page_links: {:ellipsis, 7},
-          pagination_link_aria_label: &"\#{&1}ページ目へ",
-          pagination_link_attrs: [class: "page-link"],
-          pagination_list_attrs: [class: "page-links"],
-          previous_link_attrs: [class: "prev"],
-          previous_link_content: previous_icon(),
-          wrapper_attrs: [class: "paginator"]
-        ]
-
-        opts = Keyword.merge(default_opts, opts)
-        Flop.Phoenix.pagination(meta, path_helper, path_helper_args, opts)
-      end
-
-      defp next_icon do
-        tag :i, class: "fas fa-chevron-right"
-      end
-
-      defp previous_icon do
-        tag :i, class: "fas fa-chevron-left"
-      end
-
-  ## Sortable table
-
-  To add a sortable table for pets on the same page, define a function in
-  `MyAppWeb.PetView` that returns the table headers:
-
-      def table_headers do
-        ["ID", {"Name", :name}, {"Age", :age}, ""]
-      end
-
-  This defines four header columns: One for the ID, which is not sortable, and
-  columns for the name and the age, which are both sortable, and a fourth
-  column without a header value. The last column will hold the links to the
-  detail pages. The name and age column headers will be linked, so that they the
-  order on the `:name` and `:age` field, respectively.
-
-  Next, we define a function that returns the column values for a single pet:
-
-      def table_row(%Pet{id: id, name: name, age: age}, opts) do
-        conn = Keyword.fetch!(opts, :conn)
-        [id, name, age, link("show", to: Routes.pet_path(conn, :show, id))]
-      end
-
-  The controller already assigns the pets and the meta struct to the conn. All
-  that's left to do is to add the table to the index template:
-
-      <%= table(%{
-            items: @pets,
-            meta: @meta,
-            path_helper: &Routes.pet_path/3,
-            path_helper_args: [@conn, :index],
-            headers: table_headers(),
-            row_func: &table_row/2,
-            opts: [conn: @conn]
-        })
-      %>
-
   ## LiveView
 
-  The functions in this module can be used in both `.eex` and `.leex` templates.
+  The functions in this module can be used in both `.eex` and `.heex` templates.
 
   Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
-  which will be ignored in `.eex` templates. When used in LiveView templates,
-  you will need to handle the new params in the `handle_params/3` callback of
-  your LiveView module.
+  which will be ignored outside of LiveViews and LiveComponents.
 
-  ### Event Based Pagination and Sorting
+  When used in LiveView templates, you will need to handle the new params in the
+  `handle_params/3` callback of your LiveView module.
 
-  To make `Flop.Phoenix` use event based pagination and sorting, you must set
+  ## Event Based Pagination and Sorting
+
+  To make `Flop.Phoenix` use event based pagination and sorting, you need to set
   the `:event` option on the pagination and table generators. This will
-  generate an `<a>` tag with `phx-click` and `phx-value` attributes set. You
-  will need to handle the event using `handle_event/3` callbacks of your
-  LiveView module using the event name you set in the options. If you want to
-  target a component to handle pagination and sorting, you can set the
-  `:target` option. This option will tell `Flop.Phoenix` to add and set
-  the `phx-target` attribute.
+  generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
 
-      def handle_event("pagiante_pets", %{"page" => page}, socket) do
-        flop = Flop.Phoenix.ensure_page_based_params(socket.assigns.meta.flop)
-        params = %{flop | page: page}
+  You can set a different target by setting the `:target` option. The value
+  will be used in the `phx-target` attribute.
+
+      <Flop.Phoenix.pagination
+        meta={@meta},
+        path_helper={&Routes.pet_path/4},
+        path_helper_args{[@conn, :index, @owner]},
+        opts={[for: MyApp.Pet, event: "paginate-pets", target: @myself]}
+      />
+
+  You will need to handle the event in the `handle_event/3` callback of your
+  LiveView module. The event name will be the one you set with the `:event`
+  option.
+
+      def handle_event("paginate-pets", %{"page" => page}, socket) do
+        flop =
+          socket.assigns.meta.flop
+          |> Flop.Phoenix.ensure_page_based_params()
+          |> Map.put(:page, page)
 
         with {:ok, {pets, meta}} <- Pets.list_pets(params) do
           {:noreply, assign(socket, pets: pets, meta: meta)}
@@ -285,7 +147,7 @@ defmodule Flop.Phoenix do
       end
 
       def handle_event("order_pets", %{"order" => order}, socket) do
-        order = String.to_atom(order)
+        order = String.to_existing_atom(order)
         flop = Flop.push_order(socket.assigns.meta.flop, order)
 
         with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
@@ -294,6 +156,7 @@ defmodule Flop.Phoenix do
       end
   """
 
+  use Phoenix.Component
   use Phoenix.HTML
 
   import Phoenix.LiveView.Helpers
@@ -303,7 +166,7 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Table
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.pagination/4`.
+  Defines the available options for `Flop.Phoenix.pagination/1`.
 
   - `:current_link_attrs` - The attributes for the link to the current page.
     Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
@@ -411,6 +274,13 @@ defmodule Flop.Phoenix do
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
 
+  @type pagination_assigns :: %{
+          meta: Flop.Meta.t(),
+          path_helper: function(),
+          path_helper_args: [any],
+          opts: [table_option()]
+        }
+
   @doc """
   Generates a pagination element.
 
@@ -425,39 +295,50 @@ defmodule Flop.Phoenix do
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
     function are deep merged into the default options.
 
-  See the module documentation for examples.
+  ## Page link options
+
+  By default, page links for all pages are shown. You can limit the number of
+  page links or disable them altogether by passing the `:page_links` option.
+
+  - `:all`: Show all page links (default).
+  - `:hide`: Don't show any page links. Only the previous/next links will be
+    shown.
+  - `{:ellipsis, x}`: Limits the number of page links. The first and last page
+    are always displayed. The `x` refers to the number of additional page links
+    to show.
+
+  ## Pagination link aria label
+
+  For the page links, there is the `:pagination_link_aria_label` option to set
+  the aria label. Since the page number is usually part of the aria label, you
+  need to pass a function that takes the page number as an integer and returns
+  the label as a string. The default is `&"Goto page \#{&1}"`.
+
+  ## Previous/next links
+
+  By default, the previous and next links contain the texts `Previous` and
+  `Next`. To change this, you can pass the `:previous_link_content` and
+  `:next_link_content` options.
+
+  See the module documentation and [Readme](README.md) for examples.
   """
   @doc section: :generators
-  @spec pagination(Meta.t(), function, [any], [pagination_option()]) ::
-          Phoenix.LiveView.Rendered.t()
+  @spec pagination(pagination_assigns()) :: Phoenix.LiveView.Rendered.t()
+  def pagination(assigns) do
+    assigns = assign(assigns, :opts, Pagination.init_opts(assigns.opts))
 
-  def pagination(meta, path_helper, path_helper_args, opts \\ [])
-
-  def pagination(%Meta{total_pages: p}, _, _, _) when p <= 1, do: raw(nil)
-
-  def pagination(%Meta{} = meta, path_helper, path_helper_args, opts) do
-    opts = Pagination.init_opts(opts)
-
-    assigns = %{
-      __changed__: nil,
-      meta: meta,
-      opts: opts,
-      page_link_helper:
-        Pagination.build_page_link_helper(
-          meta,
-          path_helper,
-          path_helper_args,
-          opts
-        )
-    }
-
-    ~L"""
+    ~H"""
     <%= if @meta.total_pages > 1 do %>
-      <%= content_tag :nav, @opts[:wrapper_attrs] do %>
-        <%= Pagination.previous_link(@meta, @page_link_helper, @opts) %>
-        <%= Pagination.next_link(@meta, @page_link_helper, @opts) %>
-        <%= Pagination.page_links(@meta, @page_link_helper, @opts) %>
-      <% end %>
+      <Pagination.render
+        meta={@meta}
+        opts={@opts}
+        page_link_helper={Pagination.build_page_link_helper(
+          @meta,
+          @path_helper,
+          @path_helper_args,
+          @opts
+        )}
+      />
     <% end %>
     """
   end
@@ -497,25 +378,67 @@ defmodule Flop.Phoenix do
   - `row_func`: A function that takes one item of the `items` list and the
     `opts` and returns the column values for that item's row.
 
-  See the module documentation for examples.
+  ## Table headers
+
+  Table headers need to be passed as a list. It is recommended to define a
+  function in the `View`, `LiveView` or `LiveComponent` module that returns the
+  table headers:
+
+      def table_headers do
+        ["ID", {"Name", :name}, {"Age", :age}, ""]
+      end
+
+  This defines four header columns: One for the ID, which is not sortable, and
+  columns for the name and the age, which are both sortable, and a fourth
+  column without a header value. The last column will hold the links to the
+  detail pages. The name and age column headers will be linked, so that they the
+  order on the `:name` and `:age` field, respectively.
+
+  ## Table rows
+
+  You need to define a function that takes a single item from the list and the
+  opts passed to the component. The function needs to return a list with one
+  item for each column.
+
+      def table_row(%Pet{id: id, name: name, age: age}, opts) do
+        socket = Keyword.fetch!(opts, :socket)
+        [id, name, age, link("show", to: Routes.pet_path(socket, :show, id))]
+      end
+
+  See the module documentation and [Readme](README.md) for examples.
   """
   @doc since: "0.6.0"
   @doc section: :generators
   @spec table(table_assigns()) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
-    assigns =
-      Map.update(assigns, :opts, Table.default_opts(), &Table.init_opts/1)
+    assigns = assign(assigns, :opts, Table.init_opts(assigns.opts))
 
-    ~L"""
+    ~H"""
     <%= if @items == [] do %>
       <%= @opts[:no_results_content] %>
     <% else %>
       <%= if @opts[:container] do %>
-        <%= content_tag :div, @opts[:container_attrs] do %>
-          <%= Table.render(assigns) %>
-        <% end %>
+        <div {@opts[:container_attrs]}>
+          <Table.render
+            headers={@headers}
+            items={@items}
+            meta={@meta}
+            opts={@opts}
+            path_helper={@path_helper}
+            path_helper_args={@path_helper_args}
+            row_func={@row_func}
+          />
+        </div>
       <% else %>
-        <%= Table.render(assigns) %>
+        <Table.render
+          headers={@headers}
+          items={@items}
+          meta={@meta}
+          opts={@opts}
+          path_helper={@path_helper}
+          path_helper_args={@path_helper_args}
+          row_func={@row_func}
+        />
       <% end %>
     <% end %>
     """

@@ -52,10 +52,10 @@ defmodule FlopPhoenix.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
+      {:floki, "~> 0.31.0", only: :test},
       {:flop, "~> 0.11.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
-      {:phoenix_html, "~> 2.14 or ~> 3.0"},
-      {:phoenix_live_view, "~> 0.15"},
+      {:phoenix_live_view, "~> 0.16.0"},
       {:plug, "~> 1.10"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
@@ -73,16 +73,16 @@ defmodule FlopPhoenix.MixProject do
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
-        "Changelog" => "https://hexdocs.pm/flop_phoenix/changelog.html"
+        "Changelog" => @source_url <> "/blob/main/CHANGELOG.md"
       },
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*)
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*)
     ]
   end
 
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: ["README.md"],
       source_ref: "main",
       groups_for_functions: [
         Generators: &(&1[:section] == :generators),

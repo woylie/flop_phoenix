@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Use `HEEx` templates.
+- Require `live_view ~> 0.16.0`.
 - Support safe HTML tuples in unsortable table headers.
 
 ## [0.7.0] - 2021-06-13
