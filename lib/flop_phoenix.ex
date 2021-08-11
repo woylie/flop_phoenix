@@ -274,13 +274,6 @@ defmodule Flop.Phoenix do
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
 
-  @type pagination_assigns :: %{
-          meta: Flop.Meta.t(),
-          path_helper: function(),
-          path_helper_args: [any],
-          opts: [table_option()]
-        }
-
   @doc """
   Generates a pagination element.
 
@@ -323,7 +316,7 @@ defmodule Flop.Phoenix do
   See the module documentation and [Readme](README.md) for examples.
   """
   @doc section: :generators
-  @spec pagination(pagination_assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
   def pagination(assigns) do
     assigns = assign(assigns, :opts, Pagination.init_opts(assigns.opts))
 
@@ -342,19 +335,6 @@ defmodule Flop.Phoenix do
     <% end %>
     """
   end
-
-  @type table_assigns :: %{
-          headers: [
-            binary | Phoenix.HTML.safe() | {binary | Phoenix.HTML.safe(), atom}
-          ],
-          items: [any],
-          meta: Flop.Meta.t(),
-          path_helper: function(),
-          path_helper_args: [any],
-          opts: [table_option()],
-          row_func:
-            (any, [table_option | {atom, any}] -> binary | Phoenix.HTML.safe())
-        }
 
   @doc """
   Generates a table with sortable columns.
@@ -409,7 +389,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.6.0"
   @doc section: :generators
-  @spec table(table_assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns = assign(assigns, :opts, Table.init_opts(assigns.opts))
 
