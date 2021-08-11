@@ -7,6 +7,7 @@
 ### Changed
 
 - Use `HEEx` templates for both the pagination and the sortable table component.
+  Refer to the Readme for usage examples.
 - Require `live_view ~> 0.16.0`.
 - Support safe HTML tuples in unsortable table headers.
 - Improve documentation with examples for LiveView, HEEx templates and EEx
