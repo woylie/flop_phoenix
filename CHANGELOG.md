@@ -4,6 +4,12 @@
 
 ## [0.8.0] - 2021-08-11
 
+### Added
+
+- New options `event` and `target` for the pagination and sortable table
+  component, which allow to emit pagination and sorting events in LiveView
+  without patching the URL.
+
 ### Changed
 
 - Use `HEEx` templates for both the pagination and the sortable table component.
