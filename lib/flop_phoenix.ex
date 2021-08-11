@@ -278,7 +278,7 @@ defmodule Flop.Phoenix do
           meta: Flop.Meta.t(),
           path_helper: function(),
           path_helper_args: [any],
-          opts: [table_option()]
+          opts: [table_option() | {atom, any}]
         }
 
   @doc """
@@ -351,7 +351,7 @@ defmodule Flop.Phoenix do
           meta: Flop.Meta.t(),
           path_helper: function(),
           path_helper_args: [any],
-          opts: [table_option()],
+          opts: [table_option() | {atom, any}],
           row_func:
             (any, [table_option | {atom, any}] -> binary | Phoenix.HTML.safe())
         }
