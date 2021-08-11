@@ -8,7 +8,7 @@ with Ecto, Phoenix and [Flop](https://hex.pm/packages/flop).
 ## Installation
 
 Add `flop_phoenix` to your list of dependencies in the `mix.exs` of your Phoenix
-application:
+application.
 
 ```elixir
 def deps do
@@ -22,17 +22,28 @@ Follow the instructions in the
 [Flop documentation](https://hex.pm/packages/flop) to set up your business
 logic.
 
-## Usage
+## Fetch the data
 
-In your controller, pass the data and the Flop meta struct to your template:
+Define a function that calls `Flop.validate_and_run/3` to query the list of
+pets.
+
+```elixir
+defmodule MyApp.Pets do
+  alias MyApp.Pet
+
+  def list_pets(params) do
+    Flop.validate_and_run(Pet, params, for: Pet)
+  end
+end
+```
+
+In your controller, pass the data and the Flop meta struct to your template.
 
 ```elixir
 defmodule MyAppWeb.PetController do
   use MyAppWeb, :controller
 
-  alias Flop
   alias MyApp.Pets
-  alias MyApp.Pets.Pet
 
   action_fallback MyAppWeb.FallbackController
 
@@ -44,32 +55,81 @@ defmodule MyAppWeb.PetController do
 end
 ```
 
-In `my_app_web.ex`, find the `view_helpers/0` macro and import `Flop.Phoenix`:
+You can fetch the data similarly in the `handle_params/3` function of a
+`LiveView` or the `update/2` function of a `LiveComponent`.
 
-```diff
-defp view_helpers do
-  quote do
-    # Use all HTML functionality (forms, tags, etc)
-    use Phoenix.HTML
+```elixir
+defmodule MyAppWeb.PetLive.Index do
+  use MyAppWeb, :live_view
 
-    # Import basic rendering functionality (render, render_layout, etc)
-    import Phoenix.View
+  alias MyApp.Pets
 
-+   import Flop.Phoenix
-
-    import MyAppWeb.ErrorHelpers
-    import MyAppWeb.Gettext
-    alias MyAppWeb.Router.Helpers, as: Routes
+  @impl Phoenix.LiveView
+  def handle_params(params, _, socket) do
+    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+      {:noreply, assign(socket, %{pets: pets, meta: meta})}
+    end
   end
 end
 ```
 
-In your index template, you can now add a sortable table and pagination links:
+## HEEx templates
+
+In your template, add a sortable table and pagination links.
+
+```elixir
+<h1>Pets</h1>
+
+<Flop.Phoenix.table
+  items={@pets}
+  meta={@meta}
+  path_helper={&Routes.pet_path/3}
+  path_helper_args={[@socket, :index]}
+  headers={[{"Name", :name}, {"Age", :age}]}
+  row_func={fn pet, _opts -> [pet.name, pet.age] end},
+  opts={[for: MyApp.Pet]}
+/>
+
+<Flop.Phoenix.pagination
+  meta={@meta},
+  path_helper={&Routes.pet_path/3},
+  path_helper_args{[@socket, :index]},
+  opts={[for: MyApp.Pet]}
+/>
+```
+
+`path_helper` should reference the path helper function that builds a path to
+the current page. `path_helper_args` is the argument list that will be passed to
+the function. If you want to add a path parameter, you can do it like this.
+
+```elixir
+<Flop.Phoenix.pagination
+  meta={@meta},
+  path_helper={&Routes.pet_path/4},
+  path_helper_args{[@conn, :index, @owner]},
+  opts={[for: MyApp.Pet]}
+/>
+```
+
+If the last argument is a keyword list of query parameters, the query parameters
+for pagination and sorting will be merged into that list.
+
+The `for` option allows Flop Phoenix to determine which table columns are
+sortable. It also allows it to hide the `order` and `page_size`
+parameters if they match the default values defined with `Flop.Schema`.
+
+## EEx templates
+
+In EEX templates, you will need to call the functions directly and pass a map
+with the assigns. You need to include `__changed__: nil` in the map. Do not call
+the functions like this within a LiveView, since it will prevent the components
+from being updated.
 
 ```elixir
 <h1>Pets</h1>
 
 <%= table(%{
+      __changed__: nil,
       items: @pets,
       meta: @meta,
       path_helper: &Routes.pet_path/3,
@@ -77,34 +137,42 @@ In your index template, you can now add a sortable table and pagination links:
       headers: [{"Name", :name}, {"Age", :age}],
       row_func: fn pet, _opts -> [pet.name, pet.age] end,
       opts: [for: MyApp.Pet]
-  })
+    })
 %>
 
-<%= pagination(@meta, &Routes.pet_path/3, [@conn, :index], for: MyApp.Pet) %>
+<%= pagination(%{
+      __changed__: nil,
+      meta: @meta,
+      path_helper: &Routes.pet_path/3,
+      path_helper_args: [@conn, :index],
+      opts: [for: MyApp.Pet]
+    })
+%>
 ```
 
-The second argument of `Flop.Phoenix.pagination/1` is the path helper function,
-and the third argument is a list of arguments for that path helper. If you
-want to add path parameters, you can do it like this:
+## Clean up the template
+
+To keep your templates clean, it is recommended to define a `table_headers/1`
+and `table_row/2` function in your `View`, `LiveView` or `LiveComponent` module.
+The `opts` are passed as a second argument to the `row_func`, so you can add any
+additional parameters you need.
+
+The LiveView module:
 
 ```elixir
-<%= pagination(@meta, &Routes.owner_pet_path/4, [@conn, :index, @owner]) %>
-```
+defmodule MyAppWeb.PetLive.Index do
+  use MyAppWeb, :live_view
 
-This works the same as the `path_helper` and `path_helper_args` values of
-`Flop.Phoenix.table/1`.
+  alias MyApp.Pet
+  alias MyApp.Pets
 
-The `for` option allows Flop Phoenix to hide the `order` and `page_size`
-parameters if they match the default values defines with `Flop.Schema`.
+  @impl Phoenix.LiveView
+  def handle_params(params, _, socket) do
+    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+      {:noreply, assign(socket, %{pets: pets, meta: meta})}
+    end
+  end
 
-To keep your template clean, it is recommended to define a `table_headers/1`
-and `table_row/2` function in your view. The `opts` are passed as a second
-argument to the `row_func`, so you can add any additional parameters you need.
-
-The view module:
-
-```elixir
-defmodule MyApp.PetView do
   def table_headers do
     [
       # {display value, schema field}
@@ -115,12 +183,12 @@ defmodule MyApp.PetView do
   end
 
   def table_row(%Pet{} = pet, opts) do
-    conn = Keyword.fetch!(opts, :conn)
+    socket = Keyword.fetch!(opts, :socket)
 
     [
       pet.name,
       pet.age,
-      link "show", to: Routes.pet_path(conn, :show, pet)
+      link "show", to: Routes.pet_path(socket, :show, pet)
     ]
   end
 end
@@ -129,36 +197,48 @@ end
 The template:
 
 ```elixir
-<%= table(%{
-      items: @pets,
-      meta: @meta,
-      path_helper: &Routes.pet_path/3,
-      path_helper_args: [@conn, :index],
-      headers: table_headers(),
-      row_func: &table_row/2,
-      opts: [conn: @conn, for: Pet]
-  })
-%>
+<Flop.Phoenix.table
+  items={@pets}
+  meta={@meta}
+  path_helper={&Routes.pet_path/3}
+  path_helper_args={[@socket, :index]}
+  headers={table_headers()}
+  row_func={&table_row/2},
+  opts={[for: MyApp.Pet, socket: @socket]}
+/>
 ```
 
 ## Customization
 
 If you want to customize the pagination or table markup, you would probably want
-to do that once for all templates. To do that, create a new file
-`views/flop_helpers.ex` (or maybe `views/component_helpers.ex`).
+to do that once for all templates.
+
+To do that, create a new file `live/flop_components.ex` (or
+`views/flop_helpers.ex`, or `views/component_helpers.ex`).
 
 ```elixir
-defmodule MyAppWeb.FlopHelpers do
-  use Phoenix.HTML
+defmodule MyAppWeb.FlopComponents do
+  use Phoenix.Component
 
-  def pagination(meta, route_helper, route_helper_args) do
-    opts = [
+  def pagination(assigns) do
+    ~H"""
+    <Flop.Phoenix.pagination
+      meta={@meta},
+      path_helper={@path_helper},
+      path_helper_args{@path_helper_args},
+      opts={pagination_opts(@opts)}
+    />
+    """
+  end
+
+  defp pagination_opts(opts) do
+    default_opts = [
       next_link_content: next_icon(),
       previous_link_content: previous_icon(),
       wrapper_attrs: [class: "paginator"]
     ]
 
-    Flop.Phoenix.pagination(meta, route_helper, route_helper_args, opts)
+    Keyword.merge(default_opts, opts)
   end
 
   defp next_icon do
@@ -171,21 +251,21 @@ defmodule MyAppWeb.FlopHelpers do
 end
 ```
 
-Change the import in `my_app_web.ex`:
+To make the functions available in all templates, import the module in
+`my_app_web.ex`.
 
 ```diff
 defp view_helpers do
   quote do
     # ...
 
--   import Flop.Phoenix
-+   import MyAppWeb.FlopHelpers
++   import MyAppWeb.FlopComponents
 
     # ...
   end
 end
 ```
 
-You can do it similarly for `Flop.Phoenix.table/1`
+You can do so similarly for `Flop.Phoenix.table/1`
 
 Refer to the `Flop.Phoenix` module documentation for more examples.
