@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.8.1] - 2021-08-11
+
+### Changed
+
+- Loosen version requirement for Flop.
+
 ## [0.8.0] - 2021-08-11
 
 ### Added
