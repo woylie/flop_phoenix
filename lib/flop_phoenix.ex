@@ -248,6 +248,10 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
+  - `:tfoot_td_attrs`: Attributes to added to each `<td>` tag within the
+    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_td_attrs])}`.
+  - `:tfoot_tr_attrs`: Attributes to added to each `<tr>` tag within the
+    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_tr_attrs])}`.
   - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
   - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
@@ -266,6 +270,8 @@ defmodule Flop.Phoenix do
           | {:target, binary | atom}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
+          | {:tfoot_td_attrs, keyword}
+          | {:tfoot_tr_attrs, keyword}
           | {:th_wrapper_attrs, keyword}
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
@@ -337,8 +343,10 @@ defmodule Flop.Phoenix do
 
   The argument is a map with the following keys:
 
-  - `headers`: A list of header columns. Can be a list of strings (or markup),
-    or a list of `{value, field_name}` tuples.
+  - `footer`: A list of footer columns. Can be a list of strings or safe
+    HTML.
+  - `headers`: A list of header columns. Can be a list of strings (or safe
+    HTML), or a list of `{value, field_name}` tuples.
   - `items`: The list of items to be displayed in rows. This is the result list
     returned by the query.
   - `meta`: The `Flop.Meta` struct returned by the query function.
@@ -381,13 +389,30 @@ defmodule Flop.Phoenix do
         [id, name, age, link("show", to: Routes.pet_path(socket, :show, id))]
       end
 
+  ## Table footer
+
+  You can optionally pass a `footer` as a list of columns.
+
+      def table_footer(total) do
+        ["", "Total: ", content_tag(:span, total, class: "total")]
+      end
+
+      <Flop.Phoenix.sortable_table
+        ...
+        footer={table_footer(@total)}
+        ...
+      />
+
   See the module documentation and [Readme](README.md) for examples.
   """
   @doc since: "0.6.0"
   @doc section: :generators
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
-    assigns = assign(assigns, :opts, Table.init_opts(assigns.opts))
+    assigns =
+      assigns
+      |> Map.put_new(:footer, nil)
+      |> Map.put(:opts, Table.init_opts(assigns.opts))
 
     ~H"""
     <%= if @items == [] do %>
@@ -396,6 +421,7 @@ defmodule Flop.Phoenix do
       <%= if @opts[:container] do %>
         <div {@opts[:container_attrs]}>
           <Table.render
+            footer={@footer}
             headers={@headers}
             items={@items}
             meta={@meta}
@@ -407,6 +433,7 @@ defmodule Flop.Phoenix do
         </div>
       <% else %>
         <Table.render
+          footer={@footer}
           headers={@headers}
           items={@items}
           meta={@meta}

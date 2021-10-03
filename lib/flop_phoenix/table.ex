@@ -20,6 +20,8 @@ defmodule Flop.Phoenix.Table do
       table_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
+      tfoot_td_attrs: [],
+      tfoot_tr_attrs: [],
       th_wrapper_attrs: [],
       thead_th_attrs: [],
       thead_tr_attrs: []
@@ -61,6 +63,15 @@ defmodule Flop.Phoenix.Table do
           </tr>
         <% end %>
       </tbody>
+      <%= if @footer do %>
+        <tfoot>
+          <tr {@opts[:tfoot_tr_attrs]}>
+            <%= for content <- @footer do %>
+              <td {@opts[:tfoot_td_attrs]}><%= content %></td>
+            <% end %>
+          </tr>
+        </tfoot>
+      <% end %>
     </table>
     """
   end
