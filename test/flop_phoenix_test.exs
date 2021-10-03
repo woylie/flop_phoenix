@@ -949,6 +949,43 @@ defmodule Flop.PhoenixTest do
       html = render_table(%{assigns | items: [], opts: opts})
       assert String.trim(html) == "<div>Nothing!</div>"
     end
+
+    test "renders table footer", %{assigns: assigns} do
+      assigns =
+        Map.merge(assigns, %{
+          footer: ["snip", content_tag(:span, "snap")],
+          opts: [
+            tfoot_tr_attrs: [class: "tfoot-row"],
+            tfoot_td_attrs: [class: "tfoot-td"]
+          ]
+        })
+
+      {:ok, html} = assigns |> render_table() |> Floki.parse_fragment()
+
+      assert [
+               {"table", [],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, _},
+                  {"tfoot", [],
+                   [
+                     {"tr", [{"class", "tfoot-row"}],
+                      [
+                        {"td", [{"class", "tfoot-td"}], ["snip"]},
+                        {"td", [{"class", "tfoot-td"}],
+                         [{"span", [], ["snap"]}]}
+                      ]}
+                   ]}
+                ]}
+             ] = html
+    end
+
+    test "does not render table footer if option is not set", %{
+      assigns: assigns
+    } do
+      {:ok, html} = assigns |> render_table() |> Floki.parse_fragment()
+      assert [{"table", [], [{"thead", _, _}, {"tbody", _, _}]}] = html
+    end
   end
 
   describe "to_query/2" do

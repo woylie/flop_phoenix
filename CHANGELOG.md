@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.9.0] - 2021-10-04
+
+### Added
+
+- Add table footer option for sortable table.
+
 ## [0.8.1] - 2021-08-11
 
 ### Changed
