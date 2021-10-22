@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.9.1] - 2021-10-22
+
+### Changed
+
+- Change `live_view` version requirement to `~> 0.16.0 or ~> 0.17.0`.
+
 ## [0.9.0] - 2021-10-04
 
 ### Added
