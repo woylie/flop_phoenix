@@ -4,16 +4,20 @@
 
 ### Changed
 
-- The `opts` assign for the pagination and table components is now optional.
+- The `for`, `event` and `target` options moved from the `opts` assign to the
+  root.
 - The `row_func/2` function passed to the `table` component receives a keyword
   list with all additional assigns now instead of the `opts` assign.
+- The pagination and table components only pass the `for` option to the query
+  builder, instead of all `opts`.
+- The `opts` assign for the pagination and table components is now optional.
 
 #### How to update
 
-If you had row functions that used the second argument, move the values from
-the `opts` assign to the root.
+Remove `for`, `event`, `target` and any additional parameters needed by your
+`row_func` and add them as regular assigns.
 
-Row function:
+For example, if your `row_func` looks like this:
 
 ```elixir
 def table_row(%Pet{id: id, name: name}, opts) do
@@ -22,23 +26,52 @@ def table_row(%Pet{id: id, name: name}, opts) do
 end
 ```
 
-Before:
+Change this:
 
 ```elixir
 <Flop.Phoenix.sortable_table
   row_func={&table_row/2}
-  opts={[for: Pet, socket: @socket]}
+  opts={[
+    container: true,
+    for: Pet,
+    event: "sort-table",
+    target: @myself,
+    socket: @socket
+  ]}
+  ...
+/>
+
+<Flop.Phoenix.pagination
+  row_func={&table_row/2}
+  opts={[
+    for: Pet,
+    event: "sort-table",
+    target: @myself,
+    page_links: {:ellipsis, 7}
+  ]}
   ...
 />
 ```
 
-After:
+To this:
 
 ```elixir
 <Flop.Phoenix.sortable_table
+  for={Pet}
+  event="sort-table"
+  target={@myself}
   row_func={&table_row/2}
-  opts={[for: Pet]}
+  opts={[container: true]}
   socket={@socket}
+  ...
+/>
+
+<Flop.Phoenix.pagination
+  for={Pet}
+  event="sort-table"
+  target={@myself}
+  row_func={&table_row/2}
+  opts={[page_links: {:ellipsis, 7}]}
   ...
 />
 ```
