@@ -8,7 +8,7 @@
   root. The `opts` assign is now exclusively used for customization options
   that modify the appearance. These options are usually set globally for a
   project and are not related to the specific data or view.
-- The `row_func/2` function passed to the `table` component receives a the
+- The `row_func/2` function passed to the `table` component receives the new
   `row_opts` assign now instead of the `opts` assign.
 - The pagination and table components only pass the `for` option to the query
   builder, instead of all `opts`.
