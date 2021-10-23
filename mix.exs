@@ -19,7 +19,9 @@ defmodule FlopPhoenix.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.github": :test
+        "coveralls.github": :test,
+        credo: :test,
+        dialyzer: :test
       ],
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
@@ -47,8 +49,8 @@ defmodule FlopPhoenix.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.5.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.1.0", only: [:dev], runtime: false},
+      {:credo, "~> 1.5.0", only: [:test], runtime: false},
+      {:dialyxir, "~> 1.1.0", only: [:test], runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
