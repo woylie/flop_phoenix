@@ -48,13 +48,44 @@ defmodule Flop.Phoenix.Table do
         :target
       ])
 
-    assigns
-    |> assign_new(:event, fn -> nil end)
-    |> assign_new(:footer, fn -> nil end)
-    |> assign_new(:for, fn -> nil end)
-    |> assign_new(:target, fn -> nil end)
-    |> assign(:extra, extra)
-    |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+    assigns =
+      assigns
+      |> assign_new(:event, fn -> nil end)
+      |> assign_new(:footer, fn -> nil end)
+      |> assign_new(:for, fn -> nil end)
+      |> assign_new(:path_helper, fn -> nil end)
+      |> assign_new(:path_helper_args, fn -> nil end)
+      |> assign_new(:target, fn -> nil end)
+      |> assign(:extra, extra)
+      |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+
+    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
+      assigns
+    else
+      raise """
+      Flop.Phoenix.table requires either the `path_helper` and
+      `path_helper_args` assigns or the `event` assign to be set.
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            path_helper={&Routes.pet_path/3}
+            path_helper_args={[@socket, :index]}
+            headers={[{"Name", :name}, {"Age", :age}]}
+            row_func={fn pet, _opts -> [pet.name, pet.age] end}
+          />
+
+      or
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            event="sort-table"
+            headers={[{"Name", :name}, {"Age", :age}]}
+            row_func={fn pet, _opts -> [pet.name, pet.age] end}
+          />
+      """
+    end
   end
 
   def render(assigns) do

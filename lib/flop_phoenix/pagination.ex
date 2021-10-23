@@ -35,11 +35,36 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns
-    |> assign_new(:event, fn -> nil end)
-    |> assign_new(:for, fn -> nil end)
-    |> assign_new(:target, fn -> nil end)
-    |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+    assigns =
+      assigns
+      |> assign_new(:event, fn -> nil end)
+      |> assign_new(:for, fn -> nil end)
+      |> assign_new(:path_helper, fn -> nil end)
+      |> assign_new(:path_helper_args, fn -> nil end)
+      |> assign_new(:target, fn -> nil end)
+      |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+
+    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
+      assigns
+    else
+      raise """
+      Flop.Phoenix.pagination requires either the `path_helper` and
+      `path_helper_args` assigns or the `event` assign to be set.
+
+          <Flop.Phoenix.pagination
+            meta={@meta}
+            path_helper={&Routes.pet_path/3}
+            path_helper_args={[@socket, :index]}
+          />
+
+      or
+
+          <Flop.Phoenix.pagination
+            meta={@meta}
+            event="paginate"
+          />
+      """
+    end
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()

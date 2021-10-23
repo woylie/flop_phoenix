@@ -540,6 +540,33 @@ defmodule Flop.PhoenixTest do
       refute href =~ "order_directions[]="
     end
 
+    test "does not require path_helper when passing event" do
+      html =
+        (&pagination/1)
+        |> render_component(
+          __changed__: nil,
+          event: "paginate",
+          meta: build(:meta_on_second_page)
+        )
+        |> Floki.parse_fragment!()
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "phx-click") == ["paginate"]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert Floki.attribute(link, "href") == ["#"]
+    end
+
+    test "raises if neither path helper nor event are passed" do
+      assert_raise RuntimeError, fn ->
+        render_component(&pagination/1,
+          __changed__: nil,
+          meta: build(:meta_on_second_page)
+        )
+      end
+    end
+
     test "adds filter parameters to links" do
       html =
         :meta_on_second_page
@@ -1069,6 +1096,37 @@ defmodule Flop.PhoenixTest do
     test "does not render table footer if option is not set" do
       html = render_table()
       assert [{"table", [], [{"thead", _, _}, {"tbody", _, _}]}] = html
+    end
+
+    test "does not require path_helper when passing event" do
+      html =
+        (&table/1)
+        |> render_component(
+          __changed__: nil,
+          headers: [{"Name", :name}],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{flop: %Flop{}},
+          row_func: fn %{name: name}, _opts -> [name] end,
+          event: "sort-table"
+        )
+        |> Floki.parse_fragment!()
+
+      assert [link] = Floki.find(html, "a:fl-contains('Name')")
+
+      assert Floki.attribute(link, "phx-click") == ["sort-table"]
+      assert Floki.attribute(link, "href") == ["#"]
+    end
+
+    test "raises if neither path helper nor event are passed" do
+      assert_raise RuntimeError, fn ->
+        render_component(&table/1,
+          __changed__: nil,
+          headers: [{"Name", :name}],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{flop: %Flop{}},
+          row_func: fn %{name: name}, _opts -> [name] end
+        )
+      end
     end
   end
 

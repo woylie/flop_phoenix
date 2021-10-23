@@ -12,6 +12,9 @@
   list with all additional assigns now instead of the `opts` assign.
 - The pagination and table components only pass the `for` option to the query
   builder, instead of all `opts`.
+- The `path_helper` and `path_helper_args` assigns are now optional if an
+  `event` is passed. A descriptive error is raised if neither of them are
+  passed.
 - The `opts` assign for the pagination and table components is now optional.
 
 #### How to update
