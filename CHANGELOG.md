@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+### Changed
+
+- The `opts` assign for the pagination and table components is now optional.
+- The `row_func/2` function passed to the `table` component receives a keyword
+  list with all additional assigns now instead of the `opts` assign.
+
+#### How to update
+
+If you had row functions that used the second argument, move the values from
+the `opts` assign to the root.
+
+Row function:
+
+```elixir
+def table_row(%Pet{id: id, name: name}, opts) do
+  socket = Keyword.fetch!(opts, :socket)
+  [name, link("show", to: Routes.pet_path(socket, :show, id))]
+end
+```
+
+Before:
+
+```elixir
+<Flop.Phoenix.sortable_table
+  row_func={&table_row/2}
+  opts={[for: Pet, socket: @socket]}
+  ...
+/>
+```
+
+After:
+
+```elixir
+<Flop.Phoenix.sortable_table
+  row_func={&table_row/2}
+  opts={[for: Pet]}
+  socket={@socket}
+  ...
+/>
+```
+
 ## [0.9.1] - 2021-10-22
 
 ### Changed
