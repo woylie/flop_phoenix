@@ -882,6 +882,53 @@ defmodule Flop.PhoenixTest do
              ]
     end
 
+    test "adds aria-sort attribute to first ordered field" do
+      headers = [{"Name", :name}, {"Email", :email}, {"Age", :age}]
+
+      html =
+        render_table(
+          headers: headers,
+          meta: %Flop.Meta{
+            flop: %Flop{
+              order_by: [:email, :name],
+              order_directions: [:asc, :desc]
+            }
+          }
+        )
+
+      assert [th_name, th_email, th_age] = Floki.find(html, "th")
+      assert Floki.attribute(th_name, "aria-sort") == []
+      assert Floki.attribute(th_email, "aria-sort") == ["ascending"]
+      assert Floki.attribute(th_age, "aria-sort") == []
+
+      html =
+        render_table(
+          headers: headers,
+          meta: %Flop.Meta{
+            flop: %Flop{
+              order_by: [:age, :email, :age],
+              order_directions: [:desc, :asc]
+            }
+          }
+        )
+
+      assert [th_name, th_email, th_age] = Floki.find(html, "th")
+      assert Floki.attribute(th_name, "aria-sort") == []
+      assert Floki.attribute(th_email, "aria-sort") == []
+      assert Floki.attribute(th_age, "aria-sort") == ["descending"]
+
+      html =
+        render_table(
+          headers: headers,
+          meta: %Flop.Meta{flop: %Flop{order_by: [], order_directions: []}}
+        )
+
+      assert [th_name, th_email, th_age] = Floki.find(html, "th")
+      assert Floki.attribute(th_name, "aria-sort") == []
+      assert Floki.attribute(th_email, "aria-sort") == []
+      assert Floki.attribute(th_age, "aria-sort") == []
+    end
+
     test "renders links with click handler" do
       html = render_table(event: "sort", headers: ["Name", {"Age", :age}])
 

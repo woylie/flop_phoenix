@@ -122,9 +122,20 @@ defmodule Flop.Phoenix.Table do
       |> assign(:field, header_field(assigns.header))
       |> assign(:value, header_value(assigns.header))
 
+    index = order_index(assigns.flop, assigns.field)
+    direction = order_direction(assigns.flop.order_directions, index)
+
+    assigns =
+      assigns
+      |> assign(:order_index, index)
+      |> assign(:order_direction, direction)
+
     ~H"""
     <%= if is_sortable?(@field, @for) do %>
-      <th {@opts[:thead_th_attrs]}>
+      <th
+        {@opts[:thead_th_attrs]}
+        aria-sort={aria_sort(@order_index, @order_direction)}
+      >
         <span {@opts[:th_wrapper_attrs]}>
           <%= if @event do %>
             <.sort_link
@@ -145,7 +156,7 @@ defmodule Flop.Phoenix.Table do
                 )
             %>
           <% end %>
-          <.arrow direction={current_direction(@flop, @field)} opts={@opts} />
+          <.arrow direction={@order_direction} opts={@opts} />
         </span>
       </th>
     <% else %>
@@ -153,6 +164,16 @@ defmodule Flop.Phoenix.Table do
     <% end %>
     """
   end
+
+  defp aria_sort(0, direction), do: direction_to_aria(direction)
+  defp aria_sort(_, _), do: nil
+
+  defp direction_to_aria(:desc), do: "descending"
+  defp direction_to_aria(:desc_nulls_last), do: "descending"
+  defp direction_to_aria(:desc_nulls_first), do: "descending"
+  defp direction_to_aria(:asc), do: "ascending"
+  defp direction_to_aria(:asc_nulls_last), do: "ascending"
+  defp direction_to_aria(:asc_nulls_first), do: "ascending"
 
   defp arrow(assigns) do
     ~H"""
@@ -179,20 +200,15 @@ defmodule Flop.Phoenix.Table do
     |> Misc.maybe_put(:phx_target, target)
   end
 
-  defp current_direction(%Flop{order_by: nil}, _), do: nil
+  defp order_index(%Flop{order_by: nil}, _), do: nil
 
-  defp current_direction(
-         %Flop{order_by: order_by, order_directions: directions},
-         field
-       ) do
-    order_by
-    |> Enum.find_index(&(&1 == field))
-    |> get_order_direction(directions)
+  defp order_index(%Flop{order_by: order_by}, field) do
+    Enum.find_index(order_by, &(&1 == field))
   end
 
-  defp get_order_direction(nil, _), do: nil
-  defp get_order_direction(_, nil), do: :asc
-  defp get_order_direction(index, directions), do: Enum.at(directions, index)
+  defp order_direction(_, nil), do: nil
+  defp order_direction(nil, _), do: :asc
+  defp order_direction(directions, index), do: Enum.at(directions, index)
 
   defp is_sortable?(nil, _), do: false
   defp is_sortable?(_, nil), do: true
