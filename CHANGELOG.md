@@ -2,6 +2,86 @@
 
 ## Unreleased
 
+### Changed
+
+- The `for`, `event` and `target` options moved from the `opts` assign to the
+  root. The `opts` assign is now exclusively used for customization options
+  that modify the appearance. These options are usually set globally for a
+  project and are not related to the specific data or view.
+- The `row_func/2` function passed to the `table` component receives the new
+  `row_opts` assign now instead of the `opts` assign.
+- The pagination and table components only pass the `for` option to the query
+  builder, instead of all `opts`.
+- The `path_helper` and `path_helper_args` assigns are now optional if an
+  `event` is passed. A descriptive error is raised if neither of them are
+  passed.
+- The `opts` assign for the pagination and table components is now optional.
+
+#### How to update
+
+1. Remove the `for`, `event` and `target` from the `opts` assign and add them
+   as regular assigns at the root level.
+2. Move any key/value pairs that are needed by your `row_func` from `opts` to
+   `row_opts`.
+
+For example, if your `row_func` looks like this:
+
+```elixir
+def table_row(%Pet{id: id, name: name}, opts) do
+  socket = Keyword.fetch!(opts, :socket)
+  [name, link("show", to: Routes.pet_path(socket, :show, id))]
+end
+```
+
+Change this:
+
+```elixir
+<Flop.Phoenix.sortable_table
+  row_func={&table_row/2}
+  opts={[
+    container: true,
+    for: Pet,
+    event: "sort-table",
+    target: @myself,
+    socket: @socket
+  ]}
+  ...
+/>
+
+<Flop.Phoenix.pagination
+  row_func={&table_row/2}
+  opts={[
+    for: Pet,
+    event: "sort-table",
+    target: @myself,
+    page_links: {:ellipsis, 7}
+  ]}
+  ...
+/>
+```
+
+To this:
+
+```elixir
+<Flop.Phoenix.sortable_table
+  for={Pet}
+  event="sort-table"
+  target={@myself}
+  row_func={&table_row/2}
+  row_opts={[socket: @socket]}
+  opts={[container: true]}
+  ...
+/>
+
+<Flop.Phoenix.pagination
+  for={Pet}
+  event="sort-table"
+  target={@myself}
+  opts={[page_links: {:ellipsis, 7}]}
+  ...
+/>
+```
+
 ## [0.9.1] - 2021-10-22
 
 ### Changed

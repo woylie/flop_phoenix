@@ -46,13 +46,10 @@ defmodule Flop.Phoenix do
         use Phoenix.Component
 
         def pagination(assigns) do
+          assigns = assign_new(assigns, :opts, fn -> [] end)
+
           ~H\"""
-          <Flop.Phoenix.pagination
-            meta={@meta},
-            path_helper={@path_helper},
-            path_helper_args{@path_helper_args},
-            opts={pagination_opts(@opts)}
-          />
+          <Flop.Phoenix.pagination {assigns} opts={pagination_opts(@opts)} />
           \"""
         end
 
@@ -101,7 +98,7 @@ defmodule Flop.Phoenix do
   ## Hiding default parameters
 
   Default values for page size and ordering are omitted from the query
-  parameters. If you pass the `:for` option, the Flop.Phoenix function will
+  parameters. If you pass the `:for` assign, the Flop.Phoenix function will
   pick up the default values from the schema module deriving `Flop.Schema`.
 
   ## LiveView
@@ -117,18 +114,20 @@ defmodule Flop.Phoenix do
 
   ## Event Based Pagination and Sorting
 
-  To make `Flop.Phoenix` use event based pagination and sorting, you need to set
-  the `:event` option on the pagination and table generators. This will
+  To make `Flop.Phoenix` use event based pagination and sorting, you need to
+  assign the `:event` to the pagination and table generators. This will
   generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
 
-  You can set a different target by setting the `:target` option. The value
+  You can set a different target by assigning a `:target`. The value
   will be used in the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
-        meta={@meta},
-        path_helper={&Routes.pet_path/4},
-        path_helper_args{[@conn, :index, @owner]},
-        opts={[for: MyApp.Pet, event: "paginate-pets", target: @myself]}
+        for={MyApp.Pet}
+        meta={@meta}
+        path_helper={&Routes.pet_path/4}
+        path_helper_args{[@conn, :index, @owner]}
+        event="paginate-pets"
+        target={@myself}
       />
 
   You will need to handle the event in the `handle_event/3` callback of your
@@ -171,9 +170,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
   - `:ellipsis_content` - The content for the ellipsis element.
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_content])}`.
-  - `:for` - The schema module deriving `Flop.Schema`. If set, `Flop.Phoenix`
-    will remove default parameters from the query parameters.
-    Default: `#{inspect(Pagination.default_opts()[:for])}`.
   - `:next_link_attrs` - The attributes for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:next_link_content` - The content for the link to the next page.
@@ -203,7 +199,6 @@ defmodule Flop.Phoenix do
           {:current_link_attrs, keyword}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
-          | {:for, module}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
@@ -221,11 +216,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Table.default_opts()[:container])}`.
   - `:container_attrs` - The attributes for the table container.
     Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
-  - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute. Default: `#{inspect(Table.default_opts()[:event])}`.
-  - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
-    only added for fields that are defined as sortable.
-    Default: `#{inspect(Table.default_opts()[:for])}`.
   - `:no_results_content` - Any content that should be rendered if there are no
     results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
   - `:table_attrs` - The attributes for the `<table>` element.
@@ -242,8 +232,6 @@ defmodule Flop.Phoenix do
   - `:symbol_desc` - The symbol that is used to indicate that the column is
     sorted in ascending order.
     Default: `#{inspect(Table.default_opts()[:symbol_desc])}`.
-  - `:target`: Sets the `phx-target` attribute for the header links.
-    Default: `#{inspect(Table.default_opts()[:target])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
@@ -260,14 +248,11 @@ defmodule Flop.Phoenix do
   @type table_option ::
           {:container, boolean}
           | {:container_attrs, keyword}
-          | {:event, binary | atom}
-          | {:for, module}
           | {:no_results_content, Phoenix.HTML.safe() | binary}
           | {:symbol_asc, Phoenix.HTML.safe() | binary}
           | {:symbol_attrs, keyword}
           | {:symbol_desc, Phoenix.HTML.safe() | binary}
           | {:table_attrs, keyword}
-          | {:target, binary | atom}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
           | {:tfoot_td_attrs, keyword}
@@ -279,16 +264,27 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a pagination element.
 
-  - `meta`: The meta information of the query as returned by the `Flop` query
+  ## Assigns
+
+  - `meta` - The meta information of the query as returned by the `Flop` query
     functions.
-  - `path_helper`: The path helper function that builds a path to the current
+  - `path_helper` - The path helper function that builds a path to the current
     page, e.g. `&Routes.pet_path/3`.
-  - `path_helper_args`: The arguments to be passed to the route helper
+  - `path_helper_args` - The arguments to be passed to the route helper
     function, e.g. `[@conn, :index]`. The page number and page size will be
     added as query parameters.
-  - `opts`: Options to customize the pagination. See
+  - `for` (optional) - The schema module deriving `Flop.Schema`. If set,
+    `Flop.Phoenix` will remove default parameters from the query parameters.
+  - `event` (optional) - If set, `Flop.Phoenix` will render links with a
+    `phx-click` attribute.
+  - `target` (optional) - Sets the `phx-target` attribute for the pagination
+    links.
+  - `opts` (optional) - Options to customize the pagination. See
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options.
+    function are deep merged into the default options. These options will
+    likely be the same for all the tables in a project, so it probably makes
+    sense to define them once in a function or set them in a wrapper function
+    as described in the `Customization` section of the module documentation.
 
   ## Page link options
 
@@ -320,19 +316,21 @@ defmodule Flop.Phoenix do
   @doc section: :generators
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
   def pagination(assigns) do
-    assigns = assign(assigns, :opts, Pagination.init_opts(assigns.opts))
+    assigns = Pagination.init_assigns(assigns)
 
     ~H"""
     <%= if @meta.total_pages > 1 do %>
       <Pagination.render
+        event={@event}
         meta={@meta}
         opts={@opts}
         page_link_helper={Pagination.build_page_link_helper(
           @meta,
           @path_helper,
           @path_helper_args,
-          @opts
+          @for
         )}
+        target={@target}
       />
     <% end %>
     """
@@ -341,26 +339,37 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a table with sortable columns.
 
-  The argument is a map with the following keys:
+  ## Assigns
 
-  - `footer`: A list of footer columns. Can be a list of strings or safe
-    HTML.
-  - `headers`: A list of header columns. Can be a list of strings (or safe
+  - `headers` - A list of header columns. Can be a list of strings (or safe
     HTML), or a list of `{value, field_name}` tuples.
-  - `items`: The list of items to be displayed in rows. This is the result list
+  - `items` - The list of items to be displayed in rows. This is the result list
     returned by the query.
-  - `meta`: The `Flop.Meta` struct returned by the query function.
-  - `path_helper`: The Phoenix path or url helper that leads to the current
+  - `meta` - The `Flop.Meta` struct returned by the query function.
+  - `path_helper` - The Phoenix path or url helper that leads to the current
     page.
-  - `path_helper_args`: The argument list for the path helper. For example, if
+  - `path_helper_args` - The argument list for the path helper. For example, if
     you would call `Routes.pet_path(@conn, :index)` to generate the path for the
     current page, this would be `[@conn, :index]`.
-  - `opts`: Keyword list with additional options (see
-    `t:Flop.Phoenix.table_option/0`). This list will also be passed as the
-    second argument to the row function. Note that the options passed to the
-    function are deep merged into the default options.
-  - `row_func`: A function that takes one item of the `items` list and the
-    `opts` and returns the column values for that item's row.
+  - `row_func` - A function that takes one item of the `items` list and a
+    keyword list with all additional assigns and returns the column values for
+    that item's row.
+  - `row_opts` (optional) - Keyword list that will be passed as the second
+    parameter to the `row_func`.
+  - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
+    links are only added for fields that are defined as sortable and query
+    parameters are hidden if they match the default order.
+  - `footer` (optional) - A list of footer columns. Can be a list of strings or
+    safe HTML.
+  - `event` (optional) - If set, `Flop.Phoenix` will render links with a
+    `phx-click` attribute.
+  - `target` (optional) - Sets the `phx-target` attribute for the header links.
+  - `opts` (optional) - Keyword list with additional options (see
+    `t:Flop.Phoenix.table_option/0`). Note that the options passed to the
+    function are deep merged into the default options. These options will
+    likely be the same for all the tables in a project, so it probably makes
+    sense to define them once in a function or set them in a wrapper function
+    as described in the `Customization` section of the module documentation.
 
   ## Table headers
 
@@ -380,9 +389,15 @@ defmodule Flop.Phoenix do
 
   ## Table rows
 
-  You need to define a function that takes a single item from the list and the
-  opts passed to the component. The function needs to return a list with one
-  item for each column.
+  You need to define a function that takes a single item from the list and a
+  keyword list with any additional assigns. The function needs to return a list
+  with one item for each column.
+
+      <Flop.Phoenix.sortable_table
+        row_func={&table_row/2}
+        row_opts={[socket: @socket]}
+        ...
+      />
 
       def table_row(%Pet{id: id, name: name, age: age}, opts) do
         socket = Keyword.fetch!(opts, :socket)
@@ -409,10 +424,7 @@ defmodule Flop.Phoenix do
   @doc section: :generators
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:footer, fn -> nil end)
-      |> assign(:opts, Table.init_opts(assigns.opts))
+    assigns = Table.init_assigns(assigns)
 
     ~H"""
     <%= if @items == [] do %>
@@ -422,6 +434,8 @@ defmodule Flop.Phoenix do
         <div {@opts[:container_attrs]}>
           <Table.render
             footer={@footer}
+            for={@for}
+            event={@event}
             headers={@headers}
             items={@items}
             meta={@meta}
@@ -429,11 +443,15 @@ defmodule Flop.Phoenix do
             path_helper={@path_helper}
             path_helper_args={@path_helper_args}
             row_func={@row_func}
+            row_opts={@row_opts}
+            target={@target}
           />
         </div>
       <% else %>
         <Table.render
           footer={@footer}
+          for={@for}
+          event={@event}
           headers={@headers}
           items={@items}
           meta={@meta}
@@ -441,6 +459,8 @@ defmodule Flop.Phoenix do
           path_helper={@path_helper}
           path_helper_args={@path_helper_args}
           row_func={@row_func}
+          row_opts={@row_opts}
+          target={@target}
         />
       <% end %>
     <% end %>

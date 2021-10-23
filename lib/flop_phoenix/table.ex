@@ -31,11 +31,48 @@ defmodule Flop.Phoenix.Table do
   @doc """
   Deep merges the given options into the default options.
   """
-  @spec init_opts([Flop.Phoenix.table_option()]) :: [
-          Flop.Phoenix.table_option()
-        ]
-  def init_opts(opts) do
-    Misc.deep_merge(default_opts(), opts)
+  @spec init_assigns(map) :: map
+  def init_assigns(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:event, fn -> nil end)
+      |> assign_new(:footer, fn -> nil end)
+      |> assign_new(:for, fn -> nil end)
+      |> assign_new(:path_helper, fn -> nil end)
+      |> assign_new(:path_helper_args, fn -> nil end)
+      |> assign_new(:row_opts, fn -> [] end)
+      |> assign_new(:target, fn -> nil end)
+      |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+
+    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
+      assigns
+    else
+      raise """
+      Flop.Phoenix.table requires either the `path_helper` and
+      `path_helper_args` assigns or the `event` assign to be set.
+
+      ## Example
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            path_helper={&Routes.pet_path/3}
+            path_helper_args={[@socket, :index]}
+            headers={[{"Name", :name}, {"Age", :age}]}
+            row_func={fn pet, _opts -> [pet.name, pet.age] end}
+          />
+
+      or
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            event="sort-table"
+            headers={[{"Name", :name}, {"Age", :age}]}
+            row_func={fn pet, _opts -> [pet.name, pet.age] end}
+          />
+      """
+    end
   end
 
   def render(assigns) do
@@ -45,11 +82,14 @@ defmodule Flop.Phoenix.Table do
         <tr {@opts[:thead_tr_attrs]}><%=
           for header <- @headers do %>
             <.header_column
+              event={@event}
               flop={@meta.flop}
+              for={@for}
               header={header}
               opts={@opts}
               path_helper={@path_helper}
               path_helper_args={@path_helper_args}
+              target={@target}
             />
           <% end %>
         </tr>
@@ -57,7 +97,7 @@ defmodule Flop.Phoenix.Table do
       <tbody>
         <%= for item <- @items do %>
           <tr {@opts[:tbody_tr_attrs]}>
-            <%= for column <- @row_func.(item, @opts) do %>
+            <%= for column <- @row_func.(item, @row_opts) do %>
               <td {@opts[:tbody_td_attrs]}><%= column %></td>
             <% end %>
           </tr>
@@ -83,11 +123,16 @@ defmodule Flop.Phoenix.Table do
       |> assign(:value, header_value(assigns.header))
 
     ~H"""
-    <%= if is_sortable?(@field, @opts[:for]) do %>
+    <%= if is_sortable?(@field, @for) do %>
       <th {@opts[:thead_th_attrs]}>
         <span {@opts[:th_wrapper_attrs]}>
-          <%= if @opts[:event] do %>
-            <.sort_link field={@field} opts={@opts} value={@value} />
+          <%= if @event do %>
+            <.sort_link
+              field={@field}
+              event={@event}
+              target={@target}
+              value={@value}
+            />
           <% else %>
             <%= live_patch(@value,
                   to:
@@ -95,7 +140,7 @@ defmodule Flop.Phoenix.Table do
                       @path_helper,
                       @path_helper_args,
                       Flop.push_order(@flop, @field),
-                      @opts
+                      for: @for
                     )
                 )
             %>
@@ -122,16 +167,16 @@ defmodule Flop.Phoenix.Table do
 
   defp sort_link(assigns) do
     ~H"""
-    <%= link sort_link_attrs(@field, @opts) do %><%= @value %><% end %>
+    <%= link sort_link_attrs(@field, @event, @target) do %>
+      <%= @value %>
+    <% end %>
     """
   end
 
-  defp sort_link_attrs(field, opts) do
-    []
-    |> Keyword.put(:phx_value_order, field)
-    |> Keyword.put(:to, "#")
-    |> Misc.maybe_put(:phx_click, opts[:event])
-    |> Misc.maybe_put(:phx_target, opts[:target])
+  defp sort_link_attrs(field, event, target) do
+    [phx_value_order: field, to: "#"]
+    |> Misc.maybe_put(:phx_click, event)
+    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil
