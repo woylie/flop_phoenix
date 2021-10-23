@@ -46,13 +46,10 @@ defmodule Flop.Phoenix do
         use Phoenix.Component
 
         def pagination(assigns) do
+          assigns = assign_new(assigns, :opts, fn -> [] end)
+
           ~H\"""
-          <Flop.Phoenix.pagination
-            meta={@meta},
-            path_helper={@path_helper},
-            path_helper_args{@path_helper_args},
-            opts={pagination_opts(@opts)}
-          />
+          <Flop.Phoenix.pagination {assigns} opts={pagination_opts(@opts)} />
           \"""
         end
 
