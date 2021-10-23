@@ -17,6 +17,7 @@
   passed.
 - The `opts` assign for the pagination and table components is now optional.
 - Aria labels were added to the links to the first and last page.
+- The `aria-sort` attribute was added to the table headers.
 
 #### How to update
 
