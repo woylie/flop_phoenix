@@ -411,8 +411,8 @@ defmodule Flop.Phoenix do
   def table(assigns) do
     assigns =
       assigns
-      |> Map.put_new(:footer, nil)
-      |> Map.put(:opts, Table.init_opts(assigns.opts))
+      |> assign_new(:footer, fn -> nil end)
+      |> assign(:opts, Table.init_opts(assigns.opts))
 
     ~H"""
     <%= if @items == [] do %>
