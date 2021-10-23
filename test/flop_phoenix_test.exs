@@ -5,6 +5,7 @@ defmodule Flop.PhoenixTest do
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Phoenix.HTML.Safe, only: [to_iodata: 1]
+  import Phoenix.LiveViewTest
 
   alias Flop.Meta
   alias Plug.Conn.Query
@@ -13,33 +14,37 @@ defmodule Flop.PhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
-  defp count_substrings(str, regex) do
-    regex
-    |> Regex.scan(str)
-    |> length()
-  end
-
   defp render_pagination(%Meta{} = meta, opts \\ []) do
-    %{
+    (&pagination/1)
+    |> render_component(
       __changed__: nil,
       meta: meta,
       path_helper: &route_helper/3,
       path_helper_args: @route_helper_opts,
       opts: opts
-    }
-    |> pagination()
-    |> to_iodata()
-    |> raw()
-    |> safe_to_string()
+    )
+    |> Floki.parse_fragment!()
   end
 
-  defp render_table(assigns) do
-    assigns
-    |> Map.put(:__changed__, nil)
-    |> table()
-    |> to_iodata()
-    |> raw()
-    |> safe_to_string()
+  defp render_table(assigns \\ []) do
+    assigns =
+      Keyword.merge(
+        [
+          __changed__: nil,
+          headers: ["name"],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{flop: %Flop{}},
+          path_helper: &route_helper/3,
+          path_helper_args: [%{}, :index],
+          opts: [],
+          row_func: fn %{name: name}, _opts -> [name] end
+        ],
+        assigns
+      )
+
+    (&table/1)
+    |> render_component(assigns)
+    |> Floki.parse_fragment!()
   end
 
   defp route_helper(%{}, path, query) do
@@ -52,7 +57,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
         |> Floki.find("nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -63,15 +67,13 @@ defmodule Flop.PhoenixTest do
     test "does not render anything if there is only one page" do
       assert :meta_one_page
              |> build()
-             |> render_pagination()
-             |> String.trim() == ""
+             |> render_pagination() == []
     end
 
     test "does not render anything if there are no results" do
       assert :meta_no_results
              |> build()
-             |> render_pagination()
-             |> String.trim() == ""
+             |> render_pagination() == []
     end
 
     test "allows to overwrite wrapper class" do
@@ -79,7 +81,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination(wrapper_attrs: [class: "boo"])
-        |> Floki.parse_fragment!()
         |> Floki.find("nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -92,7 +93,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination(wrapper_attrs: [title: "paginate"])
-        |> Floki.parse_fragment!()
         |> Floki.find("nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -106,7 +106,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
@@ -120,7 +119,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(event: "paginate")
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
@@ -137,7 +135,6 @@ defmodule Flop.PhoenixTest do
           event: "paginate",
           target: "here"
         )
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "phx-target") == ["here"]
@@ -176,7 +173,6 @@ defmodule Flop.PhoenixTest do
           previous_link_attrs: [class: "prev", title: "p-p-previous"],
           previous_link_content: tag(:i, class: "fas fa-chevron-left")
         )
-        |> Floki.parse_fragment!()
 
       assert [link] = Floki.find(html, "a[title='p-p-previous']")
       assert Floki.attribute(link, "class") == ["prev"]
@@ -193,7 +189,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
@@ -205,7 +200,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination(event: "e")
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
@@ -220,7 +214,6 @@ defmodule Flop.PhoenixTest do
           previous_link_attrs: [class: "prev", title: "no"],
           previous_link_content: "Prev"
         )
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('Prev')")
 
       assert Floki.attribute(previous_link, "class") == ["prev"]
@@ -234,7 +227,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
@@ -248,7 +240,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(event: "paginate")
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
@@ -262,7 +253,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(event: "paginate", target: "here")
-        |> Floki.parse_fragment!()
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "phx-target") == ["here"]
@@ -276,7 +266,6 @@ defmodule Flop.PhoenixTest do
           next_link_attrs: [class: "next", title: "n-n-next"],
           next_link_content: tag(:i, class: "fas fa-chevron-right")
         )
-        |> Floki.parse_fragment!()
 
       assert [link] = Floki.find(html, "a[title='n-n-next']")
       assert Floki.attribute(link, "class") == ["next"]
@@ -293,7 +282,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_last_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('Next')")
 
       assert Floki.attribute(next, "class") == ["pagination-next"]
@@ -306,7 +294,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_last_page
         |> build()
         |> render_pagination(event: "paginate")
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('Next')")
 
       assert Floki.attribute(next, "class") == ["pagination-next"]
@@ -322,7 +309,6 @@ defmodule Flop.PhoenixTest do
           next_link_attrs: [class: "next", title: "no"],
           next_link_content: "N-n-next"
         )
-        |> Floki.parse_fragment!()
         |> Floki.find("span:fl-contains('N-n-next')")
 
       assert Floki.attribute(next_link, "class") == ["next"]
@@ -335,7 +321,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination()
-        |> Floki.parse_fragment!()
 
       assert [_] = Floki.find(html, "ul[class='pagination-list']")
 
@@ -362,53 +347,56 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders page links when using click event handling" do
-      result = render_pagination(build(:meta_on_second_page), event: "paginate")
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(event: "paginate")
 
-      assert result =~
-               ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
-                 ~s(href="#" phx-click="paginate" ) <>
-                 ~s(phx-value-page="1">) <>
-                 ~s(1</a>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.attribute(link, "href") == ["#"]
+      assert Floki.attribute(link, "phx-click") == ["paginate"]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert Floki.text(link) == "1"
     end
 
     test "adds phx-target to page link" do
-      result =
-        render_pagination(build(:meta_on_second_page),
-          event: "paginate",
-          target: "here"
-        )
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(event: "paginate", target: "here")
 
-      assert result =~
-               ~s(<a aria-label="Go to page 1" class="pagination-link" ) <>
-                 ~s(href="#" phx-click="paginate" ) <>
-                 ~s(phx-target=\"here\" ) <>
-                 ~s(phx-value-page="1">) <>
-                 ~s(1</a>)
+      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "doesn't render pagination links if set to hide" do
-      result = render_pagination(build(:meta_on_second_page), page_links: :hide)
-      refute result =~ "pagination-list"
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(page_links: :hide)
+
+      assert Floki.find(html, ".pagination-list") == []
     end
 
     test "doesn't render pagination links if set to hide when passing event" do
-      result =
-        render_pagination(build(:meta_on_second_page),
-          page_links: :hide,
-          event: "paginate"
-        )
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(page_links: :hide, event: "paginate")
 
-      refute result =~ "pagination-list"
+      assert Floki.find(html, ".pagination-list") == []
     end
 
     test "allows to overwrite pagination list attributes" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page),
+      html =
+        :meta_on_first_page
+        |> build()
+        |> render_pagination(
           pagination_list_attrs: [class: "p-list", title: "boop"]
         )
 
-      assert result =~ "<ul class=\"p-list\" title=\"boop\">"
+      assert [list] = Floki.find(html, "ul.p-list")
+      assert Floki.attribute(list, "title") == ["boop"]
     end
 
     test "allows to overwrite pagination link attributes" do
@@ -418,7 +406,6 @@ defmodule Flop.PhoenixTest do
         |> render_pagination(
           pagination_link_attrs: [class: "p-link", beep: "boop"]
         )
-        |> Floki.parse_fragment!()
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "beep") == ["boop"]
@@ -437,7 +424,6 @@ defmodule Flop.PhoenixTest do
         |> render_pagination(
           current_link_attrs: [class: "link is-active", beep: "boop"]
         )
-        |> Floki.parse_fragment!()
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -460,7 +446,6 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(pagination_link_aria_label: &"On to page #{&1}")
-        |> Floki.parse_fragment!()
 
       assert [link] = Floki.find(html, "a[aria-label='On to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -489,7 +474,6 @@ defmodule Flop.PhoenixTest do
           }
         )
         |> render_pagination()
-        |> Floki.parse_fragment!()
 
       expected_url = fn page ->
         default =
@@ -539,7 +523,6 @@ defmodule Flop.PhoenixTest do
           }
         )
         |> render_pagination()
-        |> Floki.parse_fragment!()
 
       expected_url = fn page ->
         default =
@@ -578,389 +561,432 @@ defmodule Flop.PhoenixTest do
 
     test "does not render ellipsis if total pages <= max pages" do
       # max pages smaller than total pages
-      result =
-        render_pagination(build(:meta_on_second_page),
-          page_links: {:ellipsis, 50}
-        )
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(page_links: {:ellipsis, 50})
 
-      refute result =~ "pagination-ellipsis"
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert Floki.find(html, ".pagination-ellipsis") == []
+      assert html |> Floki.find(".pagination-link") |> length() == 5
 
       # max pages equal to total pages
-      result =
-        render_pagination(build(:meta_on_second_page),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      refute result =~ "pagination-ellipsis"
-      assert count_substrings(result, ~r/pagination-link/) == 5
+      assert Floki.find(html, ".pagination-ellipsis") == []
+      assert html |> Floki.find(".pagination-link") |> length() == 5
     end
 
     test "renders end ellipsis and last page link when on page 1" do
       # current page == 1
-      result =
-        render_pagination(build(:meta_on_first_page, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 6
-      for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find(".pagination-link") |> length() == 6
+
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 1..5 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders start ellipsis and first page link when on last page" do
       # current page == last page
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 20, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 20, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 6
-      for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find(".pagination-link") |> length() == 6
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+
+      for i <- 16..20 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders ellipses when on even page with even number of max pages" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 12, total_pages: 20),
-          page_links: {:ellipsis, 6}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 12, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 6})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 8
-      for i <- 10..15, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find(".pagination-link") |> length() == 8
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 10..15 do
+        assert Floki.find(html, ".a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders ellipses when on odd page with odd number of max pages" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 11, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 11, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 7
-      for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find(".pagination-link") |> length() == 7
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 9..13 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders ellipses when on even page with odd number of max pages" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 10, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 10, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 7
-      for i <- 8..12, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find(".pagination-link") |> length() == 7
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 8..12 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders ellipses when on odd page with even number of max pages" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 11, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 11, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 2
-      assert count_substrings(result, ~r/pagination-link/) == 7
-      for i <- 9..13, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find(".pagination-link") |> length() == 7
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 9..13 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders end ellipsis when on page close to the beginning" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 2, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 2, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 6
-      for i <- 1..5, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">20<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find(".pagination-link") |> length() == 6
+
+      assert Floki.find(html, "a[aria-label='Go to page 20']")
+
+      for i <- 1..5 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "renders start ellipsis when on page close to the end" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 18, total_pages: 20),
-          page_links: {:ellipsis, 5}
-        )
+      html =
+        :meta_on_first_page
+        |> build(current_page: 18, total_pages: 20)
+        |> render_pagination(page_links: {:ellipsis, 5})
 
-      assert count_substrings(result, ~r/pagination-ellipsis/) == 1
-      assert count_substrings(result, ~r/pagination-link/) == 6
-      for i <- 16..20, do: assert(String.contains?(result, ">#{i}<"))
-      assert String.contains?(result, ">1<")
+      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find(".pagination-link") |> length() == 6
+
+      assert Floki.find(html, "a[aria-label='Go to page 1']")
+
+      for i <- 16..20 do
+        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+      end
     end
 
     test "allows to overwrite ellipsis attributes and content" do
-      result =
-        render_pagination(
-          build(:meta_on_first_page, current_page: 10, total_pages: 20),
+      html =
+        :meta_on_first_page
+        |> build(current_page: 10, total_pages: 20)
+        |> render_pagination(
           page_links: {:ellipsis, 5},
           ellipsis_attrs: [class: "dotdotdot", title: "dot"],
           ellipsis_content: "dot dot dot"
         )
 
-      expected = ~r/<span class="dotdotdot" title="dot">dot dot dot<\/span>/
-      assert count_substrings(result, expected) == 2
+      assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
+      assert Floki.text(el) == "dot dot dot"
     end
 
     test "always uses page/page_size" do
-      result =
+      html =
         render_pagination(
           build(:meta_on_second_page,
             flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
           )
         )
 
-      assert result =~ "page_size=2"
-      refute result =~ "limit=2"
-      refute result =~ "offset=3"
+      assert [a | _] = Floki.find(html, "a")
+      assert [href] = Floki.attribute(a, "href")
+      assert href =~ "page_size=2"
+      refute href =~ "limit=2"
+      refute href =~ "offset=3"
     end
   end
 
   describe "table/1" do
-    setup do
-      %{
-        assigns: %{
-          headers: ["name"],
-          items: [%{name: "George"}],
-          meta: %Flop.Meta{flop: %Flop{}},
-          path_helper: &route_helper/3,
-          path_helper_args: [%{}, :index],
-          opts: [],
-          row_func: fn %{name: name}, _opts -> [name] end
-        }
-      }
+    test "allows to set table attributes" do
+      html = render_table(opts: [])
+      assert [table] = Floki.find(html, "table")
+      assert Floki.attribute(table, "class") == []
+
+      html = render_table(opts: [table_attrs: [class: "funky-table"]])
+      assert [table] = Floki.find(html, "table")
+      assert Floki.attribute(table, "class") == ["funky-table"]
     end
 
-    test "allows to set table attributes", %{assigns: assigns} do
-      assert render_table(%{assigns | opts: []}) =~ ~s(<table>)
-      opts = [table_attrs: [class: "funky-table"]]
+    test "optionally adds a table container" do
+      html = render_table(opts: [])
+      assert Floki.find(html, ".table-container") == []
 
-      assert render_table(%{assigns | opts: opts}) =~
-               ~s(<table class="funky-table">)
+      html = render_table(opts: [container: true])
+      assert [_] = Floki.find(html, ".table-container")
     end
 
-    test "optionally adds a table container", %{assigns: assigns} do
-      refute render_table(%{assigns | opts: []}) =~
-               ~s(<div class="table-container">)
-
-      assert render_table(%{assigns | opts: [container: true]}) =~
-               ~s(<div class="table-container">)
-    end
-
-    test "allows to set container attributes", %{assigns: assigns} do
-      opts = [container: true, container_attrs: [class: "container", id: "a"]]
-
-      assert render_table(%{assigns | opts: opts}) =~
-               ~s(<div class="container" id="a">)
-    end
-
-    test "allows to set tr and td classes", %{assigns: assigns} do
-      opts = [
-        thead_tr_attrs: [class: "mungo"],
-        thead_th_attrs: [class: "bean"],
-        tbody_tr_attrs: [class: "salt"],
-        tbody_td_attrs: [class: "tolerance"]
-      ]
-
-      html = render_table(%{assigns | opts: opts})
-
-      assert html =~ ~s(<tr class="mungo">)
-      assert html =~ ~s(<th class="bean">)
-      assert html =~ ~s(<tr class="salt">)
-      assert html =~ ~s(<td class="tolerance">)
-    end
-
-    test "doesn't render table if items list is empty", %{assigns: assigns} do
-      refute render_table(%{assigns | items: []}) =~ ~s(<table)
-    end
-
-    test "displays headers without sorting function", %{assigns: assigns} do
-      html = render_table(%{assigns | headers: ["Name", "Age"]})
-      assert html =~ ~s(<th>Name</th>)
-      assert html =~ ~s(<th>Age</th>)
-    end
-
-    test "displays headers with safe HTML values", %{assigns: assigns} do
-      html = render_table(%{assigns | headers: [{:safe, "<span>Hello</span>"}]})
-      assert html =~ ~s(<th><span>Hello</span></th>)
-    end
-
-    test "displays headers with sorting function", %{assigns: assigns} do
-      html = render_table(%{assigns | headers: ["Name", {"Age", :age}]})
-      assert html =~ ~s(<th>Name</th>)
-
-      assert html =~
-               ~s(<a data-phx-link="patch" data-phx-link-state="push" href="/index?order_directions[]=asc&amp;order_by[]=age">Age</a>)
-    end
-
-    test "renders links with click handler", %{assigns: assigns} do
+    test "allows to set container attributes" do
       html =
-        render_table(%{
-          assigns
-          | headers: ["Name", {"Age", :age}],
-            opts: [event: "sort"]
-        })
+        render_table(
+          opts: [
+            container_attrs: [class: "container", id: "a"],
+            container: true
+          ]
+        )
 
-      assert html =~ ~s(<th>Name</th>)
-      assert html =~ ~s(<a href="#" phx-click="sort" phx-value-order="age">)
+      assert [container] = Floki.find(html, "div.container")
+      assert Floki.attribute(container, "id") == ["a"]
     end
 
-    test "adds phx-target to header links", %{assigns: assigns} do
+    test "allows to set tr and td classes" do
       html =
-        render_table(%{
-          assigns
-          | headers: ["Name", {"Age", :age}],
-            opts: [event: "sort", target: "here"]
-        })
+        render_table(
+          opts: [
+            thead_tr_attrs: [class: "mungo"],
+            thead_th_attrs: [class: "bean"],
+            tbody_tr_attrs: [class: "salt"],
+            tbody_td_attrs: [class: "tolerance"]
+          ]
+        )
 
-      assert html =~ ~s(<th>Name</th>)
-
-      assert html =~
-               ~s(<a href="#" phx-click="sort" ) <>
-                 ~s(phx-target="here" ) <>
-                 ~s(phx-value-order="age">)
+      assert [_] = Floki.find(html, "tr.mungo")
+      assert [_] = Floki.find(html, "th.bean")
+      assert [_] = Floki.find(html, "tr.salt")
+      assert [_] = Floki.find(html, "td.tolerance")
     end
 
-    test "checks for sortability if for option is set", %{assigns: assigns} do
+    test "doesn't render table if items list is empty" do
+      assert [{"p", [], ["No results."]}] = render_table(items: [])
+    end
+
+    test "displays headers without sorting function" do
+      html = render_table(headers: ["Name", "Age"])
+      assert [th] = Floki.find(html, "th:fl-contains('Name')")
+      assert Floki.children(th, include_text: false) == []
+      assert [th] = Floki.find(html, "th:fl-contains('Age')")
+      assert Floki.children(th, include_text: false) == []
+    end
+
+    test "displays headers with safe HTML values" do
+      html = render_table(headers: [{:safe, "<span>Hello</span>"}])
+      assert [span] = Floki.find(html, "th span")
+      assert Floki.text(span) == "Hello"
+    end
+
+    test "displays headers with sorting function" do
+      html = render_table(headers: ["Name", {"Age", :age}])
+
+      assert [th] = Floki.find(html, "th:fl-contains('Name')")
+      assert Floki.children(th, include_text: false) == []
+
+      assert [a] = Floki.find(html, "th a:fl-contains('Age')")
+      assert Floki.attribute(a, "data-phx-link") == ["patch"]
+      assert Floki.attribute(a, "data-phx-link-state") == ["push"]
+
+      assert Floki.attribute(a, "href") == [
+               "/index?order_directions[]=asc&order_by[]=age"
+             ]
+    end
+
+    test "renders links with click handler" do
+      html =
+        render_table(
+          headers: ["Name", {"Age", :age}],
+          opts: [event: "sort"]
+        )
+
+      assert [th] = Floki.find(html, "th:fl-contains('Name')")
+      assert Floki.children(th, include_text: false) == []
+
+      assert [a] = Floki.find(html, "th a:fl-contains('Age')")
+      assert Floki.attribute(a, "href") == ["#"]
+      assert Floki.attribute(a, "phx-click") == ["sort"]
+      assert Floki.attribute(a, "phx-value-order") == ["age"]
+    end
+
+    test "adds phx-target to header links" do
+      html =
+        render_table(
+          headers: ["Name", {"Age", :age}],
+          opts: [event: "sort", target: "here"]
+        )
+
+      assert [_] = Floki.find(html, "th:fl-contains('Name')")
+      assert [a] = Floki.find(html, "a")
+      assert Floki.attribute(a, "href") == ["#"]
+      assert Floki.attribute(a, "phx-click") == ["sort"]
+      assert Floki.attribute(a, "phx-target") == ["here"]
+      assert Floki.attribute(a, "phx-value-order") == ["age"]
+    end
+
+    test "checks for sortability if for option is set" do
       # without :for option
       html =
-        render_table(%{
-          assigns
-          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}]
-        })
+        render_table(
+          headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}]
+        )
 
-      assert html =~ ~s(Name</a>)
-      assert html =~ ~s(Age</a>)
-      assert html =~ ~s(Species</a>)
+      assert [_] = Floki.find(html, "a:fl-contains('Name')")
+      assert [_] = Floki.find(html, "a:fl-contains('Age')")
+      assert [_] = Floki.find(html, "a:fl-contains('Species')")
 
       # with :for option
       html =
-        render_table(%{
-          assigns
-          | headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}],
-            opts: [for: Flop.Phoenix.Pet]
-        })
+        render_table(
+          headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}],
+          opts: [for: Flop.Phoenix.Pet]
+        )
 
-      assert html =~ ~s(Name</a>)
-      assert html =~ ~s(Age</a>)
-      refute html =~ ~s(Species</a>)
+      assert [_] = Floki.find(html, "a:fl-contains('Name')")
+      assert [_] = Floki.find(html, "a:fl-contains('Age')")
+      assert [] = Floki.find(html, "a:fl-contains('Species')")
     end
 
-    test "renders order direction symbol", %{assigns: assigns} do
-      refute render_table(%{
-               assigns
-               | meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
-                 }
-             }) =~ ~s(<span class="order-direction")
-
-      assert render_table(%{
-               assigns
-               | headers: [{"Name", :name}],
-                 meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
-                 }
-             }) =~ ~s(<span class="order-direction">▴</span>)
-
-      assert render_table(%{
-               assigns
-               | headers: [{"Name", :name}],
-                 meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
-                 }
-             }) =~ ~s(<span class="order-direction">▾</span>)
-    end
-
-    test "allows to set symbol class", %{assigns: assigns} do
-      meta = %Flop.Meta{
-        flop: %Flop{order_by: [:name], order_directions: [:asc]}
-      }
-
-      opts = [symbol_attrs: [class: "other-class"]]
-
-      assert render_table(%{
-               assigns
-               | headers: [{"Name", :name}],
-                 meta: meta,
-                 opts: opts
-             }) =~ ~s(<span class="other-class")
-    end
-
-    test "allows to override default symbols", %{assigns: assigns} do
-      assert render_table(%{
-               assigns
-               | headers: [{"Name", :name}],
-                 meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:asc]}
-                 },
-                 opts: [symbol_asc: "asc"]
-             }) =~ ~s(<span class="order-direction">asc</span>)
-
-      assert render_table(%{
-               assigns
-               | headers: [{"Name", :name}],
-                 meta: %Flop.Meta{
-                   flop: %Flop{order_by: [:name], order_directions: [:desc]}
-                 },
-                 opts: [symbol_desc: "desc"]
-             }) =~ ~s(<span class="order-direction">desc</span>)
-    end
-
-    test "renders all items", %{assigns: assigns} do
+    test "renders order direction symbol" do
       html =
-        render_table(%{
-          assigns
-          | items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
-            opts: [appendix: "-chan"],
-            row_func: fn %{age: age, name: name}, opts ->
-              [name <> opts[:appendix], age]
-            end
-        })
+        render_table(
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:asc]}
+          }
+        )
 
-      assert html =~ ~s(<td>George-chan</td>)
-      assert html =~ ~s(<td>8</td>)
-      assert html =~ ~s(<td>Barbara-chan</td>)
-      assert html =~ ~s(<td>2</td>)
+      assert Floki.find(html, "span.order-direction") == []
+
+      html =
+        render_table(
+          headers: [{"Name", :name}],
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:asc]}
+          }
+        )
+
+      assert [span] = Floki.find(html, "span.order-direction")
+      assert Floki.text(span) == "▴"
+
+      html =
+        render_table(
+          headers: [{"Name", :name}],
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:desc]}
+          }
+        )
+
+      assert [span] = Floki.find(html, "span.order-direction")
+      assert Floki.text(span) == "▾"
     end
 
-    test "renders notice if item list is empty", %{assigns: assigns} do
-      html = render_table(%{assigns | items: []})
-      assert String.trim(html) == "<p>No results.</p>"
+    test "allows to set symbol class" do
+      html =
+        render_table(
+          headers: [{"Name", :name}],
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:asc]}
+          },
+          opts: [symbol_attrs: [class: "other-class"]]
+        )
+
+      assert [_] = Floki.find(html, "span.other-class")
     end
 
-    test "allows to set no_results_content", %{assigns: assigns} do
-      opts = [no_results_content: ~E"<div>Nothing!</div>"]
-      html = render_table(%{assigns | items: [], opts: opts})
-      assert String.trim(html) == "<div>Nothing!</div>"
+    test "allows to override default symbols" do
+      html =
+        render_table(
+          headers: [{"Name", :name}],
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:asc]}
+          },
+          opts: [symbol_asc: "asc"]
+        )
+
+      assert [span] = Floki.find(html, "span.order-direction")
+      assert Floki.text(span) == "asc"
+
+      html =
+        render_table(
+          headers: [{"Name", :name}],
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:desc]}
+          },
+          opts: [symbol_desc: "desc"]
+        )
+
+      assert [span] = Floki.find(html, "span.order-direction")
+      assert Floki.text(span) == "desc"
     end
 
-    test "renders table footer", %{assigns: assigns} do
-      assigns =
-        Map.merge(assigns, %{
+    test "renders all items" do
+      html =
+        render_table(
+          items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
+          opts: [appendix: "-chan"],
+          row_func: fn %{age: age, name: name}, opts ->
+            [name <> opts[:appendix], age]
+          end
+        )
+
+      assert [_] = Floki.find(html, "td:fl-contains('George-chan')")
+      assert [_] = Floki.find(html, "td:fl-contains('8')")
+      assert [_] = Floki.find(html, "td:fl-contains('Barbara-chan')")
+      assert [_] = Floki.find(html, "td:fl-contains('8')")
+    end
+
+    test "renders notice if item list is empty" do
+      assert [{"p", [], ["No results."]}] = render_table(items: [])
+    end
+
+    test "allows to set no_results_content" do
+      assert render_table(
+               items: [],
+               no_results_content: ~E"<div>Nothing!</div>"
+             ) == [{"p", [], ["No results."]}]
+    end
+
+    test "renders table footer" do
+      html =
+        render_table(
           footer: ["snip", content_tag(:span, "snap")],
           opts: [
             tfoot_tr_attrs: [class: "tfoot-row"],
             tfoot_td_attrs: [class: "tfoot-td"]
           ]
-        })
-
-      {:ok, html} = assigns |> render_table() |> Floki.parse_fragment()
+        )
 
       assert [
                {"table", [],
@@ -980,10 +1006,8 @@ defmodule Flop.PhoenixTest do
              ] = html
     end
 
-    test "does not render table footer if option is not set", %{
-      assigns: assigns
-    } do
-      {:ok, html} = assigns |> render_table() |> Floki.parse_fragment()
+    test "does not render table footer if option is not set" do
+      html = render_table()
       assert [{"table", [], [{"thead", _, _}, {"tbody", _, _}]}] = html
     end
   end
