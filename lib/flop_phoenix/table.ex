@@ -35,6 +35,7 @@ defmodule Flop.Phoenix.Table do
   def init_assigns(assigns) do
     extra =
       assigns_to_attributes(assigns, [
+        :event,
         :footer,
         :for,
         :headers,
@@ -43,12 +44,15 @@ defmodule Flop.Phoenix.Table do
         :opts,
         :path_helper,
         :path_helper_args,
-        :row_func
+        :row_func,
+        :target
       ])
 
     assigns
+    |> assign_new(:event, fn -> nil end)
     |> assign_new(:footer, fn -> nil end)
     |> assign_new(:for, fn -> nil end)
+    |> assign_new(:target, fn -> nil end)
     |> assign(:extra, extra)
     |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
   end
@@ -60,12 +64,14 @@ defmodule Flop.Phoenix.Table do
         <tr {@opts[:thead_tr_attrs]}><%=
           for header <- @headers do %>
             <.header_column
+              event={@event}
               flop={@meta.flop}
               for={@for}
               header={header}
               opts={@opts}
               path_helper={@path_helper}
               path_helper_args={@path_helper_args}
+              target={@target}
             />
           <% end %>
         </tr>
@@ -97,14 +103,18 @@ defmodule Flop.Phoenix.Table do
       assigns
       |> assign(:field, header_field(assigns.header))
       |> assign(:value, header_value(assigns.header))
-      |> assign(:opts, Keyword.put(assigns.opts, :for, assigns.for))
 
     ~H"""
     <%= if is_sortable?(@field, @for) do %>
       <th {@opts[:thead_th_attrs]}>
         <span {@opts[:th_wrapper_attrs]}>
-          <%= if @opts[:event] do %>
-            <.sort_link field={@field} opts={@opts} value={@value} />
+          <%= if @event do %>
+            <.sort_link
+              field={@field}
+              event={@event}
+              target={@target}
+              value={@value}
+            />
           <% else %>
             <%= live_patch(@value,
                   to:
@@ -112,7 +122,7 @@ defmodule Flop.Phoenix.Table do
                       @path_helper,
                       @path_helper_args,
                       Flop.push_order(@flop, @field),
-                      @opts
+                      for: @for
                     )
                 )
             %>
@@ -139,16 +149,16 @@ defmodule Flop.Phoenix.Table do
 
   defp sort_link(assigns) do
     ~H"""
-    <%= link sort_link_attrs(@field, @opts) do %><%= @value %><% end %>
+    <%= link sort_link_attrs(@field, @event, @target) do %>
+      <%= @value %>
+    <% end %>
     """
   end
 
-  defp sort_link_attrs(field, opts) do
-    []
-    |> Keyword.put(:phx_value_order, field)
-    |> Keyword.put(:to, "#")
-    |> Misc.maybe_put(:phx_click, opts[:event])
-    |> Misc.maybe_put(:phx_target, opts[:target])
+  defp sort_link_attrs(field, event, target) do
+    [phx_value_order: field, to: "#"]
+    |> Misc.maybe_put(:phx_click, event)
+    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp current_direction(%Flop{order_by: nil}, _), do: nil

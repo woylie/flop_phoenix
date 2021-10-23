@@ -36,7 +36,9 @@ defmodule Flop.Phoenix.Pagination do
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
     assigns
+    |> assign_new(:event, fn -> nil end)
     |> assign_new(:for, fn -> nil end)
+    |> assign_new(:target, fn -> nil end)
     |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
   end
 
@@ -47,24 +49,27 @@ defmodule Flop.Phoenix.Pagination do
       <.previous_link
         attrs={@opts[:previous_link_attrs]}
         content={@opts[:previous_link_content]}
-        event={@opts[:event]}
+        event={@event}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
+        target={@target}
       />
       <.next_link
         attrs={@opts[:next_link_attrs]}
         content={@opts[:next_link_content]}
-        event={@opts[:event]}
+        event={@event}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
+        target={@target}
       />
       <.page_links
-        event={@opts[:event]}
+        event={@event}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
+        target={@target}
       />
     </nav>
     """
@@ -74,7 +79,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_previous_page? do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @meta.previous_page, @opts) do %>
+        <%= link add_phx_attrs(@attrs, @event, @target, @meta.previous_page) do %>
           <%= @content %>
         <% end %>
       <% else %>
@@ -93,7 +98,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_next_page? do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @meta.next_page, @opts) do %>
+        <%= link add_phx_attrs(@attrs, @event, @target, @meta.next_page) do %>
           <%= @content %>
         <% end %>
       <% else %>
@@ -119,6 +124,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= unless @opts[:page_links] == :hide do %>
       <.render_page_links
+        event={@event}
         max_pages={@max_pages}
         meta={@meta}
         page_link_helper={@page_link_helper}
@@ -128,6 +134,7 @@ defmodule Flop.Phoenix.Pagination do
           @max_pages,
           @meta.total_pages
         )}
+        target={@target}
       />
     <% end %>
     """
@@ -140,11 +147,12 @@ defmodule Flop.Phoenix.Pagination do
     <ul {@opts[:pagination_list_attrs]}>
       <%= if @first > 1 do %>
         <.page_link_tag
-          event={@opts[:event]}
+          event={@event}
           meta={@meta}
           opts={@opts}
           page={1}
           page_link_helper={@page_link_helper}
+          target={@target}
         />
       <% end %>
 
@@ -157,11 +165,12 @@ defmodule Flop.Phoenix.Pagination do
 
       <%= for page <- @range do %>
         <.page_link_tag
-          event={@opts[:event]}
+          event={@event}
           meta={@meta}
           opts={@opts}
           page={page}
           page_link_helper={@page_link_helper}
+          target={@target}
         />
       <% end %>
 
@@ -174,7 +183,7 @@ defmodule Flop.Phoenix.Pagination do
 
       <%= if @last < @meta.total_pages do %>
         <.page_link_tag
-          event={@opts[:event]}
+          event={@event}
           meta={@meta}
           opts={@opts}
           page={@meta.total_pages}
@@ -191,7 +200,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @event do %>
       <li>
-        <%= link @page, add_phx_attrs(@attrs, @event, @page, @opts) %>
+        <%= link @page, add_phx_attrs(@attrs, @event, @target, @page) %>
       </li>
     <% else %>
       <li>
@@ -232,19 +241,11 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(
-        meta,
-        route_helper,
-        route_helper_args,
-        for,
-        opts
-      ) do
-    opts = Keyword.put(opts, :for, for)
-
+  def build_page_link_helper(meta, route_helper, route_helper_args, for) do
     query_params =
       meta.flop
       |> ensure_page_based_params()
-      |> Flop.Phoenix.to_query(opts)
+      |> Flop.Phoenix.to_query(for: for)
 
     fn page ->
       params = maybe_put_page(query_params, page)
@@ -298,12 +299,12 @@ defmodule Flop.Phoenix.Pagination do
     Keyword.put(attrs, :to, page_link_helper.(page))
   end
 
-  defp add_phx_attrs(attrs, event, page, opts) do
+  defp add_phx_attrs(attrs, event, target, page) do
     attrs
     |> Keyword.put(:phx_click, event)
-    |> Misc.maybe_put(:phx_target, opts[:target])
     |> Keyword.put(:phx_value_page, page)
     |> Keyword.put(:to, "#")
+    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp add_page_link_aria_label(attrs, page, opts) do

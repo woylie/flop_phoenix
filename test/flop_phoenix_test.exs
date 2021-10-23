@@ -8,21 +8,27 @@ defmodule Flop.PhoenixTest do
   import Phoenix.LiveViewTest
 
   alias Flop.Meta
+  alias Flop.Phoenix.Pet
   alias Plug.Conn.Query
 
   doctest Flop.Phoenix, import: true
 
   @route_helper_opts [%{}, :pets]
 
-  defp render_pagination(%Meta{} = meta, opts \\ []) do
+  defp render_pagination(%Meta{} = meta, assigns \\ []) do
+    assigns =
+      Keyword.merge(
+        [
+          __changed__: nil,
+          meta: meta,
+          path_helper: &route_helper/3,
+          path_helper_args: @route_helper_opts
+        ],
+        assigns
+      )
+
     (&pagination/1)
-    |> render_component(
-      __changed__: nil,
-      meta: meta,
-      path_helper: &route_helper/3,
-      path_helper_args: @route_helper_opts,
-      opts: opts
-    )
+    |> render_component(assigns)
     |> Floki.parse_fragment!()
   end
 
@@ -79,7 +85,7 @@ defmodule Flop.PhoenixTest do
       wrapper =
         :meta_on_first_page
         |> build()
-        |> render_pagination(wrapper_attrs: [class: "boo"])
+        |> render_pagination(opts: [wrapper_attrs: [class: "boo"]])
         |> Floki.find("nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -91,7 +97,7 @@ defmodule Flop.PhoenixTest do
       wrapper =
         :meta_on_first_page
         |> build()
-        |> render_pagination(wrapper_attrs: [title: "paginate"])
+        |> render_pagination(opts: [wrapper_attrs: [title: "paginate"]])
         |> Floki.find("nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -169,8 +175,10 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(
-          previous_link_attrs: [class: "prev", title: "p-p-previous"],
-          previous_link_content: tag(:i, class: "fas fa-chevron-left")
+          opts: [
+            previous_link_attrs: [class: "prev", title: "p-p-previous"],
+            previous_link_content: tag(:i, class: "fas fa-chevron-left")
+          ]
         )
 
       assert [link] = Floki.find(html, "a[title='p-p-previous']")
@@ -210,8 +218,10 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination(
-          previous_link_attrs: [class: "prev", title: "no"],
-          previous_link_content: "Prev"
+          opts: [
+            previous_link_attrs: [class: "prev", title: "no"],
+            previous_link_content: "Prev"
+          ]
         )
         |> Floki.find("span:fl-contains('Prev')")
 
@@ -262,8 +272,10 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(
-          next_link_attrs: [class: "next", title: "n-n-next"],
-          next_link_content: tag(:i, class: "fas fa-chevron-right")
+          opts: [
+            next_link_attrs: [class: "next", title: "n-n-next"],
+            next_link_content: tag(:i, class: "fas fa-chevron-right")
+          ]
         )
 
       assert [link] = Floki.find(html, "a[title='n-n-next']")
@@ -305,8 +317,10 @@ defmodule Flop.PhoenixTest do
         :meta_on_last_page
         |> build()
         |> render_pagination(
-          next_link_attrs: [class: "next", title: "no"],
-          next_link_content: "N-n-next"
+          opts: [
+            next_link_attrs: [class: "next", title: "no"],
+            next_link_content: "N-n-next"
+          ]
         )
         |> Floki.find("span:fl-contains('N-n-next')")
 
@@ -372,7 +386,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(page_links: :hide)
+        |> render_pagination(opts: [page_links: :hide])
 
       assert Floki.find(html, ".pagination-list") == []
     end
@@ -381,7 +395,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(page_links: :hide, event: "paginate")
+        |> render_pagination(opts: [page_links: :hide, event: "paginate"])
 
       assert Floki.find(html, ".pagination-list") == []
     end
@@ -391,7 +405,7 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build()
         |> render_pagination(
-          pagination_list_attrs: [class: "p-list", title: "boop"]
+          opts: [pagination_list_attrs: [class: "p-list", title: "boop"]]
         )
 
       assert [list] = Floki.find(html, "ul.p-list")
@@ -403,7 +417,7 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(
-          pagination_link_attrs: [class: "p-link", beep: "boop"]
+          opts: [pagination_link_attrs: [class: "p-link", beep: "boop"]]
         )
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
@@ -421,7 +435,7 @@ defmodule Flop.PhoenixTest do
         :meta_on_second_page
         |> build()
         |> render_pagination(
-          current_link_attrs: [class: "link is-active", beep: "boop"]
+          opts: [current_link_attrs: [class: "link is-active", beep: "boop"]]
         )
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
@@ -444,7 +458,9 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(pagination_link_aria_label: &"On to page #{&1}")
+        |> render_pagination(
+          opts: [pagination_link_aria_label: &"On to page #{&1}"]
+        )
 
       assert [link] = Floki.find(html, "a[aria-label='On to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -502,6 +518,26 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(next, "data-phx-link") == ["patch"]
       assert Floki.attribute(next, "data-phx-link-state") == ["push"]
       assert Floki.attribute(next, "href") == [expected_url.(3)]
+    end
+
+    test "hides default order and limit" do
+      html =
+        :meta_on_second_page
+        |> build(
+          flop: %Flop{
+            page_size: 20,
+            order_by: [:name],
+            order_directions: [:asc]
+          }
+        )
+        |> render_pagination(for: Pet)
+
+      assert [prev] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(prev, "href")
+
+      refute href =~ "page_size="
+      refute href =~ "order_by[]="
+      refute href =~ "order_directions[]="
     end
 
     test "adds filter parameters to links" do
@@ -583,7 +619,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -600,7 +636,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 20, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -616,7 +652,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 12, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 6})
+        |> render_pagination(opts: [page_links: {:ellipsis, 6}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
@@ -633,7 +669,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 11, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -650,7 +686,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 10, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -667,7 +703,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 11, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -684,7 +720,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 2, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -700,7 +736,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_first_page
         |> build(current_page: 18, total_pages: 20)
-        |> render_pagination(page_links: {:ellipsis, 5})
+        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -717,9 +753,11 @@ defmodule Flop.PhoenixTest do
         :meta_on_first_page
         |> build(current_page: 10, total_pages: 20)
         |> render_pagination(
-          page_links: {:ellipsis, 5},
-          ellipsis_attrs: [class: "dotdotdot", title: "dot"],
-          ellipsis_content: "dot dot dot"
+          opts: [
+            page_links: {:ellipsis, 5},
+            ellipsis_attrs: [class: "dotdotdot", title: "dot"],
+            ellipsis_content: "dot dot dot"
+          ]
         )
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
@@ -825,11 +863,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders links with click handler" do
-      html =
-        render_table(
-          headers: ["Name", {"Age", :age}],
-          opts: [event: "sort"]
-        )
+      html = render_table(event: "sort", headers: ["Name", {"Age", :age}])
 
       assert [th] = Floki.find(html, "th:fl-contains('Name')")
       assert Floki.children(th, include_text: false) == []
@@ -843,8 +877,9 @@ defmodule Flop.PhoenixTest do
     test "adds phx-target to header links" do
       html =
         render_table(
+          event: "sort",
           headers: ["Name", {"Age", :age}],
-          opts: [event: "sort", target: "here"]
+          target: "here"
         )
 
       assert [_] = Floki.find(html, "th:fl-contains('Name')")
@@ -876,6 +911,30 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "a:fl-contains('Name')")
       assert [_] = Floki.find(html, "a:fl-contains('Age')")
       assert [] = Floki.find(html, "a:fl-contains('Species')")
+    end
+
+    test "hides default order and limit" do
+      html =
+        render_table(
+          for: Pet,
+          headers: [{"Name", :name}],
+          meta:
+            build(
+              :meta_on_second_page,
+              flop: %Flop{
+                page_size: 20,
+                order_by: [:name],
+                order_directions: [:desc]
+              }
+            )
+        )
+
+      assert [link] = Floki.find(html, "a:fl-contains('Name')")
+      assert [href] = Floki.attribute(link, "href")
+
+      refute href =~ "page_size="
+      refute href =~ "order_by[]="
+      refute href =~ "order_directions[]="
     end
 
     test "renders order direction symbol" do

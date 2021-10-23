@@ -6,7 +6,11 @@ defmodule Flop.Phoenix.Pet do
 
   @derive {
     Flop.Schema,
-    filterable: [:name, :age], sortable: [:name, :age]
+    filterable: [:name, :age],
+    sortable: [:name, :age],
+    default_limit: 20,
+    default_order_by: [:name],
+    default_order_directions: [:asc]
   }
 
   schema "pets" do
