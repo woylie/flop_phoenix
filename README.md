@@ -81,20 +81,20 @@ In your template, add a sortable table and pagination links.
 <h1>Pets</h1>
 
 <Flop.Phoenix.table
+  for={MyApp.Pet}
   items={@pets}
   meta={@meta}
   path_helper={&Routes.pet_path/3}
   path_helper_args={[@socket, :index]}
   headers={[{"Name", :name}, {"Age", :age}]}
-  row_func={fn pet, _opts -> [pet.name, pet.age] end},
-  opts={[for: MyApp.Pet]}
+  row_func={fn pet, _opts -> [pet.name, pet.age] end}
 />
 
 <Flop.Phoenix.pagination
-  meta={@meta},
-  path_helper={&Routes.pet_path/3},
-  path_helper_args{[@socket, :index]},
-  opts={[for: MyApp.Pet]}
+  for={MyApp.Pet}
+  meta={@meta}
+  path_helper={&Routes.pet_path/3}
+  path_helper_args={[@socket, :index]}
 />
 ```
 
@@ -104,10 +104,10 @@ the function. If you want to add a path parameter, you can do it like this.
 
 ```elixir
 <Flop.Phoenix.pagination
-  meta={@meta},
-  path_helper={&Routes.pet_path/4},
-  path_helper_args{[@conn, :index, @owner]},
-  opts={[for: MyApp.Pet]}
+  for={MyApp.Pet}
+  meta={@meta}
+  path_helper={&Routes.pet_path/4}
+  path_helper_args={[@conn, :index, @owner]}
 />
 ```
 
@@ -129,25 +129,23 @@ from being updated.
 <h1>Pets</h1>
 
 <%= table(%{
-      __changed__: nil,
-      items: @pets,
-      meta: @meta,
-      path_helper: &Routes.pet_path/3,
-      path_helper_args: [@conn, :index],
-      headers: [{"Name", :name}, {"Age", :age}],
-      row_func: fn pet, _opts -> [pet.name, pet.age] end,
-      opts: [for: MyApp.Pet]
-    })
-%>
+  __changed__: nil,
+  for: MyApp.Pet,
+  items: @pets,
+  meta: @meta,
+  path_helper: &Routes.pet_path/3,
+  path_helper_args: [@conn, :index],
+  headers: [{"Name", :name}, {"Age", :age}],
+  row_func: fn pet, _opts -> [pet.name, pet.age] end
+}) %>
 
 <%= pagination(%{
-      __changed__: nil,
-      meta: @meta,
-      path_helper: &Routes.pet_path/3,
-      path_helper_args: [@conn, :index],
-      opts: [for: MyApp.Pet]
-    })
-%>
+  __changed__: nil,
+  for: MyApp.Pet,
+  meta: @meta,
+  path_helper: &Routes.pet_path/3,
+  path_helper_args: [@conn, :index],
+}) %>
 ```
 
 ## Clean up the template
@@ -173,7 +171,7 @@ defmodule MyAppWeb.PetLive.Index do
     end
   end
 
-  def table_headers do
+  defp table_headers do
     [
       # {display value, schema field}
       {"Name", :name},
@@ -182,13 +180,11 @@ defmodule MyAppWeb.PetLive.Index do
     ]
   end
 
-  def table_row(%Pet{} = pet, opts) do
-    socket = Keyword.fetch!(opts, :socket)
-
+  defp table_row(%Pet{} = pet, opts) do
     [
       pet.name,
       pet.age,
-      link "show", to: Routes.pet_path(socket, :show, pet)
+      link "show", to: Routes.pet_path(opts[:socket], :show, pet)
     ]
   end
 end
@@ -198,14 +194,43 @@ The template:
 
 ```elixir
 <Flop.Phoenix.table
+  for={MyApp.Pet}
   items={@pets}
   meta={@meta}
   path_helper={&Routes.pet_path/3}
   path_helper_args={[@socket, :index]}
   headers={table_headers()}
   row_func={&table_row/2},
-  opts={[for: MyApp.Pet, socket: @socket]}
+  socket={@socket}
 />
+```
+
+You can also add a function for the common static assigns shared by the Flop
+components. The LiveView module:
+
+```elixir
+defp flop_assigns do
+  [
+    for: MyApp.Pet,
+    path_helper: &Routes.pet_path/3,
+    path_helper_args: [@conn, :index, @owner]
+  ]
+end
+```
+
+The template:
+
+```elixir
+<Flop.Phoenix.table
+  items={@pets}
+  meta={@meta}
+  headers={table_headers()}
+  row_func={&table_row/2},
+  socket={@socket}
+  {flop_assigns()}
+/>
+
+<Flop.Phoenix.pagination meta={@meta} {flop_assigns()} />
 ```
 
 Refer to the `Flop.Phoenix` module documentation for more examples.

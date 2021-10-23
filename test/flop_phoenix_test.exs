@@ -866,11 +866,11 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "a:fl-contains('Age')")
       assert [_] = Floki.find(html, "a:fl-contains('Species')")
 
-      # with :for option
+      # with :for assign
       html =
         render_table(
-          headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}],
-          opts: [for: Flop.Phoenix.Pet]
+          for: Flop.Phoenix.Pet,
+          headers: [{"Name", :name}, {"Age", :age}, {"Species", :species}]
         )
 
       assert [_] = Floki.find(html, "a:fl-contains('Name')")

@@ -35,11 +35,9 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assign(
-      assigns,
-      :opts,
-      Misc.deep_merge(default_opts(), assigns[:opts] || [])
-    )
+    assigns
+    |> assign_new(:for, fn -> nil end)
+    |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
@@ -234,7 +232,15 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(meta, route_helper, route_helper_args, opts) do
+  def build_page_link_helper(
+        meta,
+        route_helper,
+        route_helper_args,
+        for,
+        opts
+      ) do
+    opts = Keyword.put(opts, :for, for)
+
     query_params =
       meta.flop
       |> ensure_page_based_params()

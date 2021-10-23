@@ -36,6 +36,7 @@ defmodule Flop.Phoenix.Table do
     extra =
       assigns_to_attributes(assigns, [
         :footer,
+        :for,
         :headers,
         :items,
         :meta,
@@ -47,6 +48,7 @@ defmodule Flop.Phoenix.Table do
 
     assigns
     |> assign_new(:footer, fn -> nil end)
+    |> assign_new(:for, fn -> nil end)
     |> assign(:extra, extra)
     |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
   end
@@ -59,6 +61,7 @@ defmodule Flop.Phoenix.Table do
           for header <- @headers do %>
             <.header_column
               flop={@meta.flop}
+              for={@for}
               header={header}
               opts={@opts}
               path_helper={@path_helper}
@@ -94,9 +97,10 @@ defmodule Flop.Phoenix.Table do
       assigns
       |> assign(:field, header_field(assigns.header))
       |> assign(:value, header_value(assigns.header))
+      |> assign(:opts, Keyword.put(assigns.opts, :for, assigns.for))
 
     ~H"""
-    <%= if is_sortable?(@field, @opts[:for]) do %>
+    <%= if is_sortable?(@field, @for) do %>
       <th {@opts[:thead_th_attrs]}>
         <span {@opts[:th_wrapper_attrs]}>
           <%= if @opts[:event] do %>

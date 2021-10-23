@@ -101,7 +101,7 @@ defmodule Flop.Phoenix do
   ## Hiding default parameters
 
   Default values for page size and ordering are omitted from the query
-  parameters. If you pass the `:for` option, the Flop.Phoenix function will
+  parameters. If you pass the `:for` assign, the Flop.Phoenix function will
   pick up the default values from the schema module deriving `Flop.Schema`.
 
   ## LiveView
@@ -125,10 +125,11 @@ defmodule Flop.Phoenix do
   will be used in the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
-        meta={@meta},
-        path_helper={&Routes.pet_path/4},
-        path_helper_args{[@conn, :index, @owner]},
-        opts={[for: MyApp.Pet, event: "paginate-pets", target: @myself]}
+        for={MyApp.Pet}
+        meta={@meta}
+        path_helper={&Routes.pet_path/4}
+        path_helper_args{[@conn, :index, @owner]}
+        opts={[event: "paginate-pets", target: @myself]}
       />
 
   You will need to handle the event in the `handle_event/3` callback of your
@@ -171,9 +172,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
   - `:ellipsis_content` - The content for the ellipsis element.
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_content])}`.
-  - `:for` - The schema module deriving `Flop.Schema`. If set, `Flop.Phoenix`
-    will remove default parameters from the query parameters.
-    Default: `#{inspect(Pagination.default_opts()[:for])}`.
   - `:next_link_attrs` - The attributes for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:next_link_content` - The content for the link to the next page.
@@ -203,7 +201,6 @@ defmodule Flop.Phoenix do
           {:current_link_attrs, keyword}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
-          | {:for, module}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
@@ -223,9 +220,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
   - `:event`: If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute. Default: `#{inspect(Table.default_opts()[:event])}`.
-  - `:for` - The schema module deriving `Flop.Schema`. If set, header links are
-    only added for fields that are defined as sortable.
-    Default: `#{inspect(Table.default_opts()[:for])}`.
   - `:no_results_content` - Any content that should be rendered if there are no
     results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
   - `:table_attrs` - The attributes for the `<table>` element.
@@ -281,14 +275,16 @@ defmodule Flop.Phoenix do
 
   ## Assigns
 
-  - `meta`: The meta information of the query as returned by the `Flop` query
+  - `meta` - The meta information of the query as returned by the `Flop` query
     functions.
-  - `path_helper`: The path helper function that builds a path to the current
+  - `path_helper` - The path helper function that builds a path to the current
     page, e.g. `&Routes.pet_path/3`.
-  - `path_helper_args`: The arguments to be passed to the route helper
+  - `path_helper_args` - The arguments to be passed to the route helper
     function, e.g. `[@conn, :index]`. The page number and page size will be
     added as query parameters.
-  - `opts`: Options to customize the pagination. See
+  - `for` (optional) - The schema module deriving `Flop.Schema`. If set,
+    `Flop.Phoenix` will remove default parameters from the query parameters.
+  - `opts` (optional) - Options to customize the pagination. See
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
     function are deep merged into the default options. These options will
     likely be the same for all the tables in a project, so it probably makes
@@ -336,6 +332,7 @@ defmodule Flop.Phoenix do
           @meta,
           @path_helper,
           @path_helper_args,
+          @for,
           @opts
         )}
       />
@@ -348,21 +345,23 @@ defmodule Flop.Phoenix do
 
   ## Assigns
 
-  - `footer`: A list of footer columns. Can be a list of strings or safe
-    HTML.
-  - `headers`: A list of header columns. Can be a list of strings (or safe
+  - `headers` - A list of header columns. Can be a list of strings (or safe
     HTML), or a list of `{value, field_name}` tuples.
-  - `items`: The list of items to be displayed in rows. This is the result list
+  - `items` - The list of items to be displayed in rows. This is the result list
     returned by the query.
-  - `meta`: The `Flop.Meta` struct returned by the query function.
-  - `path_helper`: The Phoenix path or url helper that leads to the current
+  - `meta` - The `Flop.Meta` struct returned by the query function.
+  - `path_helper` - The Phoenix path or url helper that leads to the current
     page.
-  - `path_helper_args`: The argument list for the path helper. For example, if
+  - `path_helper_args` - The argument list for the path helper. For example, if
     you would call `Routes.pet_path(@conn, :index)` to generate the path for the
     current page, this would be `[@conn, :index]`.
-  - `opts`: Keyword list with additional options (see
-    `t:Flop.Phoenix.table_option/0`). This list will also be passed as the
-    second argument to the row function. Note that the options passed to the
+  - `:for` (optional) - The schema module deriving `Flop.Schema`. If set, header
+    links are only added for fields that are defined as sortable and query
+    parameters are hidden if they match the default order.
+  - `footer` (optional) - A list of footer columns. Can be a list of strings or
+    safe HTML.
+  - `opts` (optional) - Keyword list with additional options (see
+    `t:Flop.Phoenix.table_option/0`). Note that the options passed to the
     function are deep merged into the default options. These options will
     likely be the same for all the tables in a project, so it probably makes
     sense to define them once in a function or set them in a wrapper function
@@ -433,8 +432,9 @@ defmodule Flop.Phoenix do
       <%= if @opts[:container] do %>
         <div {@opts[:container_attrs]}>
           <Table.render
-            footer={@footer}
             extra={@extra}
+            footer={@footer}
+            for={@for}
             headers={@headers}
             items={@items}
             meta={@meta}
@@ -446,8 +446,9 @@ defmodule Flop.Phoenix do
         </div>
       <% else %>
         <Table.render
-          footer={@footer}
           extra={@extra}
+          footer={@footer}
+          for={@for}
           headers={@headers}
           items={@items}
           meta={@meta}
