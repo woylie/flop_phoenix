@@ -351,9 +351,11 @@ defmodule Flop.Phoenix do
   - `path_helper_args` - The argument list for the path helper. For example, if
     you would call `Routes.pet_path(@conn, :index)` to generate the path for the
     current page, this would be `[@conn, :index]`.
-  - `row_func`: A function that takes one item of the `items` list and a
+  - `row_func` - A function that takes one item of the `items` list and a
     keyword list with all additional assigns and returns the column values for
     that item's row.
+  - `row_opts` (optional) - Keyword list that will be passed as the second
+    parameter to the `row_func`.
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
     links are only added for fields that are defined as sortable and query
     parameters are hidden if they match the default order.
@@ -393,7 +395,7 @@ defmodule Flop.Phoenix do
 
       <Flop.Phoenix.sortable_table
         row_func={&table_row/2}
-        socket={@socket}
+        row_opts={[socket: @socket]}
         ...
       />
 
@@ -431,7 +433,6 @@ defmodule Flop.Phoenix do
       <%= if @opts[:container] do %>
         <div {@opts[:container_attrs]}>
           <Table.render
-            extra={@extra}
             footer={@footer}
             for={@for}
             event={@event}
@@ -442,12 +443,12 @@ defmodule Flop.Phoenix do
             path_helper={@path_helper}
             path_helper_args={@path_helper_args}
             row_func={@row_func}
+            row_opts={@row_opts}
             target={@target}
           />
         </div>
       <% else %>
         <Table.render
-          extra={@extra}
           footer={@footer}
           for={@for}
           event={@event}
@@ -458,6 +459,7 @@ defmodule Flop.Phoenix do
           path_helper={@path_helper}
           path_helper_args={@path_helper_args}
           row_func={@row_func}
+          row_opts={@row_opts}
           target={@target}
         />
       <% end %>

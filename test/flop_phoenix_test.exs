@@ -1040,11 +1040,11 @@ defmodule Flop.PhoenixTest do
       html =
         render_table(
           items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
-          appendix: "-chan",
+          row_opts: [suffix: "-chan"],
           row_func: fn %{age: age, name: name}, opts ->
-            assert Keyword.keys(opts) == [:appendix]
-            appendix = Keyword.fetch!(opts, :appendix)
-            [name <> appendix, age]
+            assert Keyword.keys(opts) == [:suffix]
+            suffix = Keyword.fetch!(opts, :suffix)
+            [name <> suffix, age]
           end
         )
 

@@ -8,8 +8,8 @@
   root. The `opts` assign is now exclusively used for customization options
   that modify the appearance. These options are usually set globally for a
   project and are not related to the specific data or view.
-- The `row_func/2` function passed to the `table` component receives a keyword
-  list with all additional assigns now instead of the `opts` assign.
+- The `row_func/2` function passed to the `table` component receives a the
+  `row_opts` assign now instead of the `opts` assign.
 - The pagination and table components only pass the `for` option to the query
   builder, instead of all `opts`.
 - The `path_helper` and `path_helper_args` assigns are now optional if an
@@ -19,8 +19,10 @@
 
 #### How to update
 
-Remove `for`, `event`, `target` and any additional parameters needed by your
-`row_func` and add them as regular assigns.
+1. Remove the `for`, `event` and `target` from the `opts` assign and add them
+   as regular assigns at the root level.
+2. Move any key/value pairs that are needed by your `row_func` from `opts` to
+   `row_opts`.
 
 For example, if your `row_func` looks like this:
 
@@ -66,8 +68,8 @@ To this:
   event="sort-table"
   target={@myself}
   row_func={&table_row/2}
+  row_opts={[socket: @socket]}
   opts={[container: true]}
-  socket={@socket}
   ...
 />
 
@@ -75,7 +77,6 @@ To this:
   for={Pet}
   event="sort-table"
   target={@myself}
-  row_func={&table_row/2}
   opts={[page_links: {:ellipsis, 7}]}
   ...
 />

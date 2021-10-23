@@ -201,7 +201,7 @@ The template:
   path_helper_args={[@socket, :index]}
   headers={table_headers()}
   row_func={&table_row/2},
-  socket={@socket}
+  row_opts={[socket: @socket]}
 />
 ```
 
@@ -226,7 +226,7 @@ The template:
   meta={@meta}
   headers={table_headers()}
   row_func={&table_row/2},
-  socket={@socket}
+  row_opts={[socket: @socket]}
   {flop_assigns()}
 />
 

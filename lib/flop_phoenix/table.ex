@@ -33,21 +33,6 @@ defmodule Flop.Phoenix.Table do
   """
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    extra =
-      assigns_to_attributes(assigns, [
-        :event,
-        :footer,
-        :for,
-        :headers,
-        :items,
-        :meta,
-        :opts,
-        :path_helper,
-        :path_helper_args,
-        :row_func,
-        :target
-      ])
-
     assigns =
       assigns
       |> assign_new(:event, fn -> nil end)
@@ -55,8 +40,8 @@ defmodule Flop.Phoenix.Table do
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:path_helper_args, fn -> nil end)
+      |> assign_new(:row_opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
-      |> assign(:extra, extra)
       |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
 
     if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
@@ -110,7 +95,7 @@ defmodule Flop.Phoenix.Table do
       <tbody>
         <%= for item <- @items do %>
           <tr {@opts[:tbody_tr_attrs]}>
-            <%= for column <- @row_func.(item, @extra) do %>
+            <%= for column <- @row_func.(item, @row_opts) do %>
               <td {@opts[:tbody_td_attrs]}><%= column %></td>
             <% end %>
           </tr>
