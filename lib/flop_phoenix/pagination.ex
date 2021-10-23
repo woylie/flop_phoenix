@@ -213,6 +213,7 @@ defmodule Flop.Phoenix.Pagination do
           opts={@opts}
           page={@meta.total_pages}
           page_link_helper={@page_link_helper}
+          target={@target}
         />
       <% end %>
     </ul>
