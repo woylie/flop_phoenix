@@ -279,6 +279,8 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a pagination element.
 
+  ## Assigns
+
   - `meta`: The meta information of the query as returned by the `Flop` query
     functions.
   - `path_helper`: The path helper function that builds a path to the current
@@ -288,7 +290,10 @@ defmodule Flop.Phoenix do
     added as query parameters.
   - `opts`: Options to customize the pagination. See
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options.
+    function are deep merged into the default options. These options will
+    likely be the same for all the tables in a project, so it probably makes
+    sense to define them once in a function or set them in a wrapper function
+    as described in the `Customization` section of the module documentation.
 
   ## Page link options
 
@@ -341,7 +346,7 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a table with sortable columns.
 
-  The argument is a map with the following keys:
+  ## Assigns
 
   - `footer`: A list of footer columns. Can be a list of strings or safe
     HTML.
@@ -358,9 +363,13 @@ defmodule Flop.Phoenix do
   - `opts`: Keyword list with additional options (see
     `t:Flop.Phoenix.table_option/0`). This list will also be passed as the
     second argument to the row function. Note that the options passed to the
-    function are deep merged into the default options.
-  - `row_func`: A function that takes one item of the `items` list and the
-    `opts` and returns the column values for that item's row.
+    function are deep merged into the default options. These options will
+    likely be the same for all the tables in a project, so it probably makes
+    sense to define them once in a function or set them in a wrapper function
+    as described in the `Customization` section of the module documentation.
+  - `row_func`: A function that takes one item of the `items` list and a
+    keyword list with all additional assigns and returns the column values for
+    that item's row.
 
   ## Table headers
 
@@ -380,9 +389,15 @@ defmodule Flop.Phoenix do
 
   ## Table rows
 
-  You need to define a function that takes a single item from the list and the
-  opts passed to the component. The function needs to return a list with one
-  item for each column.
+  You need to define a function that takes a single item from the list and a
+  keyword list with any additional assigns. The function needs to return a list
+  with one item for each column.
+
+      <Flop.Phoenix.sortable_table
+        row_func={&table_row/2}
+        socket={@socket}
+        ...
+      />
 
       def table_row(%Pet{id: id, name: name, age: age}, opts) do
         socket = Keyword.fetch!(opts, :socket)
@@ -419,6 +434,7 @@ defmodule Flop.Phoenix do
         <div {@opts[:container_attrs]}>
           <Table.render
             footer={@footer}
+            extra={@extra}
             headers={@headers}
             items={@items}
             meta={@meta}
@@ -431,6 +447,7 @@ defmodule Flop.Phoenix do
       <% else %>
         <Table.render
           footer={@footer}
+          extra={@extra}
           headers={@headers}
           items={@items}
           meta={@meta}

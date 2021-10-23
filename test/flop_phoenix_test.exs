@@ -950,13 +950,15 @@ defmodule Flop.PhoenixTest do
       assert Floki.text(span) == "desc"
     end
 
-    test "renders all items" do
+    test "passes additional assigns to row function and renders all items" do
       html =
         render_table(
           items: [%{name: "George", age: 8}, %{name: "Barbara", age: 2}],
-          opts: [appendix: "-chan"],
+          appendix: "-chan",
           row_func: fn %{age: age, name: name}, opts ->
-            [name <> opts[:appendix], age]
+            assert Keyword.keys(opts) == [:appendix]
+            appendix = Keyword.fetch!(opts, :appendix)
+            [name <> appendix, age]
           end
         )
 
@@ -973,8 +975,8 @@ defmodule Flop.PhoenixTest do
     test "allows to set no_results_content" do
       assert render_table(
                items: [],
-               no_results_content: ~E"<div>Nothing!</div>"
-             ) == [{"p", [], ["No results."]}]
+               opts: [no_results_content: ~E"<div>Nothing!</div>"]
+             ) == [{"div", [], ["Nothing!"]}]
     end
 
     test "renders table footer" do
