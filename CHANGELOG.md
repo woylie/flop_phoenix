@@ -16,6 +16,7 @@
   `event` is passed. A descriptive error is raised if neither of them are
   passed.
 - The `opts` assign for the pagination and table components is now optional.
+- Aria labels were added to the links to the first and last page.
 
 #### How to update
 
