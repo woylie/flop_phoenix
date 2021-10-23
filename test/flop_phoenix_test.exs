@@ -5,6 +5,7 @@ defmodule Flop.PhoenixTest do
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Phoenix.HTML.Safe, only: [to_iodata: 1]
+  import Phoenix.LiveViewTest
 
   alias Flop.Meta
   alias Plug.Conn.Query
@@ -20,26 +21,17 @@ defmodule Flop.PhoenixTest do
   end
 
   defp render_pagination(%Meta{} = meta, opts \\ []) do
-    %{
+    render_component(&pagination/1,
       __changed__: nil,
       meta: meta,
       path_helper: &route_helper/3,
       path_helper_args: @route_helper_opts,
       opts: opts
-    }
-    |> pagination()
-    |> to_iodata()
-    |> raw()
-    |> safe_to_string()
+    )
   end
 
   defp render_table(assigns) do
-    assigns
-    |> Map.put(:__changed__, nil)
-    |> table()
-    |> to_iodata()
-    |> raw()
-    |> safe_to_string()
+    render_component(&table/1, Map.put(assigns, :__changed__, nil))
   end
 
   defp route_helper(%{}, path, query) do
