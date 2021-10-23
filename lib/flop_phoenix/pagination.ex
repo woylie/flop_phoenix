@@ -51,6 +51,8 @@ defmodule Flop.Phoenix.Pagination do
       Flop.Phoenix.pagination requires either the `path_helper` and
       `path_helper_args` assigns or the `event` assign to be set.
 
+      ## Example
+
           <Flop.Phoenix.pagination
             meta={@meta}
             path_helper={&Routes.pet_path/3}

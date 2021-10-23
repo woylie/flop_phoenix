@@ -51,6 +51,8 @@ defmodule Flop.Phoenix.Table do
       Flop.Phoenix.table requires either the `path_helper` and
       `path_helper_args` assigns or the `event` assign to be set.
 
+      ## Example
+
           <Flop.Phoenix.table
             items={@pets}
             meta={@meta}
