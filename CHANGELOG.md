@@ -6,7 +6,7 @@
 
 - The `for`, `event` and `target` options moved from the `opts` assign to the
   root. The `opts` assign is now exclusively used for customization options
-  that modify the appearance. These options are usually set globally for a
+  that modify the appearance, which are usually set globally for a
   project and are not related to the specific data or view.
 - The `row_func/2` function passed to the `table` component receives the new
   `row_opts` assign now instead of the `opts` assign.
