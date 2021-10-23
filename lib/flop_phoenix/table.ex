@@ -31,11 +31,11 @@ defmodule Flop.Phoenix.Table do
   @doc """
   Deep merges the given options into the default options.
   """
-  @spec init_opts([Flop.Phoenix.table_option()]) :: [
-          Flop.Phoenix.table_option()
-        ]
-  def init_opts(opts) do
-    Misc.deep_merge(default_opts(), opts)
+  @spec init_assigns(map) :: map
+  def init_assigns(assigns) do
+    assigns
+    |> assign_new(:footer, fn -> nil end)
+    |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
   end
 
   def render(assigns) do

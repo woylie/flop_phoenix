@@ -36,7 +36,6 @@ defmodule Flop.PhoenixTest do
           meta: %Flop.Meta{flop: %Flop{}},
           path_helper: &route_helper/3,
           path_helper_args: [%{}, :index],
-          opts: [],
           row_func: fn %{name: name}, _opts -> [name] end
         ],
         assigns

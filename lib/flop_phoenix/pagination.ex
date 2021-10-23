@@ -33,11 +33,13 @@ defmodule Flop.Phoenix.Pagination do
     ]
   end
 
-  @spec init_opts([Flop.Phoenix.pagination_option()]) :: [
-          Flop.Phoenix.pagination_option()
-        ]
-  def init_opts(opts) do
-    Misc.deep_merge(default_opts(), opts)
+  @spec init_assigns(map) :: map
+  def init_assigns(assigns) do
+    assign(
+      assigns,
+      :opts,
+      Misc.deep_merge(default_opts(), assigns[:opts] || [])
+    )
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
