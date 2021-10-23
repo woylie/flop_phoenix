@@ -4,7 +4,6 @@ defmodule Flop.PhoenixTest do
 
   import Flop.Phoenix
   import Flop.Phoenix.Factory
-  import Phoenix.HTML.Safe, only: [to_iodata: 1]
   import Phoenix.LiveViewTest
 
   alias Flop.Meta
@@ -147,18 +146,12 @@ defmodule Flop.PhoenixTest do
 
     test "merges query parameters into existing parameters" do
       html =
-        %{
+        render_pagination(build(:meta_on_second_page),
           __changed__: nil,
-          meta: build(:meta_on_second_page),
           path_helper: &route_helper/3,
           path_helper_args: @route_helper_opts ++ [[category: "dinosaurs"]],
           opts: []
-        }
-        |> pagination()
-        |> to_iodata()
-        |> raw()
-        |> safe_to_string()
-        |> Floki.parse_fragment!()
+        )
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
