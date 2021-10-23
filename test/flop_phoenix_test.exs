@@ -14,24 +14,37 @@ defmodule Flop.PhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
-  defp count_substrings(str, regex) do
-    regex
-    |> Regex.scan(str)
-    |> length()
-  end
-
   defp render_pagination(%Meta{} = meta, opts \\ []) do
-    render_component(&pagination/1,
+    (&pagination/1)
+    |> render_component(
       __changed__: nil,
       meta: meta,
       path_helper: &route_helper/3,
       path_helper_args: @route_helper_opts,
       opts: opts
     )
+    |> Floki.parse_fragment!()
   end
 
-  defp render_table(assigns) do
-    render_component(&table/1, Map.put(assigns, :__changed__, nil))
+  defp render_table(assigns \\ []) do
+    assigns =
+      Keyword.merge(
+        [
+          __changed__: nil,
+          headers: ["name"],
+          items: [%{name: "George"}],
+          meta: %Flop.Meta{flop: %Flop{}},
+          path_helper: &route_helper/3,
+          path_helper_args: [%{}, :index],
+          opts: [],
+          row_func: fn %{name: name}, _opts -> [name] end
+        ],
+        assigns
+      )
+
+    (&table/1)
+    |> render_component(assigns)
+    |> Floki.parse_fragment!()
   end
 
   defp route_helper(%{}, path, query) do
