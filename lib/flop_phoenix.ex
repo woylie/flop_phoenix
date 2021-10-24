@@ -157,8 +157,7 @@ defmodule Flop.Phoenix do
   import Phoenix.LiveView.Helpers
 
   alias Flop.Meta
-  alias Flop.Phoenix.Pagination
-  alias Flop.Phoenix.Table
+  alias Flop.Phoenix.{Filter, Pagination, Table}
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
@@ -464,6 +463,101 @@ defmodule Flop.Phoenix do
         />
       <% end %>
     <% end %>
+    """
+  end
+
+  @doc """
+  Generates a filter input for a field.
+
+  ## Assigns
+
+  - `form` - `t:Phoenix.HTML.FormData`
+  - `label` (optional) - label to display, defaults to field name
+  - `using` - helper to render primary input field
+  - `op_selectable` (optional) - defines whether operation can be selected from
+    list, defaults to `false`
+  - `op_selectable_from` (optional) - list of `t:Flop.Filter.op` operations to
+    choose from
+  """
+  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_input(assigns) do
+    assigns = Filter.init_input_assigns(assigns)
+
+    ~H"""
+    <div>
+      <%= hidden_input @form, :field %>
+      <%= if @op_selectable do %>
+      <%= select @form, :op, @op_selectable_from %>
+      <% else %>
+      <%= hidden_input @form, :op %>
+      <% end %>
+
+      <%= label @form, :value, assigns[:label] || input_value(@form, :field) %>
+      <%= @input_helper.(@form, :value, []) %>
+    </div>
+    """
+  end
+
+  @doc """
+  Generates a set of filter input elements.
+
+  ## Assigns
+
+  - `form`
+  - `fields`
+  - `for`
+  - `meta`
+
+  ## Field options
+
+  - `default_op` pre-selected filter operation
+  - `label` will be passed to `filter_input/1`
+  - `using` will be passed to `filter_input/1`
+  - `op_selectable` will be passed to `filter_input/1`
+  - `op_selectable_from` will be passed to `filter_input/1`
+  """
+  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_inputs_for(assigns) do
+    assigns = Filter.init_inputs_for_assigns(assigns)
+
+    ~H"""
+    <%= inputs_for @form, :filters, [as: :filters, default: @default], fn f -> %>
+      <% input_assigns = Map.fetch!(@input_assigns, input_value(f, :field)) %>
+      <.filter_input form={f} {input_assigns} />
+    <% end %>
+    """
+  end
+
+  @doc """
+  Generates hidden input fields for pagination & ordering within a filter form.
+
+  ## Assigns
+
+  - `form`
+  - `meta`
+  """
+  @spec filter_hidden_inputs_for(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_hidden_inputs_for(assigns) do
+    ~H"""
+    <div>
+      <%= for order_by <- (@meta.flop.order_by || []) do %>
+      <%=
+        hidden_input @form, :order_by,
+          name: "order_by[]",
+          value: order_by
+      %>
+      <% end %>
+      <%= for order_direction <- (@meta.flop.order_directions || []) do %>
+      <%=
+        hidden_input @form, :order_direction,
+          name: "order_directions[]",
+          value: order_direction
+      %>
+      <% end %>
+      <%= if page_size = @meta.flop.page_size do %>
+      <%= hidden_input @form, :page_size, name: "page_size", value: page_size %>
+      <% end %>
+    </div>
     """
   end
 
