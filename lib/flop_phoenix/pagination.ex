@@ -48,7 +48,7 @@ defmodule Flop.Phoenix.Pagination do
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:path_helper_args, fn -> nil end)
       |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, Misc.deep_merge(default_opts(), assigns[:opts] || []))
+      |> assign(:opts, merge_opts(assigns[:opts] || []))
 
     if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
       assigns
@@ -73,6 +73,12 @@ defmodule Flop.Phoenix.Pagination do
           />
       """
     end
+  end
+
+  defp merge_opts(opts) do
+    default_opts()
+    |> Misc.deep_merge(Misc.get_global_opts(:pagination))
+    |> Misc.deep_merge(opts)
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()

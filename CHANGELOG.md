@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- It is now possible to set global options for the components in your config.
+
+```elixir
+config :flop_phoenix,
+  pagination: [opts: {MyApp.ViewHelpers, :pagination_opts}],
+  table: [opts: {MyApp.ViewHelpers, :table_opts}]
+```
+
 ### Changed
 
 - The `for`, `event` and `target` options moved from the `opts` assign to the
