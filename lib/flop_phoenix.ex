@@ -91,8 +91,6 @@ defmodule Flop.Phoenix do
       <Flop.Phoenix.pagination
         for={MyApp.Pet}
         meta={@meta}
-        path_helper={&Routes.pet_path/4}
-        path_helper_args{[@conn, :index, @owner]}
         event="paginate-pets"
         target={@myself}
       />
