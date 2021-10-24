@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.10.0] - 2021-10-24
+
 ### Added
 
 - It is now possible to set global options for the components in your config.
