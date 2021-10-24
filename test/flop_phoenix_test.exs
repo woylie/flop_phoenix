@@ -328,7 +328,7 @@ defmodule Flop.PhoenixTest do
         |> build()
         |> render_pagination()
 
-      assert [_] = Floki.find(html, "ul[class='pagination-list']")
+      assert [_] = Floki.find(html, "ul[class='pagination-links']")
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -381,7 +381,7 @@ defmodule Flop.PhoenixTest do
         |> build()
         |> render_pagination(opts: [page_links: :hide])
 
-      assert Floki.find(html, ".pagination-list") == []
+      assert Floki.find(html, ".pagination-links") == []
     end
 
     test "doesn't render pagination links if set to hide when passing event" do
@@ -390,7 +390,7 @@ defmodule Flop.PhoenixTest do
         |> build()
         |> render_pagination(opts: [page_links: :hide, event: "paginate"])
 
-      assert Floki.find(html, ".pagination-list") == []
+      assert Floki.find(html, ".pagination-links") == []
     end
 
     test "allows to overwrite pagination list attributes" do
@@ -802,9 +802,10 @@ defmodule Flop.PhoenixTest do
 
   describe "table/1" do
     test "allows to set table attributes" do
+      # attribute from global config
       html = render_table(opts: [])
       assert [table] = Floki.find(html, "table")
-      assert Floki.attribute(table, "class") == []
+      assert Floki.attribute(table, "class") == ["sortable-table"]
 
       html = render_table(opts: [table_attrs: [class: "funky-table"]])
       assert [table] = Floki.find(html, "table")
@@ -1116,7 +1117,7 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [
-               {"table", [],
+               {"table", [{"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, _},
@@ -1135,7 +1136,11 @@ defmodule Flop.PhoenixTest do
 
     test "does not render table footer if option is not set" do
       html = render_table()
-      assert [{"table", [], [{"thead", _, _}, {"tbody", _, _}]}] = html
+
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [{"thead", _, _}, {"tbody", _, _}]}
+             ] = html
     end
 
     test "does not require path_helper when passing event" do

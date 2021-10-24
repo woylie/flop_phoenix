@@ -38,4 +38,35 @@ defmodule Flop.Phoenix.Misc do
   """
   def maybe_put(keywords, _key, nil), do: keywords
   def maybe_put(keywords, key, value), do: Keyword.put(keywords, key, value)
+
+  @doc """
+  Returns the global opts derived from a function referenced in the application
+  environment.
+  """
+  @spec get_global_opts(atom) :: keyword
+  def get_global_opts(component) when component in [:pagination, :table] do
+    case opts_func(component) do
+      nil -> []
+      {module, func} -> apply(module, func, [])
+    end
+  end
+
+  defp opts_func(component) do
+    :flop_phoenix
+    |> Application.get_env(component, [])
+    |> Keyword.get(:opts)
+  end
+
+  @doc """
+  Pretty inspects and indents a string.
+  """
+  def print(value, spaces) when is_integer(spaces) do
+    spaces = String.duplicate(" ", spaces)
+
+    value
+    |> inspect(pretty: true)
+    |> String.split("\n")
+    |> Enum.map(&(spaces <> &1))
+    |> Enum.join("\n")
+  end
 end

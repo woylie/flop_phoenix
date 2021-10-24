@@ -8,67 +8,28 @@ defmodule Flop.Phoenix do
 
   ## Customization
 
-  `Flop.Phoenix` sets some default classes and aria attributes.
+  The default classes, attributes, texts and symbols can be overridden by
+  passing the `opts` assign. Since you probably will use the same `opts` in all
+  your templates, you can globally configure an `opts` provider function for
+  each component.
 
-      <nav aria-label="pagination" class="pagination is-centered" role="navigation">
-        <span class="pagination-previous" disabled="disabled">Previous</span>
-        <a class="pagination-next" href="/pets?page=2&amp;page_size=10">Next</a>
-        <ul class="pagination-list">
-          <li><span class="pagination-ellipsis">&hellip;</span></li>
-          <li>
-            <a aria-current="page"
-               aria-label="Go to page 1"
-               class="pagination-link is-current"
-               href="/pets?page=1&amp;page_size=10">1</a>
-          </li>
-          <li>
-            <a aria-label="Go to page 2"
-               class="pagination-link"
-               href="/pets?page=2&amp;page_size=10">2</a>
-          </li>
-          <li>
-            <a aria-label="Go to page 3"
-               class="pagination-link"
-               href="/pets?page=3&amp;page_size=2">3</a>
-          </li>
-          <li><span class="pagination-ellipsis">&hellip;</span></li>
-        </ul>
-      </nav>
+  The functions have to return the options as a keyword list. The overrides
+  are deep-merged into the default options.
 
-  If you want to customize the pagination or table markup, you probably want
-  to do that once for all templates, so that your templates aren't cluttered
-  with options.
+      defmodule MyAppWeb.ViewHelpers do
+        import Phoenix.HTML
 
-  To do that, create a new file `live/flop_components.ex` (or
-  `views/flop_helpers.ex`, or `views/component_helpers.ex`).
-
-      defmodule MyAppWeb.FlopComponents do
-        use Phoenix.Component
-
-        def pagination(assigns) do
-          assigns = assign_new(assigns, :opts, fn -> [] end)
-
-          ~H\"""
-          <Flop.Phoenix.pagination {assigns} opts={pagination_opts(@opts)} />
-          \"""
-        end
-
-        defp pagination_opts(opts) do
-          default_opts = [
+        def pagination_opts do
+           [
             ellipsis_attrs: [class: "ellipsis"],
             ellipsis_content: "‥",
             next_link_attrs: [class: "next"],
             next_link_content: next_icon(),
             page_links: {:ellipsis, 7},
             pagination_link_aria_label: &"\#{&1}ページ目へ",
-            pagination_link_attrs: [class: "page-link"],
-            pagination_list_attrs: [class: "page-links"],
             previous_link_attrs: [class: "prev"],
-            previous_link_content: previous_icon(),
-            wrapper_attrs: [class: "paginator"]
+            previous_link_content: previous_icon()
           ]
-
-          Keyword.merge(default_opts, opts)
         end
 
         defp next_icon do
@@ -78,22 +39,28 @@ defmodule Flop.Phoenix do
         defp previous_icon do
           tag :i, class: "fas fa-chevron-left"
         end
-      end
 
-  You can do this similarly for `Flop.Phoenix.table/1`
-
-  To make the functions available in all templates, import the module in
-  `my_app_web.ex`.
-
-      defp view_helpers do
-        quote do
-          # ...
-
-          import MyAppWeb.FlopComponents
-
-          # ...
+        def table_opts do
+          [
+            container: true,
+            container_attrs: [class: "table-container"],
+            no_results_content: content_tag(:p, do: "Nothing found."),
+            table_attrs: [class: "table"]
+          ]
         end
       end
+
+  Refer to `t:pagination_option/0` and `t:table_option/0` for a list of
+  available options and defaults.
+
+  Once you have defined these functions, you can reference them with a
+  module/function tuple in `config/config.exs`.
+
+  ```elixir
+  config :flop_phoenix,
+    pagination: [opts: {MyApp.ViewHelpers, :pagination_opts}],
+    table: [opts: {MyApp.ViewHelpers, :table_opts}]
+  ```
 
   ## Hiding default parameters
 
