@@ -31,7 +31,7 @@ config :flop_phoenix,
 - Aria labels were added to the links to the first and last page.
 - The `aria-sort` attribute was added to the table headers.
 
-#### How to update
+### How to update
 
 1. Remove the `for`, `event` and `target` from the `opts` assign and add them
    as regular assigns at the root level.
