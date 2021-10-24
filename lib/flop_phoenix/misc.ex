@@ -56,17 +56,4 @@ defmodule Flop.Phoenix.Misc do
     |> Application.get_env(component, [])
     |> Keyword.get(:opts)
   end
-
-  @doc """
-  Pretty inspects and indents a string.
-  """
-  def print(value, spaces) when is_integer(spaces) do
-    spaces = String.duplicate(" ", spaces)
-
-    value
-    |> inspect(pretty: true)
-    |> String.split("\n")
-    |> Enum.map(&(spaces <> &1))
-    |> Enum.join("\n")
-  end
 end
