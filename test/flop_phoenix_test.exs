@@ -32,18 +32,10 @@ defmodule Flop.PhoenixTest do
     |> Floki.parse_fragment!()
   end
 
-  defp render_table(assigns \\ []) do
+  defp render_table(assigns \\ [], component \\ &test_table/1) do
     assigns = Keyword.put(assigns, :__changed__, nil)
 
-    (&test_table/1)
-    |> render_component(assigns)
-    |> Floki.parse_fragment!()
-  end
-
-  defp render_table_with_footer(assigns \\ []) do
-    assigns = Keyword.put(assigns, :__changed__, nil)
-
-    (&test_table_with_footer/1)
+    component
     |> render_component(assigns)
     |> Floki.parse_fragment!()
   end
@@ -92,6 +84,24 @@ defmodule Flop.PhoenixTest do
       <:footer>
         <tr><td>snap</td></tr>
       </:footer>
+    </Flop.Phoenix.table>
+    """
+  end
+
+  defp test_table_with_html_header(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George"}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+    >
+      <:col
+        let={pet}
+        label={{:safe, "<span>Hello</span>"}}
+        field={:name}
+      >
+        <%= pet.name %>
+      </:col>
     </Flop.Phoenix.table>
     """
   end
@@ -917,6 +927,12 @@ defmodule Flop.PhoenixTest do
              ]
     end
 
+    test "displays headers with safe HTML values" do
+      html = render_table([], &test_table_with_html_header/1)
+      assert [span] = Floki.find(html, "th a span")
+      assert Floki.text(span) == "Hello"
+    end
+
     test "adds aria-sort attribute to first ordered field" do
       html =
         render_table(
@@ -1117,7 +1133,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders table footer" do
-      html = render_table_with_footer()
+      html = render_table([], &test_table_with_footer/1)
 
       assert [
                {"table", [{"class", "sortable-table"}],
