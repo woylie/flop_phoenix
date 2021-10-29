@@ -21,7 +21,7 @@ defmodule Flop.Phoenix.Table do
   """
 
   @path_helper_error """
-  Flop.Phoenix.table requires either the `path_helper` assign or the `event`
+  Flop.Phoenix.table/1 requires either the `path_helper` assign or the `event`
   assign to be set. The `path_helper` needs to be passed either as a
   `{module, function_name, args}` tuple or a `{function, args}` tuple.
 
@@ -234,7 +234,7 @@ defmodule Flop.Phoenix.Table do
   defp ensure_col(assigns) do
     unless assigns[:col] do
       raise """
-      You need to add at least one `<:col>` when rendering Flop.Phoenix.table.
+      You need to add at least one `<:col>` when rendering Flop.Phoenix.table/1.
 
       #{@example}
       """
@@ -244,9 +244,9 @@ defmodule Flop.Phoenix.Table do
   defp ensure_items(assigns) do
     unless assigns[:items] do
       raise """
-      You need to set the `items` assign when rendering Flop.Phoenix.table. The
-      value is the query result list. Each item in the list results in one table
-      row.
+      You need to set the `items` assign when rendering Flop.Phoenix.table/1.
+      The value is the query result list. Each item in the list results in one
+      table row.
 
       #{@example}
       """
@@ -256,7 +256,7 @@ defmodule Flop.Phoenix.Table do
   defp ensure_meta(assigns) do
     unless assigns[:meta] do
       raise """
-      You need to set the `meta` assign when rendering Flop.Phoenix.table. The
+      You need to set the `meta` assign when rendering Flop.Phoenix.table/1. The
       value is the `Flop.Meta` struct returned by Flop.
 
       #{@example}

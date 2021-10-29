@@ -9,7 +9,7 @@ defmodule Flop.Phoenix.Pagination do
   alias Flop.Phoenix.Misc
 
   @path_helper_error """
-  Flop.Phoenix.pagination requires either the `path_helper` or the `event`
+  Flop.Phoenix.pagination/1 requires either the `path_helper` or the `event`
   assign to be set. The `path_helper` needs to be passed either as a
   `{module, function_name, args}` tuple or a `{function, args}` tuple.
 

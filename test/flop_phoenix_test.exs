@@ -1230,7 +1230,7 @@ defmodule Flop.PhoenixTest do
 
     test "raises if neither path helper nor event are passed" do
       assert_raise RuntimeError,
-                   ~r/^Flop.Phoenix.table requires either the `path_helper`/,
+                   ~r/^Flop.Phoenix.table\/1 requires either the `path_helper`/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,

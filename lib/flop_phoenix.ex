@@ -227,7 +227,7 @@ defmodule Flop.Phoenix do
     functions.
   - `path_helper` - The path helper to use for building the link URL. Can be an
     mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_path/2` and the parameters have to be handled in the `handle_params/3`
+    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
     callback of the LiveView module.
   - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute.
@@ -507,7 +507,7 @@ defmodule Flop.Phoenix do
   using the referenced Phoenix path helper function.
 
   The first argument can be either an MFA tuple (module, function name as atom,
-  arguments) or a 2-tuple (function, argument).
+  arguments) or a 2-tuple (function, arguments).
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
