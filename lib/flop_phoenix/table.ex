@@ -59,7 +59,6 @@ defmodule Flop.Phoenix.Table do
             path_helper={&Routes.pet_path/3}
             path_helper_args={[@socket, :index]}
             headers={[{"Name", :name}, {"Age", :age}]}
-            row_func={fn pet, _opts -> [pet.name, pet.age] end}
           />
 
       or
@@ -69,7 +68,6 @@ defmodule Flop.Phoenix.Table do
             meta={@meta}
             event="sort-table"
             headers={[{"Name", :name}, {"Age", :age}]}
-            row_func={fn pet, _opts -> [pet.name, pet.age] end}
           />
       """
     end
@@ -85,13 +83,14 @@ defmodule Flop.Phoenix.Table do
     ~H"""
     <table {@opts[:table_attrs]}>
       <thead>
-        <tr {@opts[:thead_tr_attrs]}><%=
-          for header <- @headers do %>
+        <tr {@opts[:thead_tr_attrs]}>
+          <%= for col <- @col do %>
             <.header_column
               event={@event}
+              field={col[:field]}
               flop={@meta.flop}
               for={@for}
-              header={header}
+              label={col.label}
               opts={@opts}
               path_helper={@path_helper}
               path_helper_args={@path_helper_args}
@@ -103,31 +102,24 @@ defmodule Flop.Phoenix.Table do
       <tbody>
         <%= for item <- @items do %>
           <tr {@opts[:tbody_tr_attrs]}>
-            <%= for column <- @row_func.(item, @row_opts) do %>
-              <td {@opts[:tbody_td_attrs]}><%= column %></td>
+            <%= for col <- @col do %>
+              <td {@opts[:tbody_td_attrs]}><%= render_slot(col, item) %></td>
             <% end %>
           </tr>
         <% end %>
       </tbody>
       <%= if @footer do %>
         <tfoot>
-          <tr {@opts[:tfoot_tr_attrs]}>
-            <%= for content <- @footer do %>
-              <td {@opts[:tfoot_td_attrs]}><%= content %></td>
-            <% end %>
-          </tr>
+          <%= render_slot(@footer) %>
         </tfoot>
       <% end %>
     </table>
     """
   end
 
-  defp header_column(assigns) do
-    assigns =
-      assigns
-      |> assign(:field, header_field(assigns.header))
-      |> assign(:value, header_value(assigns.header))
+  #
 
+  defp header_column(assigns) do
     index = order_index(assigns.flop, assigns.field)
     direction = order_direction(assigns.flop.order_directions, index)
 
@@ -145,28 +137,28 @@ defmodule Flop.Phoenix.Table do
         <span {@opts[:th_wrapper_attrs]}>
           <%= if @event do %>
             <.sort_link
-              field={@field}
               event={@event}
+              field={@field}
+              label={@label}
               target={@target}
-              value={@value}
             />
           <% else %>
-            <%= live_patch(@value,
-                  to:
-                    Flop.Phoenix.build_path(
-                      @path_helper,
-                      @path_helper_args,
-                      Flop.push_order(@flop, @field),
-                      for: @for
-                    )
+            <%= live_patch(@label,
+              to:
+                Flop.Phoenix.build_path(
+                  @path_helper,
+                  @path_helper_args,
+                  Flop.push_order(@flop, @field),
+                  for: @for
                 )
+            )
             %>
           <% end %>
           <.arrow direction={@order_direction} opts={@opts} />
         </span>
       </th>
     <% else %>
-      <th {@opts[:thead_th_attrs]}><%= @value %></th>
+      <th {@opts[:thead_th_attrs]}><%= @label %></th>
     <% end %>
     """
   end
@@ -195,7 +187,7 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(assigns) do
     ~H"""
     <%= link sort_link_attrs(@field, @event, @target) do %>
-      <%= @value %>
+      <%= @label %>
     <% end %>
     """
   end
@@ -222,12 +214,4 @@ defmodule Flop.Phoenix.Table do
   defp is_sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
-
-  defp header_field({:safe, _}), do: nil
-  defp header_field({_value, field}), do: field
-  defp header_field(_value), do: nil
-
-  defp header_value({:safe, _} = value), do: value
-  defp header_value({value, _field}), do: value
-  defp header_value(value), do: value
 end
