@@ -68,9 +68,7 @@ defmodule Flop.Phoenix do
   parameters. If you pass the `:for` assign, the Flop.Phoenix function will
   pick up the default values from the schema module deriving `Flop.Schema`.
 
-  ## LiveView
-
-  The functions in this module can be used in both `.eex` and `.heex` templates.
+  ## Links
 
   Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
@@ -79,7 +77,7 @@ defmodule Flop.Phoenix do
   When used in LiveView templates, you will need to handle the new params in the
   `handle_params/3` callback of your LiveView module.
 
-  ## Event Based Pagination and Sorting
+  ## Event-Based Pagination and Sorting
 
   To make `Flop.Phoenix` use event based pagination and sorting, you need to
   assign the `:event` to the pagination and table generators. This will
@@ -298,6 +296,21 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a table with sortable columns.
 
+  ## Example
+
+  ```elixir
+  <Flop.Phoenix.table
+    for={MyApp.Pet}
+    items={@pets}
+    meta={@meta}
+    path_helper={&Routes.pet_path/3}
+    path_helper_args={[@socket, :index]}
+  >
+    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+  </Flop.Phoenix.table>
+  ```
+
   ## Assigns
 
   - `items` - The list of items to be displayed in rows. This is the result list
@@ -321,54 +334,33 @@ defmodule Flop.Phoenix do
     sense to define them once in a function or set them in a wrapper function
     as described in the `Customization` section of the module documentation.
 
-  ## Table headers
+  ## Col slot
 
-  Table headers need to be passed as a list. It is recommended to define a
-  function in the `View`, `LiveView` or `LiveComponent` module that returns the
-  table headers:
+  For each column to render, add one `<:col>` element.
 
-      def table_headers do
-        ["ID", {"Name", :name}, {"Age", :age}, ""]
-      end
+  ```elixir
+  <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+  ```
 
-  This defines four header columns: One for the ID, which is not sortable, and
-  columns for the name and the age, which are both sortable, and a fourth
-  column without a header value. The last column will hold the links to the
-  detail pages. The name and age column headers will be linked, so that they the
-  order on the `:name` and `:age` field, respectively.
+  - `label` - The content for the header column.
+  - `field` (optional) - The field name for sorting.
 
-  ## Table rows
+  ## Footer
 
-  You need to define a function that takes a single item from the list and a
-  keyword list with any additional assigns. The function needs to return a list
-  with one item for each column.
-
-      <Flop.Phoenix.sortable_table
-        row_func={&table_row/2}
-        row_opts={[socket: @socket]}
-        ...
-      />
-
-      def table_row(%Pet{id: id, name: name, age: age}, opts) do
-        socket = Keyword.fetch!(opts, :socket)
-        [id, name, age, link("show", to: Routes.pet_path(socket, :show, id))]
-      end
-
-  ## Table footer
-
-  You can optionally pass a `footer` as a list of columns.
+  You can optionally add a `footer`. The inner block will be rendered inside
+  a `tfoot` element.
 
       def table_footer(total) do
         ["", "Total: ", content_tag(:span, total, class: "total")]
       end
 
-      <Flop.Phoenix.sortable_table
-        ...
-        footer={table_footer(@total)}
-        ...
-      />
+      <Flop.Phoenix.table>
+        <:footer>
+          <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+        </:foot>
+      </Flop.Phoenix.table>
 
-  See the module documentation and [Readme](README.md) for examples.
+  See the module documentation and [Readme](README.md) for more examples.
   """
   @doc since: "0.6.0"
   @doc section: :generators
