@@ -7,6 +7,7 @@
 - The table component has been changed to use slots. The `headers`,
   `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
   `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
+- This version requires `live_view` `~> 0.17.0`.
 
 ### How to upgrade
 
