@@ -1126,7 +1126,7 @@ defmodule Flop.PhoenixTest do
     test "allows to set no_results_content" do
       assert render_table(
                items: [],
-               opts: [no_results_content: ~E"<div>Nothing!</div>"]
+               opts: [no_results_content: content_tag(:div, do: "Nothing!")]
              ) == [{"div", [], ["Nothing!"]}]
     end
 
