@@ -106,7 +106,7 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp route_helper(%{}, path, query) do
+  def route_helper(%{}, path, query) do
     URI.to_string(%URI{path: "/#{path}", query: Query.encode(query)})
   end
 
@@ -173,11 +173,29 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
+    test "supports an mfa tuple as path_helper" do
+      link =
+        :meta_on_second_page
+        |> build()
+        |> render_pagination(
+          path_helper: {__MODULE__, :route_helper, @route_helper_opts},
+          path_helper_args: nil,
+          meta: build(:meta_on_second_page)
+        )
+        |> Floki.find("a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+    end
+
     test "renders previous link when using click event handling" do
       link =
         :meta_on_second_page
         |> build()
-        |> render_pagination(event: "paginate")
+        |> render_pagination(
+          event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil
+        )
         |> Floki.find("a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
@@ -192,6 +210,8 @@ defmodule Flop.PhoenixTest do
         |> build()
         |> render_pagination(
           event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil,
           target: "here"
         )
         |> Floki.find("a:fl-contains('Previous')")
@@ -254,7 +274,11 @@ defmodule Flop.PhoenixTest do
       previous_link =
         :meta_on_first_page
         |> build()
-        |> render_pagination(event: "e")
+        |> render_pagination(
+          event: "e",
+          path_helper: nil,
+          path_helper_args: nil
+        )
         |> Floki.find("span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
@@ -296,7 +320,11 @@ defmodule Flop.PhoenixTest do
       link =
         :meta_on_second_page
         |> build()
-        |> render_pagination(event: "paginate")
+        |> render_pagination(
+          event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil
+        )
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
@@ -309,7 +337,12 @@ defmodule Flop.PhoenixTest do
       link =
         :meta_on_second_page
         |> build()
-        |> render_pagination(event: "paginate", target: "here")
+        |> render_pagination(
+          event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil,
+          target: "here"
+        )
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "phx-target") == ["here"]
@@ -352,7 +385,11 @@ defmodule Flop.PhoenixTest do
       next =
         :meta_on_last_page
         |> build()
-        |> render_pagination(event: "paginate")
+        |> render_pagination(
+          event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil
+        )
         |> Floki.find("span:fl-contains('Next')")
 
       assert Floki.attribute(next, "class") == ["pagination-next"]
@@ -411,7 +448,11 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(event: "paginate")
+        |> render_pagination(
+          event: "paginate",
+          path_helper: nil,
+          path_helper_args: nil
+        )
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "href") == ["#"]
@@ -424,7 +465,12 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(event: "paginate", target: "here")
+        |> render_pagination(
+          path_helper: nil,
+          path_helper_args: nil,
+          event: "paginate",
+          target: "here"
+        )
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "phx-target") == ["here"]

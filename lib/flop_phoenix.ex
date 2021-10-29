@@ -597,4 +597,42 @@ defmodule Flop.Phoenix do
 
     apply(path_helper, final_args)
   end
+
+  @doc """
+  Same as `Flop.Phoenix.build_helper/4`, but takes an MFA tuple as argument.
+  """
+  @doc since: "0.11.0"
+  @doc section: :miscellaneous
+  @spec build_path_mfa(
+          {module, atom, [any]},
+          Meta.t() | Flop.t() | keyword,
+          keyword
+        ) ::
+          String.t()
+  def build_path_mfa(mfa, meta_or_flop_or_params, opts \\ [])
+
+  def build_path_mfa(mfa, %Meta{flop: flop}, opts),
+    do: build_path_mfa(mfa, flop, opts)
+
+  def build_path_mfa(mfa, %Flop{} = flop, opts) do
+    build_path_mfa(mfa, Flop.Phoenix.to_query(flop, opts))
+  end
+
+  def build_path_mfa({module, func, args}, flop_params, _opts)
+      when is_atom(module) and
+             is_atom(func) and
+             is_list(args) and
+             is_list(flop_params) do
+    final_args =
+      case Enum.reverse(args) do
+        [last_arg | rest] when is_list(last_arg) ->
+          query_arg = Keyword.merge(last_arg, flop_params)
+          Enum.reverse([query_arg | rest])
+
+        _ ->
+          args ++ [flop_params]
+      end
+
+    apply(module, func, final_args)
+  end
 end
