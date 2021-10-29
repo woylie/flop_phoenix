@@ -21,8 +21,7 @@ defmodule Flop.PhoenixTest do
         [
           __changed__: nil,
           meta: meta,
-          path_helper: &route_helper/3,
-          path_helper_args: @route_helper_opts
+          path_helper: {__MODULE__, :route_helper, @route_helper_opts}
         ],
         assigns
       )
@@ -49,8 +48,9 @@ defmodule Flop.PhoenixTest do
         [%{name: "George", email: "george@george.pet", age: 8, species: "dog"}]
       end)
       |> assign_new(:meta, fn -> %Flop.Meta{flop: %Flop{}} end)
-      |> assign_new(:path_helper, fn -> &route_helper/3 end)
-      |> assign_new(:path_helper_args, fn -> [%{}, :pets] end)
+      |> assign_new(:path_helper, fn ->
+        {__MODULE__, :route_helper, @route_helper_opts}
+      end)
       |> assign_new(:opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
 
@@ -62,7 +62,6 @@ defmodule Flop.PhoenixTest do
       meta={@meta}
       opts={@opts}
       path_helper={@path_helper}
-      path_helper_args={@path_helper_args}
       target={@target}
     >
       <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
@@ -173,13 +172,12 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
-    test "supports an mfa tuple as path_helper" do
+    test "supports a function/args tuple as path_helper" do
       link =
         :meta_on_second_page
         |> build()
         |> render_pagination(
-          path_helper: {__MODULE__, :route_helper, @route_helper_opts},
-          path_helper_args: nil,
+          path_helper: {&route_helper/3, @route_helper_opts},
           meta: build(:meta_on_second_page)
         )
         |> Floki.find("a:fl-contains('Previous')")
@@ -191,11 +189,7 @@ defmodule Flop.PhoenixTest do
       link =
         :meta_on_second_page
         |> build()
-        |> render_pagination(
-          event: "paginate",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+        |> render_pagination(event: "paginate", path_helper: nil)
         |> Floki.find("a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
@@ -211,7 +205,6 @@ defmodule Flop.PhoenixTest do
         |> render_pagination(
           event: "paginate",
           path_helper: nil,
-          path_helper_args: nil,
           target: "here"
         )
         |> Floki.find("a:fl-contains('Previous')")
@@ -223,8 +216,8 @@ defmodule Flop.PhoenixTest do
       html =
         render_pagination(build(:meta_on_second_page),
           __changed__: nil,
-          path_helper: &route_helper/3,
-          path_helper_args: @route_helper_opts ++ [[category: "dinosaurs"]],
+          path_helper:
+            {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]},
           opts: []
         )
 
@@ -274,11 +267,7 @@ defmodule Flop.PhoenixTest do
       previous_link =
         :meta_on_first_page
         |> build()
-        |> render_pagination(
-          event: "e",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+        |> render_pagination(event: "e", path_helper: nil)
         |> Floki.find("span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
@@ -320,11 +309,7 @@ defmodule Flop.PhoenixTest do
       link =
         :meta_on_second_page
         |> build()
-        |> render_pagination(
-          event: "paginate",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+        |> render_pagination(event: "paginate", path_helper: nil)
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
@@ -340,7 +325,6 @@ defmodule Flop.PhoenixTest do
         |> render_pagination(
           event: "paginate",
           path_helper: nil,
-          path_helper_args: nil,
           target: "here"
         )
         |> Floki.find("a:fl-contains('Next')")
@@ -385,11 +369,7 @@ defmodule Flop.PhoenixTest do
       next =
         :meta_on_last_page
         |> build()
-        |> render_pagination(
-          event: "paginate",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+        |> render_pagination(event: "paginate", path_helper: nil)
         |> Floki.find("span:fl-contains('Next')")
 
       assert Floki.attribute(next, "class") == ["pagination-next"]
@@ -448,11 +428,7 @@ defmodule Flop.PhoenixTest do
       html =
         :meta_on_second_page
         |> build()
-        |> render_pagination(
-          event: "paginate",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+        |> render_pagination(event: "paginate", path_helper: nil)
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "href") == ["#"]
@@ -467,7 +443,6 @@ defmodule Flop.PhoenixTest do
         |> build()
         |> render_pagination(
           path_helper: nil,
-          path_helper_args: nil,
           event: "paginate",
           target: "here"
         )
@@ -973,12 +948,8 @@ defmodule Flop.PhoenixTest do
              ]
     end
 
-    test "supports an mfa tuple as path_helper" do
-      html =
-        render_table(
-          path_helper: {__MODULE__, :route_helper, @route_helper_opts},
-          path_helper_args: nil
-        )
+    test "supports a function/args tuple as path_helper" do
+      html = render_table(path_helper: {&route_helper/3, @route_helper_opts})
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
@@ -1039,8 +1010,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders links with click handler" do
-      html =
-        render_table(event: "sort", path_helper: nil, path_helper_args: nil)
+      html = render_table(event: "sort", path_helper: nil)
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -1054,13 +1024,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to header links" do
-      html =
-        render_table(
-          event: "sort",
-          path_helper: nil,
-          path_helper_args: nil,
-          target: "here"
-        )
+      html = render_table(event: "sort", path_helper: nil, target: "here")
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -1220,15 +1184,9 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not require path_helper when passing event" do
-      html =
-        render_table(
-          event: "sort-table",
-          path_helper: nil,
-          path_helper_args: nil
-        )
+      html = render_table(event: "sort-table", path_helper: nil)
 
       assert [link] = Floki.find(html, "a:fl-contains('Name')")
-
       assert Floki.attribute(link, "phx-click") == ["sort-table"]
       assert Floki.attribute(link, "href") == ["#"]
     end

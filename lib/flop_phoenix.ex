@@ -284,7 +284,6 @@ defmodule Flop.Phoenix do
         page_link_helper={Pagination.build_page_link_helper(
           @meta,
           @path_helper,
-          @path_helper_args,
           @for
         )}
         target={@target}
@@ -379,7 +378,6 @@ defmodule Flop.Phoenix do
             meta={@meta}
             opts={@opts}
             path_helper={@path_helper}
-            path_helper_args={@path_helper_args}
             target={@target}
           />
         </div>
@@ -393,7 +391,6 @@ defmodule Flop.Phoenix do
           meta={@meta}
           opts={@opts}
           path_helper={@path_helper}
-          path_helper_args={@path_helper_args}
           target={@target}
         />
       <% end %>
@@ -508,24 +505,35 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
-  Takes a Phoenix path helper function and a list of path helper arguments and
-  builds a path that includes query parameters for the given `Flop` struct.
+  Builds a path that includes query parameters for the given `Flop` struct
+  using the referenced Phoenix path helper function.
+
+  The first argument can be either an MFA tuple (module, function name as atom,
+  arguments) or a 2-tuple (function, argument).
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
-  omit from the query parameters. To pick up the default parameters from a
+  omitted from the query parameters. To pick up the default parameters from a
   schema module deriving `Flop.Schema`, you need to pass the `:for` option.
 
   ## Examples
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path(
+      ...>   {Flop.PhoenixTest, :route_helper, [%Plug.Conn{}, :pets]},
+      ...>   flop
+      ...> )
+      "/pets?page_size=10&page=2"
 
       iex> pet_path = fn _conn, :index, query ->
       ...>   "/pets?" <> Plug.Conn.Query.encode(query)
       ...> end
       iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path(pet_path, [%Plug.Conn{}, :index], flop)
+      iex> build_path({pet_path, [%Plug.Conn{}, :index]}, flop)
       "/pets?page_size=10&page=2"
 
   We're defining fake path helpers for the scope of the doctests. In a real
-  Phoenix application, you would pass something like `&Routes.pet_path/3` as the
+  Phoenix application, you would pass something like
+  `{Routes, :pet_path, args}` or `{&Routes.pet_path/3, args}` as the
   first argument.
 
   You can also pass a `Flop.Meta` struct or a keyword list as the third
@@ -536,10 +544,10 @@ defmodule Flop.Phoenix do
       ...> end
       iex> flop = %Flop{page: 2, page_size: 10}
       iex> meta = %Flop.Meta{flop: flop}
-      iex> build_path(pet_path, [%Plug.Conn{}, :index], meta)
+      iex> build_path({pet_path, [%Plug.Conn{}, :index]}, meta)
       "/pets?page_size=10&page=2"
       iex> query_params = to_query(flop)
-      iex> build_path(pet_path, [%Plug.Conn{}, :index], query_params)
+      iex> build_path({pet_path, [%Plug.Conn{}, :index]}, query_params)
       "/pets?page_size=10&page=2"
 
   If the path helper takes additional path parameters, just add them to the
@@ -549,7 +557,7 @@ defmodule Flop.Phoenix do
       ...>   "/users/\#{id}/pets?" <> Plug.Conn.Query.encode(query)
       ...> end
       iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path(user_pet_path, [%Plug.Conn{}, :index, 123], flop)
+      iex> build_path({user_pet_path, [%Plug.Conn{}, :index, 123]}, flop)
       "/users/123/pets?page_size=10&page=2"
 
   If the last path helper argument is a query parameter list, the Flop
@@ -559,80 +567,57 @@ defmodule Flop.Phoenix do
       ...>   "https://pets.flop/pets?" <> Plug.Conn.Query.encode(query)
       ...> end
       iex> flop = %Flop{order_by: :name, order_directions: [:desc]}
-      iex> build_path(pet_url, [%Plug.Conn{}, :index, [user_id: 123]], flop)
+      iex> build_path({pet_url, [%Plug.Conn{}, :index, [user_id: 123]]}, flop)
       "https://pets.flop/pets?user_id=123&order_directions[]=desc&order_by=name"
       iex> build_path(
-      ...>   pet_url,
-      ...>   [%Plug.Conn{}, :index, [category: "small", user_id: 123]],
+      ...>   {pet_url,
+      ...>    [%Plug.Conn{}, :index, [category: "small", user_id: 123]]},
       ...>   flop
       ...> )
       "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
-  @spec build_path(function, [any], Meta.t() | Flop.t() | keyword, keyword) ::
-          String.t()
-  def build_path(path_helper, args, meta_or_flop_or_params, opts \\ [])
-
-  def build_path(path_helper, args, %Meta{flop: flop}, opts),
-    do: build_path(path_helper, args, flop, opts)
-
-  def build_path(path_helper, args, %Flop{} = flop, opts) do
-    build_path(path_helper, args, Flop.Phoenix.to_query(flop, opts))
-  end
-
-  def build_path(path_helper, args, flop_params, _opts)
-      when is_function(path_helper) and
-             is_list(args) and
-             is_list(flop_params) do
-    final_args =
-      case Enum.reverse(args) do
-        [last_arg | rest] when is_list(last_arg) ->
-          query_arg = Keyword.merge(last_arg, flop_params)
-          Enum.reverse([query_arg | rest])
-
-        _ ->
-          args ++ [flop_params]
-      end
-
-    apply(path_helper, final_args)
-  end
-
-  @doc """
-  Same as `Flop.Phoenix.build_helper/4`, but takes an MFA tuple as argument.
-  """
-  @doc since: "0.11.0"
-  @doc section: :miscellaneous
-  @spec build_path_mfa(
-          {module, atom, [any]},
+  @spec build_path(
+          {module, atom, [any]} | {function, [any]},
           Meta.t() | Flop.t() | keyword,
           keyword
         ) ::
           String.t()
-  def build_path_mfa(mfa, meta_or_flop_or_params, opts \\ [])
+  def build_path(tuple, meta_or_flop_or_params, opts \\ [])
 
-  def build_path_mfa(mfa, %Meta{flop: flop}, opts),
-    do: build_path_mfa(mfa, flop, opts)
+  def build_path(tuple, %Meta{flop: flop}, opts),
+    do: build_path(tuple, flop, opts)
 
-  def build_path_mfa(mfa, %Flop{} = flop, opts) do
-    build_path_mfa(mfa, Flop.Phoenix.to_query(flop, opts))
+  def build_path(tuple, %Flop{} = flop, opts) do
+    build_path(tuple, Flop.Phoenix.to_query(flop, opts))
   end
 
-  def build_path_mfa({module, func, args}, flop_params, _opts)
+  def build_path({module, func, args}, flop_params, _opts)
       when is_atom(module) and
              is_atom(func) and
              is_list(args) and
              is_list(flop_params) do
-    final_args =
-      case Enum.reverse(args) do
-        [last_arg | rest] when is_list(last_arg) ->
-          query_arg = Keyword.merge(last_arg, flop_params)
-          Enum.reverse([query_arg | rest])
-
-        _ ->
-          args ++ [flop_params]
-      end
-
+    final_args = build_final_args(args, flop_params)
     apply(module, func, final_args)
+  end
+
+  def build_path({func, args}, flop_params, _opts)
+      when is_function(func) and
+             is_list(args) and
+             is_list(flop_params) do
+    final_args = build_final_args(args, flop_params)
+    apply(func, final_args)
+  end
+
+  defp build_final_args(args, flop_params) do
+    case Enum.reverse(args) do
+      [last_arg | rest] when is_list(last_arg) ->
+        query_arg = Keyword.merge(last_arg, flop_params)
+        Enum.reverse([query_arg | rest])
+
+      _ ->
+        args ++ [flop_params]
+    end
   end
 end
