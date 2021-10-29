@@ -7,7 +7,6 @@ defmodule Flop.PhoenixTest do
   import Flop.Phoenix.Factory
   import Phoenix.LiveViewTest
 
-  alias Flop.Meta
   alias Flop.Phoenix.Pet
   alias Plug.Conn.Query
 
@@ -15,15 +14,13 @@ defmodule Flop.PhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
-  defp render_pagination(%Meta{} = meta, assigns \\ []) do
+  defp render_pagination(assigns) do
     assigns =
-      Keyword.merge(
-        [
-          __changed__: nil,
-          meta: meta,
-          path_helper: {__MODULE__, :route_helper, @route_helper_opts}
-        ],
-        assigns
+      assigns
+      |> Keyword.put(:__changed__, nil)
+      |> Keyword.put_new(
+        :path_helper,
+        {__MODULE__, :route_helper, @route_helper_opts}
       )
 
     (&pagination/1)
@@ -111,11 +108,8 @@ defmodule Flop.PhoenixTest do
 
   describe "pagination/4" do
     test "renders pagination wrapper" do
-      wrapper =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination()
-        |> Floki.find("nav")
+      html = render_pagination(meta: build(:meta_on_first_page))
+      wrapper = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["pagination"]
@@ -123,23 +117,21 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not render anything if there is only one page" do
-      assert :meta_one_page
-             |> build()
-             |> render_pagination() == []
+      assert render_pagination(meta: build(:meta_one_page)) == []
     end
 
     test "does not render anything if there are no results" do
-      assert :meta_no_results
-             |> build()
-             |> render_pagination() == []
+      assert render_pagination(meta: build(:meta_no_results)) == []
     end
 
     test "allows to overwrite wrapper class" do
-      wrapper =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination(opts: [wrapper_attrs: [class: "boo"]])
-        |> Floki.find("nav")
+      html =
+        render_pagination(
+          meta: build(:meta_on_first_page),
+          opts: [wrapper_attrs: [class: "boo"]]
+        )
+
+      wrapper = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["boo"]
@@ -147,11 +139,13 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to add attributes to wrapper" do
-      wrapper =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination(opts: [wrapper_attrs: [title: "paginate"]])
-        |> Floki.find("nav")
+      html =
+        render_pagination(
+          meta: build(:meta_on_first_page),
+          opts: [wrapper_attrs: [title: "paginate"]]
+        )
+
+      wrapper = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["pagination"]
@@ -160,11 +154,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders previous link" do
-      link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination()
-        |> Floki.find("a:fl-contains('Previous')")
+      html = render_pagination(meta: build(:meta_on_second_page))
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
@@ -173,24 +164,26 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a function/args tuple as path_helper" do
-      link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+      html =
+        render_pagination(
           path_helper: {&route_helper/3, @route_helper_opts},
           meta: build(:meta_on_second_page)
         )
-        |> Floki.find("a:fl-contains('Previous')")
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
     test "renders previous link when using click event handling" do
-      link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(event: "paginate", path_helper: nil)
-        |> Floki.find("a:fl-contains('Previous')")
+      html =
+        render_pagination(
+          event: "paginate",
+          meta: build(:meta_on_second_page),
+          path_helper: nil
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
@@ -199,23 +192,23 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to previous link" do
-      link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+      html =
+        render_pagination(
           event: "paginate",
+          meta: build(:meta_on_second_page),
           path_helper: nil,
           target: "here"
         )
-        |> Floki.find("a:fl-contains('Previous')")
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "merges query parameters into existing parameters" do
       html =
-        render_pagination(build(:meta_on_second_page),
-          __changed__: nil,
+        render_pagination(
+          meta: build(:meta_on_second_page),
           path_helper:
             {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]},
           opts: []
@@ -233,9 +226,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite previous link attributes and content" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           opts: [
             previous_link_attrs: [class: "prev", title: "p-p-previous"],
             previous_link_content: tag(:i, class: "fas fa-chevron-left")
@@ -253,38 +245,38 @@ defmodule Flop.PhoenixTest do
     end
 
     test "disables previous link if on first page" do
-      previous_link =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination()
-        |> Floki.find("span:fl-contains('Previous')")
+      html = render_pagination(meta: build(:meta_on_first_page))
+      previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
       assert Floki.attribute(previous_link, "disabled") == ["disabled"]
     end
 
     test "disables previous link if on first page when using click handlers" do
-      previous_link =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination(event: "e", path_helper: nil)
-        |> Floki.find("span:fl-contains('Previous')")
+      html =
+        render_pagination(
+          event: "e",
+          meta: build(:meta_on_first_page),
+          path_helper: nil
+        )
+
+      previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
       assert Floki.attribute(previous_link, "disabled") == ["disabled"]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
-      previous_link =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination(
+      html =
+        render_pagination(
+          meta: build(:meta_on_first_page),
           opts: [
             previous_link_attrs: [class: "prev", title: "no"],
             previous_link_content: "Prev"
           ]
         )
-        |> Floki.find("span:fl-contains('Prev')")
+
+      previous_link = Floki.find(html, "span:fl-contains('Prev')")
 
       assert Floki.attribute(previous_link, "class") == ["prev"]
       assert Floki.attribute(previous_link, "disabled") == ["disabled"]
@@ -294,8 +286,7 @@ defmodule Flop.PhoenixTest do
 
     test "renders next link" do
       link =
-        :meta_on_second_page
-        |> build()
+        [meta: build(:meta_on_second_page)]
         |> render_pagination()
         |> Floki.find("a:fl-contains('Next')")
 
@@ -307,9 +298,8 @@ defmodule Flop.PhoenixTest do
 
     test "renders next link when using click event handling" do
       link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(event: "paginate", path_helper: nil)
+        [event: "paginate", meta: build(:meta_on_second_page), path_helper: nil]
+        |> render_pagination()
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
@@ -320,13 +310,13 @@ defmodule Flop.PhoenixTest do
 
     test "adds phx-target to next link" do
       link =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        [
           event: "paginate",
+          meta: build(:meta_on_second_page),
           path_helper: nil,
           target: "here"
-        )
+        ]
+        |> render_pagination()
         |> Floki.find("a:fl-contains('Next')")
 
       assert Floki.attribute(link, "phx-target") == ["here"]
@@ -334,9 +324,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite next link attributes and content" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           opts: [
             next_link_attrs: [class: "next", title: "n-n-next"],
             next_link_content: tag(:i, class: "fas fa-chevron-right")
@@ -355,8 +344,7 @@ defmodule Flop.PhoenixTest do
 
     test "disables next link if on last page" do
       next =
-        :meta_on_last_page
-        |> build()
+        [meta: build(:meta_on_last_page)]
         |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
@@ -367,9 +355,8 @@ defmodule Flop.PhoenixTest do
 
     test "renders next link on last page when using click event handling" do
       next =
-        :meta_on_last_page
-        |> build()
-        |> render_pagination(event: "paginate", path_helper: nil)
+        [event: "paginate", meta: build(:meta_on_last_page), path_helper: nil]
+        |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
       assert Floki.attribute(next, "class") == ["pagination-next"]
@@ -379,14 +366,14 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite next link attributes and content when disabled" do
       next_link =
-        :meta_on_last_page
-        |> build()
-        |> render_pagination(
+        [
+          meta: build(:meta_on_last_page),
           opts: [
             next_link_attrs: [class: "next", title: "no"],
             next_link_content: "N-n-next"
           ]
-        )
+        ]
+        |> render_pagination()
         |> Floki.find("span:fl-contains('N-n-next')")
 
       assert Floki.attribute(next_link, "class") == ["next"]
@@ -395,10 +382,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders page links" do
-      html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination()
+      html = render_pagination(meta: build(:meta_on_second_page))
 
       assert [_] = Floki.find(html, "ul[class='pagination-links']")
 
@@ -426,9 +410,11 @@ defmodule Flop.PhoenixTest do
 
     test "renders page links when using click event handling" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(event: "paginate", path_helper: nil)
+        render_pagination(
+          event: "paginate",
+          meta: build(:meta_on_second_page),
+          path_helper: nil
+        )
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "href") == ["#"]
@@ -439,9 +425,8 @@ defmodule Flop.PhoenixTest do
 
     test "adds phx-target to page link" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           path_helper: nil,
           event: "paginate",
           target: "here"
@@ -453,27 +438,28 @@ defmodule Flop.PhoenixTest do
 
     test "doesn't render pagination links if set to hide" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(opts: [page_links: :hide])
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          opts: [page_links: :hide]
+        )
 
       assert Floki.find(html, ".pagination-links") == []
     end
 
     test "doesn't render pagination links if set to hide when passing event" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(opts: [page_links: :hide, event: "paginate"])
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          opts: [page_links: :hide, event: "paginate"]
+        )
 
       assert Floki.find(html, ".pagination-links") == []
     end
 
     test "allows to overwrite pagination list attributes" do
       html =
-        :meta_on_first_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_first_page),
           opts: [pagination_list_attrs: [class: "p-list", title: "boop"]]
         )
 
@@ -483,9 +469,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite pagination link attributes" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           opts: [pagination_link_attrs: [class: "p-link", beep: "boop"]]
         )
 
@@ -501,9 +486,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite current attributes" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           opts: [current_link_attrs: [class: "link is-active", beep: "boop"]]
         )
 
@@ -525,9 +509,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite pagination link aria label" do
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_second_page),
           opts: [pagination_link_aria_label: &"On to page #{&1}"]
         )
 
@@ -548,16 +531,18 @@ defmodule Flop.PhoenixTest do
 
     test "adds order parameters to links" do
       html =
-        :meta_on_second_page
-        |> build(
-          flop: %Flop{
-            order_by: [:fur_length, :curiosity],
-            order_directions: [:asc, :desc],
-            page: 2,
-            page_size: 10
-          }
+        render_pagination(
+          meta:
+            build(
+              :meta_on_second_page,
+              flop: %Flop{
+                order_by: [:fur_length, :curiosity],
+                order_directions: [:asc, :desc],
+                page: 2,
+                page_size: 10
+              }
+            )
         )
-        |> render_pagination()
 
       expected_url = fn page ->
         default =
@@ -591,15 +576,18 @@ defmodule Flop.PhoenixTest do
 
     test "hides default order and limit" do
       html =
-        :meta_on_second_page
-        |> build(
-          flop: %Flop{
-            page_size: 20,
-            order_by: [:name],
-            order_directions: [:asc]
-          }
+        render_pagination(
+          for: Pet,
+          meta:
+            build(
+              :meta_on_second_page,
+              flop: %Flop{
+                page_size: 20,
+                order_by: [:name],
+                order_directions: [:asc]
+              }
+            )
         )
-        |> render_pagination(for: Pet)
 
       assert [prev] = Floki.find(html, "a:fl-contains('Previous')")
       assert [href] = Floki.attribute(prev, "href")
@@ -611,13 +599,11 @@ defmodule Flop.PhoenixTest do
 
     test "does not require path_helper when passing event" do
       html =
-        (&pagination/1)
-        |> render_component(
-          __changed__: nil,
+        render_pagination(
           event: "paginate",
-          meta: build(:meta_on_second_page)
+          meta: build(:meta_on_second_page),
+          path_helper: nil
         )
-        |> Floki.parse_fragment!()
 
       link = Floki.find(html, "a:fl-contains('Previous')")
 
@@ -638,22 +624,24 @@ defmodule Flop.PhoenixTest do
 
     test "adds filter parameters to links" do
       html =
-        :meta_on_second_page
-        |> build(
-          flop: %Flop{
-            page: 2,
-            page_size: 10,
-            filters: [
-              %Flop.Filter{field: :fur_length, op: :>=, value: 5},
-              %Flop.Filter{
-                field: :curiosity,
-                op: :in,
-                value: [:a_lot, :somewhat]
+        render_pagination(
+          meta:
+            build(
+              :meta_on_second_page,
+              flop: %Flop{
+                page: 2,
+                page_size: 10,
+                filters: [
+                  %Flop.Filter{field: :fur_length, op: :>=, value: 5},
+                  %Flop.Filter{
+                    field: :curiosity,
+                    op: :in,
+                    value: [:a_lot, :somewhat]
+                  }
+                ]
               }
-            ]
-          }
+            )
         )
-        |> render_pagination()
 
       expected_url = fn page ->
         default =
@@ -693,18 +681,20 @@ defmodule Flop.PhoenixTest do
     test "does not render ellipsis if total pages <= max pages" do
       # max pages smaller than total pages
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(page_links: {:ellipsis, 50})
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          page_links: {:ellipsis, 50}
+        )
 
       assert Floki.find(html, ".pagination-ellipsis") == []
       assert html |> Floki.find(".pagination-link") |> length() == 5
 
       # max pages equal to total pages
       html =
-        :meta_on_second_page
-        |> build()
-        |> render_pagination(page_links: {:ellipsis, 5})
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          page_links: {:ellipsis, 5}
+        )
 
       assert Floki.find(html, ".pagination-ellipsis") == []
       assert html |> Floki.find(".pagination-link") |> length() == 5
@@ -713,9 +703,10 @@ defmodule Flop.PhoenixTest do
     test "renders end ellipsis and last page link when on page 1" do
       # current page == 1
       html =
-        :meta_on_first_page
-        |> build(total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -730,9 +721,10 @@ defmodule Flop.PhoenixTest do
     test "renders start ellipsis and first page link when on last page" do
       # current page == last page
       html =
-        :meta_on_first_page
-        |> build(current_page: 20, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 20, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -746,9 +738,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on even page with even number of max pages" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 12, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 6}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
+          opts: [page_links: {:ellipsis, 6}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
@@ -763,9 +756,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on odd page with odd number of max pages" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 11, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -780,9 +774,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on even page with odd number of max pages" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 10, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -797,9 +792,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on odd page with even number of max pages" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 11, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -814,9 +810,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders end ellipsis when on page close to the beginning" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 2, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 2, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -830,9 +827,10 @@ defmodule Flop.PhoenixTest do
 
     test "renders start ellipsis when on page close to the end" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 18, total_pages: 20)
-        |> render_pagination(opts: [page_links: {:ellipsis, 5}])
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 18, total_pages: 20),
+          opts: [page_links: {:ellipsis, 5}]
+        )
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -846,9 +844,8 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite ellipsis attributes and content" do
       html =
-        :meta_on_first_page
-        |> build(current_page: 10, total_pages: 20)
-        |> render_pagination(
+        render_pagination(
+          meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
           opts: [
             page_links: {:ellipsis, 5},
             ellipsis_attrs: [class: "dotdotdot", title: "dot"],
@@ -863,9 +860,10 @@ defmodule Flop.PhoenixTest do
     test "always uses page/page_size" do
       html =
         render_pagination(
-          build(:meta_on_second_page,
-            flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
-          )
+          meta:
+            build(:meta_on_second_page,
+              flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
+            )
         )
 
       assert [a | _] = Floki.find(html, "a")
