@@ -8,6 +8,19 @@ defmodule Flop.Phoenix.Table do
 
   alias Flop.Phoenix.Misc
 
+  @example """
+  ## Example
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path_helper={&Routes.pet_path/3}
+        path_helper_args={[@socket, :index]}
+      >
+        <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      </Flop.Phoenix.table>
+  """
+
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -41,31 +54,11 @@ defmodule Flop.Phoenix.Table do
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
-    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
-      assigns
-    else
-      raise """
-      Flop.Phoenix.table requires either the `path_helper` and
-      `path_helper_args` assigns or the `event` assign to be set.
-
-      ## Example
-
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            path_helper={&Routes.pet_path/3}
-            path_helper_args={[@socket, :index]}
-          >
-
-      or
-
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            event="sort-table"
-          >
-      """
-    end
+    ensure_col(assigns)
+    ensure_items(assigns)
+    ensure_meta(assigns)
+    ensure_path_helper_or_event(assigns)
+    assigns
   end
 
   defp merge_opts(opts) do
@@ -206,5 +199,64 @@ defmodule Flop.Phoenix.Table do
 
   defp is_sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
+  end
+
+  defp ensure_col(assigns) do
+    unless assigns[:col] do
+      raise """
+      You need to add at least one `<:col>` when rendering Flop.Phoenix.table.
+
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_items(assigns) do
+    unless assigns[:items] do
+      raise """
+      You need to set the `items` assign when rendering Flop.Phoenix.table. The
+      value is the query result list. Each item in the list results in one table
+      row.
+
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_meta(assigns) do
+    unless assigns[:meta] do
+      raise """
+      You need to set the `meta` assign when rendering Flop.Phoenix.table. The
+      value is the `Flop.Meta` struct returned by Flop.
+
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_path_helper_or_event(assigns) do
+    unless (assigns.path_helper && assigns.path_helper_args) || assigns.event do
+      raise """
+      Flop.Phoenix.table requires either the `path_helper` and
+      `path_helper_args` assigns or the `event` assign to be set.
+
+      ## Example
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            path_helper={&Routes.pet_path/3}
+            path_helper_args={[@socket, :index]}
+          >
+
+      or
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            event="sort-table"
+          >
+      """
+    end
   end
 end

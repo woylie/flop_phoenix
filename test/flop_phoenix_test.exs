@@ -1098,7 +1098,6 @@ defmodule Flop.PhoenixTest do
     test "allows to override default symbols" do
       html =
         render_table(
-          headers: [{"Name", :name}],
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:asc]}
           },
@@ -1110,7 +1109,6 @@ defmodule Flop.PhoenixTest do
 
       html =
         render_table(
-          headers: [{"Name", :name}],
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:desc]}
           },
@@ -1168,15 +1166,56 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
     end
 
+    test "raises if no cols are passed" do
+      assert_raise RuntimeError,
+                   ~r/^You need to add at least one `<:col>`/,
+                   fn ->
+                     render_component(&table/1,
+                       __changed__: nil,
+                       event: "sort",
+                       items: [],
+                       meta: %Flop.Meta{flop: %Flop{}}
+                     )
+                   end
+    end
+
+    test "raises if no items are passed" do
+      assert_raise RuntimeError,
+                   ~r/^You need to set the `items` assign/,
+                   fn ->
+                     render_component(&table/1,
+                       __changed__: nil,
+                       col: fn _ -> nil end,
+                       event: "sort",
+                       meta: %Flop.Meta{flop: %Flop{}}
+                     )
+                   end
+    end
+
+    test "raises if no meta is passed" do
+      assert_raise RuntimeError,
+                   ~r/^You need to set the `meta` assign/,
+                   fn ->
+                     render_component(&table/1,
+                       __changed__: nil,
+                       col: fn _ -> nil end,
+                       event: "sort",
+                       items: []
+                     )
+                   end
+    end
+
     test "raises if neither path helper nor event are passed" do
-      assert_raise RuntimeError, fn ->
-        render_component(&table/1,
-          __changed__: nil,
-          headers: [{"Name", :name}],
-          items: [%{name: "George"}],
-          meta: %Flop.Meta{flop: %Flop{}}
-        )
-      end
+      assert_raise RuntimeError,
+                   ~r/^Flop.Phoenix.table requires either the `path_helper`/,
+                   fn ->
+                     render_component(&table/1,
+                       __changed__: nil,
+                       col: fn _ -> nil end,
+                       items: [%{name: "George"}],
+                       meta: %Flop.Meta{flop: %Flop{}}
+                     )
+                   end
     end
   end
 
