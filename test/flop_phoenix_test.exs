@@ -50,7 +50,7 @@ defmodule Flop.PhoenixTest do
       end)
       |> assign_new(:meta, fn -> %Flop.Meta{flop: %Flop{}} end)
       |> assign_new(:path_helper, fn -> &route_helper/3 end)
-      |> assign_new(:path_helper_args, fn -> [%{}, :index] end)
+      |> assign_new(:path_helper_args, fn -> [%{}, :pets] end)
       |> assign_new(:opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
 
@@ -106,8 +106,8 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  def route_helper(%{}, path, query) do
-    URI.to_string(%URI{path: "/#{path}", query: Query.encode(query)})
+  def route_helper(%{}, action, query) do
+    URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
 
   describe "pagination/4" do
@@ -969,7 +969,21 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(a, "data-phx-link-state") == ["push"]
 
       assert Floki.attribute(a, "href") == [
-               "/index?order_directions[]=asc&order_by[]=name"
+               "/pets?order_directions[]=asc&order_by[]=name"
+             ]
+    end
+
+    test "supports an mfa tuple as path_helper" do
+      html =
+        render_table(
+          path_helper: {__MODULE__, :route_helper, @route_helper_opts},
+          path_helper_args: nil
+        )
+
+      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+
+      assert Floki.attribute(a, "href") == [
+               "/pets?order_directions[]=asc&order_by[]=name"
              ]
     end
 
@@ -1025,7 +1039,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders links with click handler" do
-      html = render_table(event: "sort")
+      html =
+        render_table(event: "sort", path_helper: nil, path_helper_args: nil)
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -1039,7 +1054,13 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to header links" do
-      html = render_table(event: "sort", target: "here")
+      html =
+        render_table(
+          event: "sort",
+          path_helper: nil,
+          path_helper_args: nil,
+          target: "here"
+        )
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]

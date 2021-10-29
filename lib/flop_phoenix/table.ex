@@ -131,7 +131,7 @@ defmodule Flop.Phoenix.Table do
           <% else %>
             <%= live_patch(@label,
               to:
-                Flop.Phoenix.build_path(
+                build_path(
                   @path_helper,
                   @path_helper_args,
                   Flop.push_order(@flop, @field),
@@ -147,6 +147,14 @@ defmodule Flop.Phoenix.Table do
       <th {@opts[:thead_th_attrs]}><%= @label %></th>
     <% end %>
     """
+  end
+
+  defp build_path({_, _, _} = mfa, nil, params, opts) do
+    Flop.Phoenix.build_path_mfa(mfa, params, opts)
+  end
+
+  defp build_path(path_helper, path_helper_args, params, opts) do
+    Flop.Phoenix.build_path(path_helper, path_helper_args, params, opts)
   end
 
   defp aria_sort(0, direction), do: direction_to_aria(direction)
@@ -234,29 +242,43 @@ defmodule Flop.Phoenix.Table do
     end
   end
 
-  defp ensure_path_helper_or_event(assigns) do
-    unless (assigns.path_helper && assigns.path_helper_args) || assigns.event do
-      raise """
-      Flop.Phoenix.table requires either the `path_helper` and
-      `path_helper_args` assigns or the `event` assign to be set.
+  defp ensure_path_helper_or_event(%{
+         path_helper: path_helper,
+         path_helper_args: path_helper_args,
+         event: event
+       }) do
+    case {path_helper, path_helper_args, event} do
+      {{_module, _function, _args}, nil, nil} ->
+        :ok
 
-      ## Example
+      {function, args, nil} when is_function(function) and is_list(args) ->
+        :ok
 
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            path_helper={&Routes.pet_path/3}
-            path_helper_args={[@socket, :index]}
-          >
+      {nil, nil, event} when is_binary(event) ->
+        :ok
 
-      or
+      _ ->
+        raise """
+        Flop.Phoenix.table requires either the `path_helper` and
+        `path_helper_args` assigns or the `event` assign to be set.
 
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            event="sort-table"
-          >
-      """
+        ## Example
+
+            <Flop.Phoenix.table
+              items={@pets}
+              meta={@meta}
+              path_helper={&Routes.pet_path/3}
+              path_helper_args={[@socket, :index]}
+            >
+
+        or
+
+            <Flop.Phoenix.table
+              items={@pets}
+              meta={@meta}
+              event="sort-table"
+            >
+        """
     end
   end
 end
