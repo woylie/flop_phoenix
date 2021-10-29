@@ -68,9 +68,7 @@ defmodule Flop.Phoenix do
   parameters. If you pass the `:for` assign, the Flop.Phoenix function will
   pick up the default values from the schema module deriving `Flop.Schema`.
 
-  ## LiveView
-
-  The functions in this module can be used in both `.eex` and `.heex` templates.
+  ## Links
 
   Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
@@ -79,7 +77,7 @@ defmodule Flop.Phoenix do
   When used in LiveView templates, you will need to handle the new params in the
   `handle_params/3` callback of your LiveView module.
 
-  ## Event Based Pagination and Sorting
+  ## Event-Based Pagination and Sorting
 
   To make `Flop.Phoenix` use event based pagination and sorting, you need to
   assign the `:event` to the pagination and table generators. This will
@@ -201,10 +199,6 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
-  - `:tfoot_td_attrs`: Attributes to added to each `<td>` tag within the
-    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_td_attrs])}`.
-  - `:tfoot_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_tr_attrs])}`.
   - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
   - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
@@ -220,8 +214,6 @@ defmodule Flop.Phoenix do
           | {:table_attrs, keyword}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
-          | {:tfoot_td_attrs, keyword}
-          | {:tfoot_tr_attrs, keyword}
           | {:th_wrapper_attrs, keyword}
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
@@ -304,10 +296,23 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a table with sortable columns.
 
+  ## Example
+
+  ```elixir
+  <Flop.Phoenix.table
+    for={MyApp.Pet}
+    items={@pets}
+    meta={@meta}
+    path_helper={&Routes.pet_path/3}
+    path_helper_args={[@socket, :index]}
+  >
+    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+  </Flop.Phoenix.table>
+  ```
+
   ## Assigns
 
-  - `headers` - A list of header columns. Can be a list of strings (or safe
-    HTML), or a list of `{value, field_name}` tuples.
   - `items` - The list of items to be displayed in rows. This is the result list
     returned by the query.
   - `meta` - The `Flop.Meta` struct returned by the query function.
@@ -316,16 +321,9 @@ defmodule Flop.Phoenix do
   - `path_helper_args` - The argument list for the path helper. For example, if
     you would call `Routes.pet_path(@conn, :index)` to generate the path for the
     current page, this would be `[@conn, :index]`.
-  - `row_func` - A function that takes one item of the `items` list and a
-    keyword list with all additional assigns and returns the column values for
-    that item's row.
-  - `row_opts` (optional) - Keyword list that will be passed as the second
-    parameter to the `row_func`.
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
     links are only added for fields that are defined as sortable and query
     parameters are hidden if they match the default order.
-  - `footer` (optional) - A list of footer columns. Can be a list of strings or
-    safe HTML.
   - `event` (optional) - If set, `Flop.Phoenix` will render links with a
     `phx-click` attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the header links.
@@ -336,54 +334,29 @@ defmodule Flop.Phoenix do
     sense to define them once in a function or set them in a wrapper function
     as described in the `Customization` section of the module documentation.
 
-  ## Table headers
+  ## Col slot
 
-  Table headers need to be passed as a list. It is recommended to define a
-  function in the `View`, `LiveView` or `LiveComponent` module that returns the
-  table headers:
+  For each column to render, add one `<:col>` element.
 
-      def table_headers do
-        ["ID", {"Name", :name}, {"Age", :age}, ""]
-      end
+  ```elixir
+  <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+  ```
 
-  This defines four header columns: One for the ID, which is not sortable, and
-  columns for the name and the age, which are both sortable, and a fourth
-  column without a header value. The last column will hold the links to the
-  detail pages. The name and age column headers will be linked, so that they the
-  order on the `:name` and `:age` field, respectively.
+  - `label` - The content for the header column.
+  - `field` (optional) - The field name for sorting.
 
-  ## Table rows
+  ## Foot slot
 
-  You need to define a function that takes a single item from the list and a
-  keyword list with any additional assigns. The function needs to return a list
-  with one item for each column.
+  You can optionally add a `foot`. The inner block will be rendered inside
+  a `tfoot` element.
 
-      <Flop.Phoenix.sortable_table
-        row_func={&table_row/2}
-        row_opts={[socket: @socket]}
-        ...
-      />
+      <Flop.Phoenix.table>
+        <:foot>
+          <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+        </:foot>
+      </Flop.Phoenix.table>
 
-      def table_row(%Pet{id: id, name: name, age: age}, opts) do
-        socket = Keyword.fetch!(opts, :socket)
-        [id, name, age, link("show", to: Routes.pet_path(socket, :show, id))]
-      end
-
-  ## Table footer
-
-  You can optionally pass a `footer` as a list of columns.
-
-      def table_footer(total) do
-        ["", "Total: ", content_tag(:span, total, class: "total")]
-      end
-
-      <Flop.Phoenix.sortable_table
-        ...
-        footer={table_footer(@total)}
-        ...
-      />
-
-  See the module documentation and [Readme](README.md) for examples.
+  See the module documentation and [Readme](README.md) for more examples.
   """
   @doc since: "0.6.0"
   @doc section: :generators
@@ -398,33 +371,29 @@ defmodule Flop.Phoenix do
       <%= if @opts[:container] do %>
         <div {@opts[:container_attrs]}>
           <Table.render
-            footer={@footer}
+            col={@col}
+            foot={@foot}
             for={@for}
             event={@event}
-            headers={@headers}
             items={@items}
             meta={@meta}
             opts={@opts}
             path_helper={@path_helper}
             path_helper_args={@path_helper_args}
-            row_func={@row_func}
-            row_opts={@row_opts}
             target={@target}
           />
         </div>
       <% else %>
         <Table.render
-          footer={@footer}
+          col={@col}
+          foot={@foot}
           for={@for}
           event={@event}
-          headers={@headers}
           items={@items}
           meta={@meta}
           opts={@opts}
           path_helper={@path_helper}
           path_helper_args={@path_helper_args}
-          row_func={@row_func}
-          row_opts={@row_opts}
           target={@target}
         />
       <% end %>

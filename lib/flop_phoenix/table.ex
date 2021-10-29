@@ -8,6 +8,19 @@ defmodule Flop.Phoenix.Table do
 
   alias Flop.Phoenix.Misc
 
+  @example """
+  ## Example
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path_helper={&Routes.pet_path/3}
+        path_helper_args={[@socket, :index]}
+      >
+        <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      </Flop.Phoenix.table>
+  """
+
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -20,8 +33,6 @@ defmodule Flop.Phoenix.Table do
       table_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
-      tfoot_td_attrs: [],
-      tfoot_tr_attrs: [],
       th_wrapper_attrs: [],
       thead_th_attrs: [],
       thead_tr_attrs: []
@@ -36,43 +47,18 @@ defmodule Flop.Phoenix.Table do
     assigns =
       assigns
       |> assign_new(:event, fn -> nil end)
-      |> assign_new(:footer, fn -> nil end)
+      |> assign_new(:foot, fn -> nil end)
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:path_helper_args, fn -> nil end)
-      |> assign_new(:row_opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
-    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
-      assigns
-    else
-      raise """
-      Flop.Phoenix.table requires either the `path_helper` and
-      `path_helper_args` assigns or the `event` assign to be set.
-
-      ## Example
-
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            path_helper={&Routes.pet_path/3}
-            path_helper_args={[@socket, :index]}
-            headers={[{"Name", :name}, {"Age", :age}]}
-            row_func={fn pet, _opts -> [pet.name, pet.age] end}
-          />
-
-      or
-
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            event="sort-table"
-            headers={[{"Name", :name}, {"Age", :age}]}
-            row_func={fn pet, _opts -> [pet.name, pet.age] end}
-          />
-      """
-    end
+    ensure_col(assigns)
+    ensure_items(assigns)
+    ensure_meta(assigns)
+    ensure_path_helper_or_event(assigns)
+    assigns
   end
 
   defp merge_opts(opts) do
@@ -85,13 +71,14 @@ defmodule Flop.Phoenix.Table do
     ~H"""
     <table {@opts[:table_attrs]}>
       <thead>
-        <tr {@opts[:thead_tr_attrs]}><%=
-          for header <- @headers do %>
+        <tr {@opts[:thead_tr_attrs]}>
+          <%= for col <- @col do %>
             <.header_column
               event={@event}
+              field={col[:field]}
               flop={@meta.flop}
               for={@for}
-              header={header}
+              label={col.label}
               opts={@opts}
               path_helper={@path_helper}
               path_helper_args={@path_helper_args}
@@ -103,31 +90,22 @@ defmodule Flop.Phoenix.Table do
       <tbody>
         <%= for item <- @items do %>
           <tr {@opts[:tbody_tr_attrs]}>
-            <%= for column <- @row_func.(item, @row_opts) do %>
-              <td {@opts[:tbody_td_attrs]}><%= column %></td>
+            <%= for col <- @col do %>
+              <td {@opts[:tbody_td_attrs]}><%= render_slot(col, item) %></td>
             <% end %>
           </tr>
         <% end %>
       </tbody>
-      <%= if @footer do %>
-        <tfoot>
-          <tr {@opts[:tfoot_tr_attrs]}>
-            <%= for content <- @footer do %>
-              <td {@opts[:tfoot_td_attrs]}><%= content %></td>
-            <% end %>
-          </tr>
-        </tfoot>
+      <%= if @foot do %>
+        <tfoot><%= render_slot(@foot) %></tfoot>
       <% end %>
     </table>
     """
   end
 
-  defp header_column(assigns) do
-    assigns =
-      assigns
-      |> assign(:field, header_field(assigns.header))
-      |> assign(:value, header_value(assigns.header))
+  #
 
+  defp header_column(assigns) do
     index = order_index(assigns.flop, assigns.field)
     direction = order_direction(assigns.flop.order_directions, index)
 
@@ -145,28 +123,28 @@ defmodule Flop.Phoenix.Table do
         <span {@opts[:th_wrapper_attrs]}>
           <%= if @event do %>
             <.sort_link
-              field={@field}
               event={@event}
+              field={@field}
+              label={@label}
               target={@target}
-              value={@value}
             />
           <% else %>
-            <%= live_patch(@value,
-                  to:
-                    Flop.Phoenix.build_path(
-                      @path_helper,
-                      @path_helper_args,
-                      Flop.push_order(@flop, @field),
-                      for: @for
-                    )
+            <%= live_patch(@label,
+              to:
+                Flop.Phoenix.build_path(
+                  @path_helper,
+                  @path_helper_args,
+                  Flop.push_order(@flop, @field),
+                  for: @for
                 )
+            )
             %>
           <% end %>
           <.arrow direction={@order_direction} opts={@opts} />
         </span>
       </th>
     <% else %>
-      <th {@opts[:thead_th_attrs]}><%= @value %></th>
+      <th {@opts[:thead_th_attrs]}><%= @label %></th>
     <% end %>
     """
   end
@@ -195,7 +173,7 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(assigns) do
     ~H"""
     <%= link sort_link_attrs(@field, @event, @target) do %>
-      <%= @value %>
+      <%= @label %>
     <% end %>
     """
   end
@@ -223,11 +201,62 @@ defmodule Flop.Phoenix.Table do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
 
-  defp header_field({:safe, _}), do: nil
-  defp header_field({_value, field}), do: field
-  defp header_field(_value), do: nil
+  defp ensure_col(assigns) do
+    unless assigns[:col] do
+      raise """
+      You need to add at least one `<:col>` when rendering Flop.Phoenix.table.
 
-  defp header_value({:safe, _} = value), do: value
-  defp header_value({value, _field}), do: value
-  defp header_value(value), do: value
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_items(assigns) do
+    unless assigns[:items] do
+      raise """
+      You need to set the `items` assign when rendering Flop.Phoenix.table. The
+      value is the query result list. Each item in the list results in one table
+      row.
+
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_meta(assigns) do
+    unless assigns[:meta] do
+      raise """
+      You need to set the `meta` assign when rendering Flop.Phoenix.table. The
+      value is the `Flop.Meta` struct returned by Flop.
+
+      #{@example}
+      """
+    end
+  end
+
+  defp ensure_path_helper_or_event(assigns) do
+    unless (assigns.path_helper && assigns.path_helper_args) || assigns.event do
+      raise """
+      Flop.Phoenix.table requires either the `path_helper` and
+      `path_helper_args` assigns or the `event` assign to be set.
+
+      ## Example
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            path_helper={&Routes.pet_path/3}
+            path_helper_args={[@socket, :index]}
+          >
+
+      or
+
+          <Flop.Phoenix.table
+            items={@pets}
+            meta={@meta}
+            event="sort-table"
+          >
+      """
+    end
+  end
 end

@@ -2,6 +2,55 @@
 
 ## Unreleased
 
+### Changed
+
+- The table component has been changed to use slots. The `headers`,
+  `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
+  `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
+- This version requires `live_view` `~> 0.17.0`.
+
+### How to upgrade
+
+Before:
+
+```elixir
+<Flop.Phoenix.table
+  for={MyApp.Pet}
+  items={@pets}
+  meta={@meta}
+  path_helper={&Routes.pet_path/3}
+  path_helper_args={[@socket, :index]}
+  headers={[{"Name", :name}, {"Age", :age}]}
+  row_func={fn pet, \_opts -> [pet.name, pet.age] end}
+  footer={["", @average_age]}
+/>
+```
+
+After:
+
+```elixir
+<Flop.Phoenix.table
+  for={MyApp.Pet}
+  items={@pets}
+  meta={@meta}
+  path_helper={&Routes.pet_path/3}
+  path_helper_args={[@socket, :index]}
+>
+  <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+  <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+
+  <:foot>
+    <tr>
+      <td></td>
+      <td><%= @average_age %></td>
+    </tr>
+  </:foot>
+</Flop.Phoenix.table>
+```
+
+Also, you can remove `tfoot_td_attrs` and `tfoot_th_attrs` from the `opts`
+assign (or opts provider function).
+
 ## [0.10.0] - 2021-10-24
 
 ### Added
@@ -31,7 +80,7 @@ config :flop_phoenix,
 - Aria labels were added to the links to the first and last page.
 - The `aria-sort` attribute was added to the table headers.
 
-### How to update
+### How to upgrade
 
 1. Remove the `for`, `event` and `target` from the `opts` assign and add them
    as regular assigns at the root level.
@@ -106,7 +155,7 @@ To this:
 
 ### Added
 
-- Add table footer option for sortable table.
+- Add table foot option for sortable table.
 
 ## [0.8.1] - 2021-08-11
 
