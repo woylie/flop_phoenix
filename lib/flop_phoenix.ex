@@ -201,10 +201,6 @@ defmodule Flop.Phoenix do
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
-  - `:tfoot_td_attrs`: Attributes to added to each `<td>` tag within the
-    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_td_attrs])}`.
-  - `:tfoot_tr_attrs`: Attributes to added to each `<tr>` tag within the
-    `<tfoot>`. Default: `#{inspect(Table.default_opts()[:tfoot_tr_attrs])}`.
   - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
   - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
@@ -220,8 +216,6 @@ defmodule Flop.Phoenix do
           | {:table_attrs, keyword}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
-          | {:tfoot_td_attrs, keyword}
-          | {:tfoot_tr_attrs, keyword}
           | {:th_wrapper_attrs, keyword}
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
@@ -306,8 +300,6 @@ defmodule Flop.Phoenix do
 
   ## Assigns
 
-  - `headers` - A list of header columns. Can be a list of strings (or safe
-    HTML), or a list of `{value, field_name}` tuples.
   - `items` - The list of items to be displayed in rows. This is the result list
     returned by the query.
   - `meta` - The `Flop.Meta` struct returned by the query function.
@@ -319,8 +311,6 @@ defmodule Flop.Phoenix do
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
     links are only added for fields that are defined as sortable and query
     parameters are hidden if they match the default order.
-  - `footer` (optional) - A list of footer columns. Can be a list of strings or
-    safe HTML.
   - `event` (optional) - If set, `Flop.Phoenix` will render links with a
     `phx-click` attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the header links.

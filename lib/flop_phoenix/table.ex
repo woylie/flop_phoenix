@@ -20,8 +20,6 @@ defmodule Flop.Phoenix.Table do
       table_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
-      tfoot_td_attrs: [],
-      tfoot_tr_attrs: [],
       th_wrapper_attrs: [],
       thead_th_attrs: [],
       thead_tr_attrs: []
@@ -40,7 +38,6 @@ defmodule Flop.Phoenix.Table do
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:path_helper_args, fn -> nil end)
-      |> assign_new(:row_opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
@@ -58,8 +55,7 @@ defmodule Flop.Phoenix.Table do
             meta={@meta}
             path_helper={&Routes.pet_path/3}
             path_helper_args={[@socket, :index]}
-            headers={[{"Name", :name}, {"Age", :age}]}
-          />
+          >
 
       or
 
@@ -67,8 +63,7 @@ defmodule Flop.Phoenix.Table do
             items={@pets}
             meta={@meta}
             event="sort-table"
-            headers={[{"Name", :name}, {"Age", :age}]}
-          />
+          >
       """
     end
   end
