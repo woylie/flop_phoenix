@@ -14,11 +14,40 @@ defmodule Flop.Phoenix.Table do
       <Flop.Phoenix.table
         items={@pets}
         meta={@meta}
-        path_helper={&Routes.pet_path/3}
-        path_helper_args={[@socket, :index]}
+        path_helper={{Routes, :pet_path, [@socket, :index]}}
       >
         <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
       </Flop.Phoenix.table>
+  """
+
+  @path_helper_error """
+  Flop.Phoenix.table/1 requires either the `path_helper` assign or the `event`
+  assign to be set. The `path_helper` needs to be passed either as a
+  `{module, function_name, args}` tuple or a `{function, args}` tuple.
+
+  ## Example
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path_helper={{Routes, :pet_path, [@socket, :index]}}
+      >
+
+  or
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path_helper={{&Routes.pet_path/3, [@socket, :index]}}
+      >
+
+  or
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        event="sort-table"
+      >
   """
 
   @spec default_opts() :: [Flop.Phoenix.table_option()]
@@ -50,7 +79,6 @@ defmodule Flop.Phoenix.Table do
       |> assign_new(:foot, fn -> nil end)
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:path_helper_args, fn -> nil end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
@@ -81,7 +109,6 @@ defmodule Flop.Phoenix.Table do
               label={col.label}
               opts={@opts}
               path_helper={@path_helper}
-              path_helper_args={@path_helper_args}
               target={@target}
             />
           <% end %>
@@ -131,9 +158,8 @@ defmodule Flop.Phoenix.Table do
           <% else %>
             <%= live_patch(@label,
               to:
-                Flop.Phoenix.build_path(
+                build_path(
                   @path_helper,
-                  @path_helper_args,
                   Flop.push_order(@flop, @field),
                   for: @for
                 )
@@ -147,6 +173,10 @@ defmodule Flop.Phoenix.Table do
       <th {@opts[:thead_th_attrs]}><%= @label %></th>
     <% end %>
     """
+  end
+
+  defp build_path(path_helper, params, opts) do
+    Flop.Phoenix.build_path(path_helper, params, opts)
   end
 
   defp aria_sort(0, direction), do: direction_to_aria(direction)
@@ -204,7 +234,7 @@ defmodule Flop.Phoenix.Table do
   defp ensure_col(assigns) do
     unless assigns[:col] do
       raise """
-      You need to add at least one `<:col>` when rendering Flop.Phoenix.table.
+      You need to add at least one `<:col>` when rendering Flop.Phoenix.table/1.
 
       #{@example}
       """
@@ -214,9 +244,9 @@ defmodule Flop.Phoenix.Table do
   defp ensure_items(assigns) do
     unless assigns[:items] do
       raise """
-      You need to set the `items` assign when rendering Flop.Phoenix.table. The
-      value is the query result list. Each item in the list results in one table
-      row.
+      You need to set the `items` assign when rendering Flop.Phoenix.table/1.
+      The value is the query result list. Each item in the list results in one
+      table row.
 
       #{@example}
       """
@@ -226,7 +256,7 @@ defmodule Flop.Phoenix.Table do
   defp ensure_meta(assigns) do
     unless assigns[:meta] do
       raise """
-      You need to set the `meta` assign when rendering Flop.Phoenix.table. The
+      You need to set the `meta` assign when rendering Flop.Phoenix.table/1. The
       value is the `Flop.Meta` struct returned by Flop.
 
       #{@example}
@@ -234,29 +264,23 @@ defmodule Flop.Phoenix.Table do
     end
   end
 
-  defp ensure_path_helper_or_event(assigns) do
-    unless (assigns.path_helper && assigns.path_helper_args) || assigns.event do
-      raise """
-      Flop.Phoenix.table requires either the `path_helper` and
-      `path_helper_args` assigns or the `event` assign to be set.
+  defp ensure_path_helper_or_event(%{
+         path_helper: path_helper,
+         event: event
+       }) do
+    case {path_helper, event} do
+      {{module, function, args}, nil}
+      when is_atom(module) and is_atom(function) and is_list(args) ->
+        :ok
 
-      ## Example
+      {{function, args}, nil} when is_function(function) and is_list(args) ->
+        :ok
 
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            path_helper={&Routes.pet_path/3}
-            path_helper_args={[@socket, :index]}
-          >
+      {nil, event} when is_binary(event) ->
+        :ok
 
-      or
-
-          <Flop.Phoenix.table
-            items={@pets}
-            meta={@meta}
-            event="sort-table"
-          >
-      """
+      _ ->
+        raise @path_helper_error
     end
   end
 end

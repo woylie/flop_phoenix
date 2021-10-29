@@ -4,48 +4,71 @@
 
 ### Changed
 
+- The `path_helper_args` assign has been removed in favor of passing mfa
+  tuples as `path_helper`.
+- In the same vein, `Flop.Phoenix.build_path/4` has been replaced with
+  `Flop.Phoenix.build_path/3`, which also takes a tuple as the first argument.
 - The table component has been changed to use slots. The `headers`,
   `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
   `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
-- This version requires `live_view` `~> 0.17.0`.
+- The `live_view` version requirement has been changed to `~> 0.17.0`.
 
 ### How to upgrade
 
-Before:
+Update the `path_helper` and `path_helper_args` assigns set for the `table`
+and `pagination` component:
 
-```elixir
-<Flop.Phoenix.table
-  for={MyApp.Pet}
-  items={@pets}
-  meta={@meta}
-  path_helper={&Routes.pet_path/3}
-  path_helper_args={[@socket, :index]}
-  headers={[{"Name", :name}, {"Age", :age}]}
-  row_func={fn pet, \_opts -> [pet.name, pet.age] end}
-  footer={["", @average_age]}
-/>
+```diff
+- path_helper={&Routes.pet_path/3}
+- path_helper_args={[@socket, :index]}
++ path_helper={{Routes, :pet_path, [@socket, :index]}}
 ```
 
-After:
+If you prefer, you can pass a function instead.
 
-```elixir
+```diff
++ path_helper={{&Routes.pet_path/3, [@socket, :index]}}
+```
+
+Update any calls to `Flop.Phoenix.build_path/4`:
+
+```diff
+- Flop.Phoenix.build_path(&Routes.pet_path/3, [@socket, :index], meta)
++ Flop.Phoenix.build_path({Routes, :pet_path, [@socket, :index]}, meta)
+```
+
+If you prefer, you can use a 2-tuple here as well:
+
+```diff
++ Flop.Phoenix.build_path({&Routes.pet_path/3, [@socket, :index]}, meta)
+```
+
+Finally, update the tables in your templates:
+
+```diff
 <Flop.Phoenix.table
   for={MyApp.Pet}
   items={@pets}
   meta={@meta}
-  path_helper={&Routes.pet_path/3}
-  path_helper_args={[@socket, :index]}
->
-  <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-  <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+-   path_helper={&Routes.pet_path/3}
+-   path_helper_args={[@socket, :index]}
++   path_helper={{Routes, :pet_path, [@socket, :index]}}
+-   headers={[{"Name", :name}, {"Age", :age}]}
+-   row_func={fn pet, \_opts -> [pet.name, pet.age] end}
+-   footer={["", @average_age]}
+- />
++ >
++    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
++    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
 
-  <:foot>
-    <tr>
-      <td></td>
-      <td><%= @average_age %></td>
-    </tr>
-  </:foot>
-</Flop.Phoenix.table>
++    <:foot>
++      <tr>
++        <td></td>
++        <td><%= @average_age %></td>
++      </tr>
++    </:foot>
++ >
++ </Flop.Phoenix.table>
 ```
 
 Also, you can remove `tfoot_td_attrs` and `tfoot_th_attrs` from the `opts`

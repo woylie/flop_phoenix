@@ -8,6 +8,33 @@ defmodule Flop.Phoenix.Pagination do
 
   alias Flop.Phoenix.Misc
 
+  @path_helper_error """
+  Flop.Phoenix.pagination/1 requires either the `path_helper` or the `event`
+  assign to be set. The `path_helper` needs to be passed either as a
+  `{module, function_name, args}` tuple or a `{function, args}` tuple.
+
+  ## Example
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path_helper={{Routes, :pet_path, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path_helper={{&Routes.pet_path/3, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        event="paginate"
+      />
+  """
+
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
@@ -46,33 +73,11 @@ defmodule Flop.Phoenix.Pagination do
       |> assign_new(:event, fn -> nil end)
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:path_helper_args, fn -> nil end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
-    if (assigns.path_helper && assigns.path_helper_args) || assigns.event do
-      assigns
-    else
-      raise """
-      Flop.Phoenix.pagination requires either the `path_helper` and
-      `path_helper_args` assigns or the `event` assign to be set.
-
-      ## Example
-
-          <Flop.Phoenix.pagination
-            meta={@meta}
-            path_helper={&Routes.pet_path/3}
-            path_helper_args={[@socket, :index]}
-          />
-
-      or
-
-          <Flop.Phoenix.pagination
-            meta={@meta}
-            event="paginate"
-          />
-      """
-    end
+    ensure_path_helper_or_event(assigns)
+    assigns
   end
 
   defp merge_opts(opts) do
@@ -281,16 +286,19 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(meta, route_helper, route_helper_args, for) do
-    query_params =
-      meta.flop
-      |> ensure_page_based_params()
-      |> Flop.Phoenix.to_query(for: for)
+  def build_page_link_helper(meta, path_helper, for) do
+    query_params = build_query_params(meta, for)
 
     fn page ->
       params = maybe_put_page(query_params, page)
-      Flop.Phoenix.build_path(route_helper, route_helper_args, params)
+      Flop.Phoenix.build_path(path_helper, params)
     end
+  end
+
+  defp build_query_params(meta, for) do
+    meta.flop
+    |> ensure_page_based_params()
+    |> Flop.Phoenix.to_query(for: for)
   end
 
   @doc """
@@ -356,5 +364,22 @@ defmodule Flop.Phoenix.Pagination do
       [label: aria_label],
       &Keyword.put(&1, :label, aria_label)
     )
+  end
+
+  defp ensure_path_helper_or_event(%{path_helper: path_helper, event: event}) do
+    case {path_helper, event} do
+      {{module, function, args}, nil}
+      when is_atom(module) and is_atom(function) and is_list(args) ->
+        :ok
+
+      {{function, args}, nil} when is_function(function) and is_list(args) ->
+        :ok
+
+      {nil, event} when is_binary(event) ->
+        :ok
+
+      _ ->
+        raise @path_helper_error
+    end
   end
 end
