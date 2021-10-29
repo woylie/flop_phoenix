@@ -225,15 +225,15 @@ defmodule Flop.Phoenix do
 
   - `meta` - The meta information of the query as returned by the `Flop` query
     functions.
-  - `path_helper` - The path helper function that builds a path to the current
-    page, e.g. `&Routes.pet_path/3`.
-  - `path_helper_args` - The arguments to be passed to the route helper
-    function, e.g. `[@conn, :index]`. The page number and page size will be
-    added as query parameters.
+  - `path_helper` - The path helper to use for building the link URL. Can be an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
+    `live_path/2` and the parameters have to be handled in the `handle_params/3`
+    callback of the LiveView module.
+  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute.
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set,
     `Flop.Phoenix` will remove default parameters from the query parameters.
-  - `event` (optional) - If set, `Flop.Phoenix` will render links with a
-    `phx-click` attribute.
+
   - `target` (optional) - Sets the `phx-target` attribute for the pagination
     links.
   - `opts` (optional) - Options to customize the pagination. See
@@ -281,11 +281,9 @@ defmodule Flop.Phoenix do
         event={@event}
         meta={@meta}
         opts={@opts}
-        page_link_helper={Pagination.build_page_link_helper(
-          @meta,
-          @path_helper,
-          @for
-        )}
+        page_link_helper={
+          Pagination.build_page_link_helper(@meta, @path_helper, @for)
+        }
         target={@target}
       />
     <% end %>
@@ -302,8 +300,7 @@ defmodule Flop.Phoenix do
     for={MyApp.Pet}
     items={@pets}
     meta={@meta}
-    path_helper={&Routes.pet_path/3}
-    path_helper_args={[@socket, :index]}
+    path_helper={{Routes, :pet_path, [@socket, :index]}}
   >
     <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
     <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
@@ -315,11 +312,12 @@ defmodule Flop.Phoenix do
   - `items` - The list of items to be displayed in rows. This is the result list
     returned by the query.
   - `meta` - The `Flop.Meta` struct returned by the query function.
-  - `path_helper` - The Phoenix path or url helper that leads to the current
-    page.
-  - `path_helper_args` - The argument list for the path helper. For example, if
-    you would call `Routes.pet_path(@conn, :index)` to generate the path for the
-    current page, this would be `[@conn, :index]`.
+  - `path_helper` - The path helper to use for building the link URL. Can be an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
+    `live_path/2` and the parameters have to be handled in the `handle_params/3`
+    callback of the LiveView module.
+  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute.
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
     links are only added for fields that are defined as sortable and query
     parameters are hidden if they match the default order.

@@ -84,8 +84,7 @@ In your template, add a sortable table and pagination links.
   for={MyApp.Pet}
   items={@pets}
   meta={@meta}
-  path_helper={&Routes.pet_path/3}
-  path_helper_args={[@socket, :index]}
+  path_helper={{Routes, :pet_path, [@socket, :index]}}
 >
   <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
   <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
@@ -94,26 +93,21 @@ In your template, add a sortable table and pagination links.
 <Flop.Phoenix.pagination
   for={MyApp.Pet}
   meta={@meta}
-  path_helper={&Routes.pet_path/3}
-  path_helper_args={[@socket, :index]}
+  path_helper={{Routes, :pet_path, [@socket, :index]}}
 />
 ```
 
 `path_helper` should reference the path helper function that builds a path to
-the current page. `path_helper_args` is the argument list that will be passed to
-the function. If you want to add a path parameter, you can do it like this.
+the current page. Add any additional path and query parameters to the argument
+list.
 
 ```elixir
 <Flop.Phoenix.pagination
   for={MyApp.Pet}
   meta={@meta}
-  path_helper={&Routes.pet_path/4}
-  path_helper_args={[@conn, :index, @owner]}
+  path_helper={{Routes, :pet_path, [@conn, :index, @owner, [hide_menu: true]]}}
 />
 ```
-
-If the last argument is a keyword list of query parameters, the query parameters
-for pagination and sorting will be merged into that list.
 
 The `for` option allows Flop Phoenix to determine which table columns are
 sortable. It also allows it to hide the `order` and `page_size`

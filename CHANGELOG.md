@@ -4,8 +4,8 @@
 
 ### Changed
 
-- The `path_helper_args` assign has been removed in favor of passing mfa tuples
-  as `path_helper`.
+- The `path_helper_args` assign has been removed in favor of passing mfa
+  tuples as `path_helper`.
 - The table component has been changed to use slots. The `headers`,
   `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
   `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
@@ -20,6 +20,12 @@ and `pagination` component:
 - path_helper={&Routes.pet_path/3}
 - path_helper_args={[@socket, :index]}
 + path_helper={{Routes, :pet_path, [@socket, :index]}}
+```
+
+If you prefer, you can pass a function instead.
+
+```diff
++ path_helper={{&Routes.pet_path/3, [@socket, :index]}}
 ```
 
 Before:
