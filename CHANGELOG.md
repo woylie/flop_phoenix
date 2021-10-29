@@ -12,6 +12,7 @@
   `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
   `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
 - The `live_view` version requirement has been changed to `~> 0.17.0`.
+- Better error messages for invalid assigns have been added.
 
 ### How to upgrade
 
