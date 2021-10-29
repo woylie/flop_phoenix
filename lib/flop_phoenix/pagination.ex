@@ -8,33 +8,6 @@ defmodule Flop.Phoenix.Pagination do
 
   alias Flop.Phoenix.Misc
 
-  @path_helper_error """
-  Flop.Phoenix.pagination/1 requires either the `path_helper` or the `event`
-  assign to be set. The `path_helper` needs to be passed either as a
-  `{module, function_name, args}` tuple or a `{function, args}` tuple.
-
-  ## Example
-
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
-      />
-
-  or
-
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path_helper={{&Routes.pet_path/3, [@socket, :index]}}
-      />
-
-  or
-
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        event="paginate"
-      />
-  """
-
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
@@ -76,7 +49,7 @@ defmodule Flop.Phoenix.Pagination do
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
-    ensure_path_helper_or_event(assigns)
+    validate_path_helper_or_event!(assigns)
     assigns
   end
 
@@ -366,7 +339,7 @@ defmodule Flop.Phoenix.Pagination do
     )
   end
 
-  defp ensure_path_helper_or_event(%{path_helper: path_helper, event: event}) do
+  defp validate_path_helper_or_event!(%{path_helper: path_helper, event: event}) do
     case {path_helper, event} do
       {{module, function, args}, nil}
       when is_atom(module) and is_atom(function) and is_list(args) ->
@@ -379,7 +352,35 @@ defmodule Flop.Phoenix.Pagination do
         :ok
 
       _ ->
-        raise @path_helper_error
+        raise ArgumentError, """
+        the :path_helper or :event option is required when rendering pagination
+
+        The :path_helper value can be a {module, function_name, args} tuple or a
+        {function, args} tuple.
+
+        The :event value needs to be a string.
+
+        ## Example
+
+            <Flop.Phoenix.pagination
+              meta={@meta}
+              path_helper={{Routes, :pet_path, [@socket, :index]}}
+            />
+
+        or
+
+            <Flop.Phoenix.pagination
+              meta={@meta}
+              path_helper={{&Routes.pet_path/3, [@socket, :index]}}
+            />
+
+        or
+
+            <Flop.Phoenix.pagination
+              meta={@meta}
+              event="paginate"
+            />
+        """
     end
   end
 end

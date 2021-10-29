@@ -20,36 +20,6 @@ defmodule Flop.Phoenix.Table do
       </Flop.Phoenix.table>
   """
 
-  @path_helper_error """
-  Flop.Phoenix.table/1 requires either the `path_helper` assign or the `event`
-  assign to be set. The `path_helper` needs to be passed either as a
-  `{module, function_name, args}` tuple or a `{function, args}` tuple.
-
-  ## Example
-
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
-      >
-
-  or
-
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path_helper={{&Routes.pet_path/3, [@socket, :index]}}
-      >
-
-  or
-
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        event="sort-table"
-      >
-  """
-
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -82,10 +52,7 @@ defmodule Flop.Phoenix.Table do
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
-    ensure_col(assigns)
-    ensure_items(assigns)
-    ensure_meta(assigns)
-    ensure_path_helper_or_event(assigns)
+    validate_assigns!(assigns)
     assigns
   end
 
@@ -231,20 +198,30 @@ defmodule Flop.Phoenix.Table do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
 
-  defp ensure_col(assigns) do
+  defp validate_assigns!(assigns) do
+    validate_col!(assigns)
+    validate_items!(assigns)
+    validate_meta!(assigns)
+    validate_path_helper_or_event!(assigns)
+  end
+
+  defp validate_col!(assigns) do
     unless assigns[:col] do
-      raise """
-      You need to add at least one `<:col>` when rendering Flop.Phoenix.table/1.
+      raise ArgumentError, """
+      the :col slot is required when rendering a table
+
+      Add at least one <:col> tag with a label.
 
       #{@example}
       """
     end
   end
 
-  defp ensure_items(assigns) do
+  defp validate_items!(assigns) do
     unless assigns[:items] do
-      raise """
-      You need to set the `items` assign when rendering Flop.Phoenix.table/1.
+      raise ArgumentError, """
+      the :items option is required when rendering a table
+
       The value is the query result list. Each item in the list results in one
       table row.
 
@@ -253,18 +230,19 @@ defmodule Flop.Phoenix.Table do
     end
   end
 
-  defp ensure_meta(assigns) do
+  defp validate_meta!(assigns) do
     unless assigns[:meta] do
-      raise """
-      You need to set the `meta` assign when rendering Flop.Phoenix.table/1. The
-      value is the `Flop.Meta` struct returned by Flop.
+      raise ArgumentError, """
+      the :meta option is required when rendering a table
+
+      The value is the Flop.Meta struct returned by the query function.
 
       #{@example}
       """
     end
   end
 
-  defp ensure_path_helper_or_event(%{
+  defp validate_path_helper_or_event!(%{
          path_helper: path_helper,
          event: event
        }) do
@@ -280,7 +258,38 @@ defmodule Flop.Phoenix.Table do
         :ok
 
       _ ->
-        raise @path_helper_error
+        raise ArgumentError, """
+        the :path_helper or :event option is required when rendering a table
+
+        The :path_helper value can be a {module, function_name, args} tuple or a
+        {function, args} tuple.
+
+        The :event value needs to be a string.
+
+        ## Examples
+
+            <Flop.Phoenix.table
+              items={@pets}
+              meta={@meta}
+              path_helper={{Routes, :pet_path, [@socket, :index]}}
+            >
+
+        or
+
+            <Flop.Phoenix.table
+              items={@pets}
+              meta={@meta}
+              path_helper={{&Routes.pet_path/3, [@socket, :index]}}
+            >
+
+        or
+
+            <Flop.Phoenix.table
+              items={@pets}
+              meta={@meta}
+              event="sort-table"
+            >
+        """
     end
   end
 end

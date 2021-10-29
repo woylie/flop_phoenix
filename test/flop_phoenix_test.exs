@@ -614,12 +614,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path helper nor event are passed" do
-      assert_raise RuntimeError, fn ->
-        render_component(&pagination/1,
-          __changed__: nil,
-          meta: build(:meta_on_second_page)
-        )
-      end
+      assert_raise ArgumentError,
+                   ~r/^the :path_helper or :event option is required/,
+                   fn ->
+                     render_component(&pagination/1,
+                       __changed__: nil,
+                       meta: build(:meta_on_second_page)
+                     )
+                   end
     end
 
     test "adds filter parameters to links" do
@@ -1190,8 +1192,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if no cols are passed" do
-      assert_raise RuntimeError,
-                   ~r/^You need to add at least one `<:col>`/,
+      assert_raise ArgumentError,
+                   ~r/^the :col slot is required when rendering a table/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
@@ -1203,8 +1205,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if no items are passed" do
-      assert_raise RuntimeError,
-                   ~r/^You need to set the `items` assign/,
+      assert_raise ArgumentError,
+                   ~r/^the :items option is required when rendering a table/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
@@ -1216,8 +1218,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if no meta is passed" do
-      assert_raise RuntimeError,
-                   ~r/^You need to set the `meta` assign/,
+      assert_raise ArgumentError,
+                   ~r/^the :meta option is required when rendering a table/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
@@ -1229,8 +1231,8 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path helper nor event are passed" do
-      assert_raise RuntimeError,
-                   ~r/^Flop.Phoenix.table\/1 requires either the `path_helper`/,
+      assert_raise ArgumentError,
+                   ~r/^the :path_helper or :event option is required/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
