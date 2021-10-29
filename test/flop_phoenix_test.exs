@@ -73,7 +73,7 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_footer(assigns) do
+  defp test_table_with_foot(assigns) do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
@@ -81,9 +81,9 @@ defmodule Flop.PhoenixTest do
       meta={%Flop.Meta{flop: %Flop{}}}
     >
       <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:footer>
+      <:foot>
         <tr><td>snap</td></tr>
-      </:footer>
+      </:foot>
     </Flop.Phoenix.table>
     """
   end
@@ -1132,8 +1132,8 @@ defmodule Flop.PhoenixTest do
              ) == [{"div", [], ["Nothing!"]}]
     end
 
-    test "renders table footer" do
-      html = render_table([], &test_table_with_footer/1)
+    test "renders table foot" do
+      html = render_table([], &test_table_with_foot/1)
 
       assert [
                {"table", [{"class", "sortable-table"}],
@@ -1145,7 +1145,7 @@ defmodule Flop.PhoenixTest do
              ] = html
     end
 
-    test "does not render table footer if option is not set" do
+    test "does not render table foot if option is not set" do
       html = render_table()
 
       assert [

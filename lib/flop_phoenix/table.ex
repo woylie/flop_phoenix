@@ -34,7 +34,7 @@ defmodule Flop.Phoenix.Table do
     assigns =
       assigns
       |> assign_new(:event, fn -> nil end)
-      |> assign_new(:footer, fn -> nil end)
+      |> assign_new(:foot, fn -> nil end)
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:path_helper_args, fn -> nil end)
@@ -103,10 +103,8 @@ defmodule Flop.Phoenix.Table do
           </tr>
         <% end %>
       </tbody>
-      <%= if @footer do %>
-        <tfoot>
-          <%= render_slot(@footer) %>
-        </tfoot>
+      <%= if @foot do %>
+        <tfoot><%= render_slot(@foot) %></tfoot>
       <% end %>
     </table>
     """

@@ -345,17 +345,13 @@ defmodule Flop.Phoenix do
   - `label` - The content for the header column.
   - `field` (optional) - The field name for sorting.
 
-  ## Footer
+  ## Foot slot
 
-  You can optionally add a `footer`. The inner block will be rendered inside
+  You can optionally add a `foot`. The inner block will be rendered inside
   a `tfoot` element.
 
-      def table_footer(total) do
-        ["", "Total: ", content_tag(:span, total, class: "total")]
-      end
-
       <Flop.Phoenix.table>
-        <:footer>
+        <:foot>
           <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
         </:foot>
       </Flop.Phoenix.table>
@@ -376,7 +372,7 @@ defmodule Flop.Phoenix do
         <div {@opts[:container_attrs]}>
           <Table.render
             col={@col}
-            footer={@footer}
+            foot={@foot}
             for={@for}
             event={@event}
             items={@items}
@@ -390,7 +386,7 @@ defmodule Flop.Phoenix do
       <% else %>
         <Table.render
           col={@col}
-          footer={@footer}
+          foot={@foot}
           for={@for}
           event={@event}
           items={@items}

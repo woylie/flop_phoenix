@@ -38,12 +38,12 @@ After:
   <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
   <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
 
-  <:footer>
+  <:foot>
     <tr>
       <td></td>
       <td><%= @average_age %></td>
     </tr>
-  </:footer>
+  </:foot>
 </Flop.Phoenix.table>
 ```
 
@@ -154,7 +154,7 @@ To this:
 
 ### Added
 
-- Add table footer option for sortable table.
+- Add table foot option for sortable table.
 
 ## [0.8.1] - 2021-08-11
 
