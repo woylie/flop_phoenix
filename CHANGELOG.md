@@ -7,12 +7,11 @@
 - The `path_helper_args` assign has been removed in favor of passing mfa
   tuples as `path_helper`.
 - In the same vein, `Flop.Phoenix.build_path/4` has been replaced with
-  `Flop.Phoenix.build_path/3`, which also takes a tuple as the first argument
-  now.
+  `Flop.Phoenix.build_path/3`, which also takes a tuple as the first argument.
 - The table component has been changed to use slots. The `headers`,
   `footer`, `row_func` and `row_opts` assigns have been removed. Also, the
   `tfoot_td_attrs` and `tfoot_th_attrs` options have been removed.
-- This version requires `live_view` `~> 0.17.0`.
+- The `live_view` version requirement has been changed to `~> 0.17.0`.
 
 ### How to upgrade
 
@@ -31,7 +30,7 @@ If you prefer, you can pass a function instead.
 + path_helper={{&Routes.pet_path/3, [@socket, :index]}}
 ```
 
-Update any calls to `Flop.build_path/4`:
+Update any calls to `Flop.Phoenix.build_path/4`:
 
 ```diff
 - Flop.Phoenix.build_path(&Routes.pet_path/3, [@socket, :index], meta)
