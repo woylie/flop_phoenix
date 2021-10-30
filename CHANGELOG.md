@@ -70,7 +70,6 @@ Finally, update the tables in your templates:
 +        <td><%= @average_age %></td>
 +      </tr>
 +    </:foot>
-+ >
 + </Flop.Phoenix.table>
 ```
 
