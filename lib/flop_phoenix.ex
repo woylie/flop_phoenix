@@ -74,8 +74,9 @@ defmodule Flop.Phoenix do
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
   which will be ignored outside of LiveViews and LiveComponents.
 
-  When used in LiveView templates, you will need to handle the new params in the
-  `handle_params/3` callback of your LiveView module.
+  When used within a LiveView or LiveComponent, you will need to handle the new
+  params in the `c:Phoenix.LiveView.handle_params/3` callback of your LiveView
+  module.
 
   ## Event-Based Pagination and Sorting
 
@@ -84,7 +85,7 @@ defmodule Flop.Phoenix do
   generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
 
   You can set a different target by assigning a `:target`. The value
-  will be used in the `phx-target` attribute.
+  will be used as the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
         for={MyApp.Pet}
@@ -93,9 +94,10 @@ defmodule Flop.Phoenix do
         target={@myself}
       />
 
-  You will need to handle the event in the `handle_event/3` callback of your
-  LiveView module. The event name will be the one you set with the `:event`
-  option.
+  You will need to handle the event in the `c:Phoenix.LiveView.handle_event/3`
+  or `c:Phoenix.LiveComponent.handle_event/3` callback of your
+  LiveView or LiveComponent module. The event name will be the one you set with
+  the `:event` option.
 
       def handle_event("paginate-pets", %{"page" => page}, socket) do
         flop = Flop.set_page(socket.assigns.meta.flop, page)
@@ -221,6 +223,14 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a pagination element.
 
+  ## Example
+
+      <Flop.Phoenix.pagination
+        for={MyApp.Pet}
+        meta={@meta}
+        path_helper={{Routes, :pet_path, [@socket, :index]}}
+      />
+
   ## Assigns
 
   - `meta` - The meta information of the query as returned by the `Flop` query
@@ -233,7 +243,6 @@ defmodule Flop.Phoenix do
     attribute.
   - `for` (optional) - The schema module deriving `Flop.Schema`. If set,
     `Flop.Phoenix` will remove default parameters from the query parameters.
-
   - `target` (optional) - Sets the `phx-target` attribute for the pagination
     links.
   - `opts` (optional) - Options to customize the pagination. See
@@ -267,8 +276,6 @@ defmodule Flop.Phoenix do
   By default, the previous and next links contain the texts `Previous` and
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
-
-  See the module documentation and [Readme](README.md) for examples.
   """
   @doc section: :generators
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
@@ -352,8 +359,6 @@ defmodule Flop.Phoenix do
           <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
         </:foot>
       </Flop.Phoenix.table>
-
-  See the module documentation and [Readme](README.md) for more examples.
   """
   @doc since: "0.6.0"
   @doc section: :generators
