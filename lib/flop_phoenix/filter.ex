@@ -136,13 +136,19 @@ defmodule Flop.Phoenix.Filter do
     assign(assigns, :input_helper, input_helper_from_using(using))
   end
 
-  defp input_helper_from_using(using) when is_function(using, 3), do: using
-  defp input_helper_from_using(:text_input), do: &text_input/3
-  defp input_helper_from_using(:number_input), do: &number_input/3
-  defp input_helper_from_using(:checkbox), do: &checkbox/3
-  defp input_helper_from_using(:date_input), do: &date_select/3
-  defp input_helper_from_using(:time_input), do: &time_select/3
-  defp input_helper_from_using(:datetime_input), do: &datetime_select/3
+  defp input_helper_from_using(using) do
+    cond do
+      is_function(using, 3) ->
+        using
+
+      is_atom(using) && function_exported?(Phoenix.HTML.Form, using, 3) ->
+        Function.capture(Phoenix.HTML.Form, using, 3)
+
+      true ->
+        # TODO
+        raise("unknown using #{using}")
+    end
+  end
 
   defp assign_op_selectable_from(%{op_selectable: false} = assigns), do: assigns
 
