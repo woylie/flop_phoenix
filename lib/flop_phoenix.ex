@@ -157,7 +157,9 @@ defmodule Flop.Phoenix do
   import Phoenix.LiveView.Helpers
 
   alias Flop.Meta
-  alias Flop.Phoenix.{Filter, Pagination, Table}
+  alias Flop.Phoenix.Filter
+  alias Flop.Phoenix.Pagination
+  alias Flop.Phoenix.Table
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
