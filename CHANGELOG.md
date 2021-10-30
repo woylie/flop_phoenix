@@ -120,52 +120,36 @@ def table_row(%Pet{id: id, name: name}, opts) do
 end
 ```
 
-Change this:
+Update your template like this:
 
-```elixir
+```diff
 <Flop.Phoenix.sortable_table
   row_func={&table_row/2}
-  opts={[
-    container: true,
-    for: Pet,
-    event: "sort-table",
-    target: @myself,
-    socket: @socket
-  ]}
-  ...
+-   opts={[
+-     container: true,
+-     for: Pet,
+-     event: "sort-table",
+-     target: @myself,
+-     socket: @socket
+-   ]}
++   row_opts={[socket: @socket]}
++   for={Pet}
++   event="sort-table"
++   target={@myself}
++   opts={[container: true]}
 />
 
 <Flop.Phoenix.pagination
-  row_func={&table_row/2}
-  opts={[
-    for: Pet,
-    event: "sort-table",
-    target: @myself,
-    page_links: {:ellipsis, 7}
-  ]}
-  ...
-/>
-```
-
-To this:
-
-```elixir
-<Flop.Phoenix.sortable_table
-  for={Pet}
-  event="sort-table"
-  target={@myself}
-  row_func={&table_row/2}
-  row_opts={[socket: @socket]}
-  opts={[container: true]}
-  ...
-/>
-
-<Flop.Phoenix.pagination
-  for={Pet}
-  event="sort-table"
-  target={@myself}
-  opts={[page_links: {:ellipsis, 7}]}
-  ...
+-   opts={[
+-     for: Pet,
+-     event: "paginate",
+-     target: @myself,
+-     page_links: {:ellipsis, 7}
+-   ]}
++   for={Pet}
++   event="paginate"
++   target={@myself}
++   opts={[page_links: {:ellipsis, 7}]}
 />
 ```
 
