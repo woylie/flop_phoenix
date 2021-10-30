@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.11.0] - 2021-10-30
+
 ### Changed
 
 - The `path_helper_args` assign has been removed in favor of passing mfa
