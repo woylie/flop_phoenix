@@ -61,15 +61,15 @@ Finally, update the tables in your templates:
 -   footer={["", @average_age]}
 - />
 + >
-+    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-+    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
++   <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
++   <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
 
-+    <:foot>
-+      <tr>
-+        <td></td>
-+        <td><%= @average_age %></td>
-+      </tr>
-+    </:foot>
++   <:foot>
++     <tr>
++       <td></td>
++       <td><%= @average_age %></td>
++     </tr>
++   </:foot>
 + </Flop.Phoenix.table>
 ```
 
