@@ -469,38 +469,6 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
-  Generates a filter input for a field.
-
-  ## Assigns
-
-  - `form` - `t:Phoenix.HTML.FormData`
-  - `label` (optional) - label to display, defaults to field name
-  - `using` - helper to render primary input field
-  - `op_selectable` (optional) - defines whether operation can be selected from
-    list, defaults to `false`
-  - `op_selectable_from` (optional) - list of `t:Flop.Filter.op` operations to
-    choose from
-  """
-  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
-  def filter_input(assigns) do
-    assigns = Filter.init_input_assigns(assigns)
-
-    ~H"""
-    <div>
-      <%= hidden_input @form, :field %>
-      <%= if @op_selectable do %>
-      <%= select @form, :op, @op_selectable_from %>
-      <% else %>
-      <%= hidden_input @form, :op %>
-      <% end %>
-
-      <%= label @form, :value, assigns[:label] || input_value(@form, :field) %>
-      <%= @input_helper.(@form, :value, []) %>
-    </div>
-    """
-  end
-
-  @doc """
   Generates a set of filter input elements.
 
   ## Assigns
@@ -510,22 +478,36 @@ defmodule Flop.Phoenix do
   - `for`
   - `meta`
 
+  ## Fields
+
+  The `fields` assign defines a list of fields for which to generate input elements for. Fields
+  are given as atoms or `{atom, keyword}` tuples, where the atom is the field name. Fields need
+  to be marked as filterable in the `Flop.Schema` given in the `for` assign.
+
   ## Field options
 
-  - `default_op` pre-selected filter operation
-  - `label` will be passed to `filter_input/1`
-  - `using` will be passed to `filter_input/1`
-  - `op_selectable` will be passed to `filter_input/1`
-  - `op_selectable_from` will be passed to `filter_input/1`
+  All of these are optional.
+
+  - `label` - label to display, defaults to field name
+  - `op` - which operation to apply to this filter
+  - `using` - which input helper to use for the primary input field
+
+  ### Field operation
+
+  The `op` option to a field defines which operations may be applied to a filter field. It can
+  assume the following values:
+
+  - not set - the operation is the default operation (depending on the type of the field)
+  - single value - the operation is the given operation
+  - multiple values - a select box is rendered to choose between the given operations
   """
-  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
+  @spec filter_inputs_for(map) :: Phoenix.LiveView.Rendered.t()
   def filter_inputs_for(assigns) do
     assigns = Filter.init_inputs_for_assigns(assigns)
 
     ~H"""
-    <%= inputs_for @form, :filters, [as: :filters, default: @default], fn f -> %>
-      <% input_assigns = Map.fetch!(@input_assigns, input_value(f, :field)) %>
-      <.filter_input form={f} {input_assigns} />
+    <%= inputs_for @form, :filters, Filter.inputs_for_opts(@meta, @fields), fn f -> %>
+      <Filter.render_input form={f} {Filter.field_opts(f, @fields)} />
     <% end %>
     """
   end

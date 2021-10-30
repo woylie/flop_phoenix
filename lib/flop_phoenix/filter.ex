@@ -4,19 +4,27 @@ defmodule Flop.Phoenix.Filter do
   use Phoenix.Component
   use Phoenix.HTML
 
+  @default_using_by_type %{
+    integer: :number_input,
+    float: :number_input,
+    decimal: :number_input,
+    boolean: :checkbox,
+    date: :date_select,
+    time: :time_select,
+    time_usec: :time_select,
+    naive_datetime: :datetime_select,
+    naive_datetime_usec: :datetime_select,
+    utc_datetime: :datetime_select,
+    utc_datetime_usrc: :datetime_select
+  }
+
   @spec init_inputs_for_assigns(map) :: map
   def init_inputs_for_assigns(assigns) do
-    assigns
-    |> expand_fields()
-    |> assign_default()
-    |> assign_input_assigns()
+    expand_fields(assigns)
   end
 
   defp expand_fields(%{fields: fields, for: schema} = assigns) do
-    fields =
-      fields
-      |> Enum.map(&expand_field(&1, schema))
-      |> Map.new()
+    fields = Enum.map(fields, &expand_field(&1, schema))
 
     assign(assigns, :fields, fields)
   end
@@ -42,98 +50,70 @@ defmodule Flop.Phoenix.Filter do
 
     field_opts =
       field_opts
-      |> Keyword.put_new_lazy(:using, fn -> default_input(field_type) end)
-      |> Keyword.put_new_lazy(:default_op, fn -> default_op(field_type) end)
+      |> Keyword.put_new(:label, field)
+      |> Keyword.put_new(:op, :==)
+      |> Keyword.put_new_lazy(:using, fn ->
+        Map.get(@default_using_by_type, field_type, :text_input)
+      end)
 
     {field, field_opts}
   end
 
-  defp default_input(type) when type in [:id, :binary_id, :string, :binary],
-    do: :text_input
-
-  defp default_input(type) when type in [:integer, :float, :decimal],
-    do: :number_input
-
-  defp default_input(:boolean), do: :checkbox
-  defp default_input(:date), do: :date_input
-  defp default_input(type) when type in [:time, :time_usec], do: :time_input
-
-  defp default_input(type)
-       when type in [
-              :naive_datetime,
-              :naive_datetime_usec,
-              :utc_datetime,
-              :utc_datetime_usec
-            ],
-       do: :datetime_input
-
-  defp default_input(type),
-    do: raise("unsupported filter field type '#{inspect(type)}'")
-
-  defp default_op(type)
-       when type in [
-              :id,
-              :binary_id,
-              :integer,
-              :float,
-              :decimal,
-              :boolean,
-              :date,
-              :time,
-              :time_usec,
-              :naive_datetime,
-              :naive_datetime_sec,
-              :utc_datetime,
-              :utc_datetime_usec
-            ],
-       do: :==
-
-  defp default_op(type) when type in [:string, :binary], do: :ilike
-
-  defp default_op(type),
-    do: raise("unsupported filter field type '#{inspect(type)}'")
-
-  defp assign_default(%{fields: fields, meta: meta} = assigns) do
+  @spec inputs_for_opts(Flop.Meta.t(), [map]) :: keyword
+  def inputs_for_opts(meta, fields) do
     default =
       Enum.map(fields, fn {field, field_opts} ->
         %{
           field: field,
-          op: Keyword.fetch!(field_opts, :default_op),
-          value: current_value(meta, field)
+          op: from_current_filter(meta, field, :op) || default_op(field_opts),
+          value: from_current_filter(meta, field, :value)
         }
       end)
 
-    assign(assigns, :default, default)
+    [as: :filters, default: default]
   end
 
-  defp current_value(meta, field) do
+  defp from_current_filter(meta, field, key) do
     if filter = Enum.find(meta.flop.filters, &(&1.field == field)) do
-      filter.value
+      Map.fetch!(filter, key)
     end
   end
 
-  defp assign_input_assigns(%{fields: fields} = assigns) do
-    input_assigns =
-      Map.new(fields, fn {field, field_opts} ->
-        {field,
-         field_opts
-         |> Keyword.take([:label, :using, :op_selectable, :op_selectable_from])
-         |> Map.new()}
-      end)
-
-    assign(assigns, :input_assigns, input_assigns)
+  defp default_op(field_opts) do
+    case Keyword.fetch!(field_opts, :op) do
+      [op] -> op
+      [_ | _] -> nil
+      op -> op
+    end
   end
 
-  @spec init_input_assigns(map) :: map
-  def init_input_assigns(assigns) do
-    assigns
-    |> assign_input_helper()
-    |> assign_new(:op_selectable, fn -> false end)
-    |> assign_op_selectable_from()
+  @spec field_opts(Phoenix.HTML.Form.t(), [map]) :: map
+  def field_opts(form, fields) do
+    field = input_value(form, :field)
+
+    fields
+    |> Keyword.fetch!(field)
+    |> Map.new()
   end
 
-  defp assign_input_helper(%{using: using} = assigns) do
-    assign(assigns, :input_helper, input_helper_from_using(using))
+  @spec render_input(map) :: Phoenix.LiveView.Rendered.t()
+  def render_input(assigns) do
+    ~H"""
+    <div>
+      <%= hidden_input @form, :field %>
+
+      <%= case @op do %>
+        <% op when is_list(op) -> %>
+          <%= select @form, :op, @op %>
+
+        <% _op -> %>
+          <%= hidden_input @form, :op %>
+      <% end %>
+
+      <%= label @form, :value, @label %>
+      <%= input_helper_from_using(@using).(@form, :value, []) %>
+    </div>
+    """
   end
 
   defp input_helper_from_using(using) do
@@ -145,43 +125,11 @@ defmodule Flop.Phoenix.Filter do
         Function.capture(Phoenix.HTML.Form, using, 3)
 
       true ->
-        # TODO
-        raise("unknown using #{using}")
+        raise("""
+        unknown using option: #{inspect(using)}
+
+        TODO
+        """)
     end
-  end
-
-  defp assign_op_selectable_from(%{op_selectable: false} = assigns), do: assigns
-
-  defp assign_op_selectable_from(%{op_selectable_from: _list} = assigns),
-    do: assigns
-
-  defp assign_op_selectable_from(assigns) do
-    assign(assigns, :op_selectable_from, default_op_selectable_from())
-  end
-
-  defp default_op_selectable_from do
-    # TODO: For a sensible preselection we need the type again here.
-    # But I tried to keep `filter_input` agnostic of the type (no `for` assign).
-    # Overall it's a bit of a conflict between the `default` injection into `inputs_for` and the
-    # desire to make such decisions (e.g. the "default op") closer to where it is used, i.e.
-    # in `filter_input`... Not sure
-    [
-      :==,
-      :!=,
-      :=~,
-      :empty,
-      :not_empty,
-      :<=,
-      :<,
-      :>=,
-      :>,
-      :in,
-      :like,
-      :like_and,
-      :like_or,
-      :ilike,
-      :ilike_and,
-      :ilike_or
-    ]
   end
 end
