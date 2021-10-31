@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.11.1] - 2021-10-31
+
 ### Added
 
 - Adds `hide` and `show` options to table `:col`.
