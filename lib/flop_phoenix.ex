@@ -348,6 +348,10 @@ defmodule Flop.Phoenix do
 
   - `label` - The content for the header column.
   - `field` (optional) - The field name for sorting.
+  - `show` (optional) - Boolean value to conditionally show the column. Defaults
+    to `true`.
+  - `hide` (optional) - Boolean value to conditionally hide the column. Defaults
+    to `false`.
 
   ## Foot slot
 

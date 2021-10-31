@@ -50,6 +50,8 @@ defmodule Flop.PhoenixTest do
       end)
       |> assign_new(:opts, fn -> [] end)
       |> assign_new(:target, fn -> nil end)
+      |> assign_new(:hide_age, fn -> false end)
+      |> assign_new(:show_age, fn -> true end)
 
     ~H"""
     <Flop.Phoenix.table
@@ -63,7 +65,9 @@ defmodule Flop.PhoenixTest do
     >
       <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
       <:col let={pet} label="Email" field={:email}><%= pet.email %></:col>
-      <:col let={pet} label="Age"><%= pet.age %></:col>
+      <:col let={pet} label="Age" hide={@hide_age} show={@show_age}>
+        <%= pet.age %>
+      </:col>
       <:col let={pet} label="Species" field={:species}><%= pet.species %></:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
@@ -935,6 +939,28 @@ defmodule Flop.PhoenixTest do
       html = render_table()
       assert [th] = Floki.find(html, "th:fl-contains('Age')")
       assert Floki.children(th, include_text: false) == []
+    end
+
+    test "conditionally hides a column" do
+      html = render_table()
+      assert [_] = Floki.find(html, "th:fl-contains('Age')")
+      assert [_] = Floki.find(html, "td:fl-contains('8')")
+
+      html = render_table(hide_age: false, show_age: true)
+      assert [_] = Floki.find(html, "th:fl-contains('Age')")
+      assert [_] = Floki.find(html, "td:fl-contains('8')")
+
+      html = render_table(hide_age: true, show_age: true)
+      assert [] = Floki.find(html, "th:fl-contains('Age')")
+      assert [] = Floki.find(html, "td:fl-contains('8')")
+
+      html = render_table(hide_age: false, show_age: false)
+      assert [] = Floki.find(html, "th:fl-contains('Age')")
+      assert [] = Floki.find(html, "td:fl-contains('8')")
+
+      html = render_table(hide_age: true, show_age: false)
+      assert [] = Floki.find(html, "th:fl-contains('Age')")
+      assert [] = Floki.find(html, "td:fl-contains('8')")
     end
 
     test "displays headers with sorting function" do
