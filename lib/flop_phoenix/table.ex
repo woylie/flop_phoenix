@@ -73,7 +73,7 @@ defmodule Flop.Phoenix.Table do
               field={col[:field]}
               flop={@meta.flop}
               for={@for}
-              label={col.label}
+              label={col[:label]}
               opts={@opts}
               path_helper={@path_helper}
               target={@target}

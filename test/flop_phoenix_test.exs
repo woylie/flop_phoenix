@@ -65,6 +65,7 @@ defmodule Flop.PhoenixTest do
       <:col let={pet} label="Email" field={:email}><%= pet.email %></:col>
       <:col let={pet} label="Age"><%= pet.age %></:col>
       <:col let={pet} label="Species" field={:species}><%= pet.species %></:col>
+      <:col>column without label</:col>
     </Flop.Phoenix.table>
     """
   end
@@ -921,9 +922,9 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [_] = Floki.find(html, "tr.mungo")
-      assert [_, _, _, _] = Floki.find(html, "th.bean")
+      assert [_, _, _, _, _] = Floki.find(html, "th.bean")
       assert [_] = Floki.find(html, "tr.salt")
-      assert [_, _, _, _] = Floki.find(html, "td.tolerance")
+      assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
     end
 
     test "doesn't render table if items list is empty" do
@@ -975,7 +976,7 @@ defmodule Flop.PhoenixTest do
           }
         )
 
-      assert [th_name, th_email, th_age, th_species] = Floki.find(html, "th")
+      assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == []
       assert Floki.attribute(th_email, "aria-sort") == ["ascending"]
       assert Floki.attribute(th_age, "aria-sort") == []
@@ -991,7 +992,7 @@ defmodule Flop.PhoenixTest do
           }
         )
 
-      assert [th_name, th_email, th_age, th_species] = Floki.find(html, "th")
+      assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == ["descending"]
       assert Floki.attribute(th_email, "aria-sort") == []
       assert Floki.attribute(th_age, "aria-sort") == []
@@ -1002,7 +1003,7 @@ defmodule Flop.PhoenixTest do
           meta: %Flop.Meta{flop: %Flop{order_by: [], order_directions: []}}
         )
 
-      assert [th_name, th_email, th_age, th_species] = Floki.find(html, "th")
+      assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == []
       assert Floki.attribute(th_email, "aria-sort") == []
       assert Floki.attribute(th_age, "aria-sort") == []
