@@ -8,6 +8,8 @@ defmodule Flop.Phoenix.Table do
 
   alias Flop.Phoenix.Misc
 
+  require Logger
+
   @example """
   ## Example
 
@@ -47,10 +49,16 @@ defmodule Flop.Phoenix.Table do
       assigns
       |> assign_new(:event, fn -> nil end)
       |> assign_new(:foot, fn -> nil end)
-      |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
+
+    if assigns[:for] do
+      Logger.warn(
+        "The :for option is deprecated. The schema is automatically derived " <>
+          "from the Flop.Meta struct."
+      )
+    end
 
     validate_assigns!(assigns)
     assigns
@@ -72,9 +80,8 @@ defmodule Flop.Phoenix.Table do
               <.header_column
                 event={@event}
                 field={col[:field]}
-                flop={@meta.flop}
-                for={@for}
                 label={col[:label]}
+                meta={@meta}
                 opts={@opts}
                 path_helper={@path_helper}
                 target={@target}
@@ -106,8 +113,8 @@ defmodule Flop.Phoenix.Table do
   defp show_column?(_), do: true
 
   defp header_column(assigns) do
-    index = order_index(assigns.flop, assigns.field)
-    direction = order_direction(assigns.flop.order_directions, index)
+    index = order_index(assigns.meta.flop, assigns.field)
+    direction = order_direction(assigns.meta.flop.order_directions, index)
 
     assigns =
       assigns
@@ -115,7 +122,7 @@ defmodule Flop.Phoenix.Table do
       |> assign(:order_direction, direction)
 
     ~H"""
-    <%= if is_sortable?(@field, @for) do %>
+    <%= if is_sortable?(@field, @meta.schema) do %>
       <th
         {@opts[:thead_th_attrs]}
         aria-sort={aria_sort(@order_index, @order_direction)}
@@ -133,8 +140,8 @@ defmodule Flop.Phoenix.Table do
               to:
                 build_path(
                   @path_helper,
-                  Flop.push_order(@flop, @field),
-                  for: @for
+                  Flop.push_order(@meta.flop, @field),
+                  for: @meta.schema
                 )
             )
             %>
