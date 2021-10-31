@@ -81,7 +81,7 @@ defmodule Flop.Phoenix do
   ## Event-Based Pagination and Sorting
 
   To make `Flop.Phoenix` use event based pagination and sorting, you need to
-  assign the `:event` to the pagination and table generators. This will
+  assign the `:event` to the pagination and table components. This will
   generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
 
   You can set a different target by assigning a `:target`. The value
@@ -279,7 +279,7 @@ defmodule Flop.Phoenix do
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
   """
-  @doc section: :generators
+  @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
   def pagination(assigns) do
     assigns = Pagination.init_assigns(assigns)
@@ -370,7 +370,7 @@ defmodule Flop.Phoenix do
       </Flop.Phoenix.table>
   """
   @doc since: "0.6.0"
-  @doc section: :generators
+  @doc section: :components
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns = Table.init_assigns(assigns)
