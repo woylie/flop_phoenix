@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Adds `hide` and `show` options to table `:col`.
+
+### Changed
+
+- Passing a `label` to a table `:col` is now optional.
+
 ## [0.11.0] - 2021-10-30
 
 ### Changed

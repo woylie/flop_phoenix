@@ -68,16 +68,18 @@ defmodule Flop.Phoenix.Table do
       <thead>
         <tr {@opts[:thead_tr_attrs]}>
           <%= for col <- @col do %>
-            <.header_column
-              event={@event}
-              field={col[:field]}
-              flop={@meta.flop}
-              for={@for}
-              label={col.label}
-              opts={@opts}
-              path_helper={@path_helper}
-              target={@target}
-            />
+            <%= if show_column?(col) do %>
+              <.header_column
+                event={@event}
+                field={col[:field]}
+                flop={@meta.flop}
+                for={@for}
+                label={col[:label]}
+                opts={@opts}
+                path_helper={@path_helper}
+                target={@target}
+              />
+            <% end %>
           <% end %>
         </tr>
       </thead>
@@ -85,7 +87,9 @@ defmodule Flop.Phoenix.Table do
         <%= for item <- @items do %>
           <tr {@opts[:tbody_tr_attrs]}>
             <%= for col <- @col do %>
-              <td {@opts[:tbody_td_attrs]}><%= render_slot(col, item) %></td>
+              <%= if show_column?(col) do %>
+                <td {@opts[:tbody_td_attrs]}><%= render_slot(col, item) %></td>
+              <% end %>
             <% end %>
           </tr>
         <% end %>
@@ -97,7 +101,9 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  #
+  defp show_column?(%{hide: true}), do: false
+  defp show_column?(%{show: false}), do: false
+  defp show_column?(_), do: true
 
   defp header_column(assigns) do
     index = order_index(assigns.flop, assigns.field)
