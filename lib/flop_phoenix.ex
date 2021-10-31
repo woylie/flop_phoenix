@@ -182,7 +182,7 @@ defmodule Flop.Phoenix do
   - `:container_attrs` - The attributes for the table container.
     Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
   - `:no_results_content` - Any content that should be rendered if there are no
-    results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
+    results. Default: `<p>No results.</p>`.
   - `:table_attrs` - The attributes for the `<table>` element.
     Default: `#{inspect(Table.default_opts()[:table_attrs])}`.
   - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
