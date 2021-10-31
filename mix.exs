@@ -55,7 +55,7 @@ defmodule FlopPhoenix.MixProject do
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
       {:floki, "~> 0.32.0", only: :test},
-      {:flop, ">= 0.12.0"},
+      {:flop, github: "woylie/flop", branch: "main"},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:phoenix_live_view, "~> 0.17.0"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
@@ -86,7 +86,7 @@ defmodule FlopPhoenix.MixProject do
       extras: ["README.md"],
       source_ref: "main",
       groups_for_functions: [
-        Generators: &(&1[:section] == :generators),
+        Components: &(&1[:section] == :components),
         Miscellaneous: &(&1[:section] == :miscellaneous)
       ]
     ]

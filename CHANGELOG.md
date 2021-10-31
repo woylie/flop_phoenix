@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Remove `:for` option. The schema module is now automatically derived from the
+  meta struct.
+
 ## [0.11.1] - 2021-10-31
 
 ### Added

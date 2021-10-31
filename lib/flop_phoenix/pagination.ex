@@ -8,6 +8,8 @@ defmodule Flop.Phoenix.Pagination do
 
   alias Flop.Phoenix.Misc
 
+  require Logger
+
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
@@ -44,10 +46,16 @@ defmodule Flop.Phoenix.Pagination do
     assigns =
       assigns
       |> assign_new(:event, fn -> nil end)
-      |> assign_new(:for, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
+
+    if assigns[:for] do
+      Logger.warn(
+        "The :for option is deprecated. The schema is automatically derived " <>
+          "from the Flop.Meta struct."
+      )
+    end
 
     validate_path_helper_or_event!(assigns)
     assigns
@@ -259,8 +267,8 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(meta, path_helper, for) do
-    query_params = build_query_params(meta, for)
+  def build_page_link_helper(meta, path_helper) do
+    query_params = build_query_params(meta)
 
     fn page ->
       params = maybe_put_page(query_params, page)
@@ -268,10 +276,10 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  defp build_query_params(meta, for) do
+  defp build_query_params(meta) do
     meta.flop
     |> ensure_page_based_params()
-    |> Flop.Phoenix.to_query(for: for)
+    |> Flop.Phoenix.to_query(for: meta.schema)
   end
 
   @doc """

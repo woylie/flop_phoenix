@@ -3,6 +3,7 @@ defmodule Flop.PhoenixTest do
   use Phoenix.Component
   use Phoenix.HTML
 
+  import ExUnit.CaptureLog
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Phoenix.LiveViewTest
@@ -582,7 +583,6 @@ defmodule Flop.PhoenixTest do
     test "hides default order and limit" do
       html =
         render_pagination(
-          for: Pet,
           meta:
             build(
               :meta_on_second_page,
@@ -590,7 +590,8 @@ defmodule Flop.PhoenixTest do
                 page_size: 20,
                 order_by: [:name],
                 order_directions: [:asc]
-              }
+              },
+              schema: Pet
             )
         )
 
@@ -600,6 +601,12 @@ defmodule Flop.PhoenixTest do
       refute href =~ "page_size="
       refute href =~ "order_by[]="
       refute href =~ "order_directions[]="
+    end
+
+    test "logs error if :for option is passed" do
+      assert capture_log(fn ->
+               render_pagination(for: Pet, meta: build(:meta_on_first_page))
+             end) =~ "The :for option is deprecated"
     end
 
     test "does not require path_helper when passing event" do
@@ -1068,16 +1075,21 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "a:fl-contains('Species')")
 
       # with :for assign
-      html = render_table(for: Flop.Phoenix.Pet)
+      html = render_table(meta: %Flop.Meta{flop: %Flop{}, schema: Pet})
 
       assert [_] = Floki.find(html, "a:fl-contains('Name')")
       assert [] = Floki.find(html, "a:fl-contains('Species')")
     end
 
+    test "logs warning if :for option is passed" do
+      assert capture_log(fn ->
+               render_table(for: Pet)
+             end) =~ "The :for option is deprecated"
+    end
+
     test "hides default order and limit" do
       html =
         render_table(
-          for: Pet,
           meta:
             build(
               :meta_on_second_page,
@@ -1085,7 +1097,8 @@ defmodule Flop.PhoenixTest do
                 page_size: 20,
                 order_by: [:name],
                 order_directions: [:desc]
-              }
+              },
+              schema: Pet
             )
         )
 

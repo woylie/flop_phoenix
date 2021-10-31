@@ -81,14 +81,13 @@ defmodule Flop.Phoenix do
   ## Event-Based Pagination and Sorting
 
   To make `Flop.Phoenix` use event based pagination and sorting, you need to
-  assign the `:event` to the pagination and table generators. This will
+  assign the `:event` to the pagination and table components. This will
   generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
 
   You can set a different target by assigning a `:target`. The value
   will be used as the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
-        for={MyApp.Pet}
         meta={@meta}
         event="paginate-pets"
         target={@myself}
@@ -182,7 +181,7 @@ defmodule Flop.Phoenix do
   - `:container_attrs` - The attributes for the table container.
     Default: `#{inspect(Table.default_opts()[:container_attrs])}`.
   - `:no_results_content` - Any content that should be rendered if there are no
-    results. Default: `#{inspect(Table.default_opts()[:no_results_content])}`.
+    results. Default: `<p>No results.</p>`.
   - `:table_attrs` - The attributes for the `<table>` element.
     Default: `#{inspect(Table.default_opts()[:table_attrs])}`.
   - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
@@ -226,7 +225,6 @@ defmodule Flop.Phoenix do
   ## Example
 
       <Flop.Phoenix.pagination
-        for={MyApp.Pet}
         meta={@meta}
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       />
@@ -241,8 +239,6 @@ defmodule Flop.Phoenix do
     callback of the LiveView module.
   - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute.
-  - `for` (optional) - The schema module deriving `Flop.Schema`. If set,
-    `Flop.Phoenix` will remove default parameters from the query parameters.
   - `target` (optional) - Sets the `phx-target` attribute for the pagination
     links.
   - `opts` (optional) - Options to customize the pagination. See
@@ -251,6 +247,12 @@ defmodule Flop.Phoenix do
     likely be the same for all the tables in a project, so it probably makes
     sense to define them once in a function or set them in a wrapper function
     as described in the `Customization` section of the module documentation.
+
+  ## Hiding default parameters
+
+  If you pass the `for` option to the Flop query function, Flop Phoenix hides
+  the `order` and `page_size` parameters if they match the default values defined
+  with `Flop.Schema`.
 
   ## Page link options
 
@@ -277,7 +279,7 @@ defmodule Flop.Phoenix do
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
   """
-  @doc section: :generators
+  @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
   def pagination(assigns) do
     assigns = Pagination.init_assigns(assigns)
@@ -289,7 +291,7 @@ defmodule Flop.Phoenix do
         meta={@meta}
         opts={@opts}
         page_link_helper={
-          Pagination.build_page_link_helper(@meta, @path_helper, @for)
+          Pagination.build_page_link_helper(@meta, @path_helper)
         }
         target={@target}
       />
@@ -304,7 +306,6 @@ defmodule Flop.Phoenix do
 
   ```elixir
   <Flop.Phoenix.table
-    for={MyApp.Pet}
     items={@pets}
     meta={@meta}
     path_helper={{Routes, :pet_path, [@socket, :index]}}
@@ -325,9 +326,6 @@ defmodule Flop.Phoenix do
     callback of the LiveView module.
   - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute.
-  - `for` (optional) - The schema module deriving `Flop.Schema`. If set, header
-    links are only added for fields that are defined as sortable and query
-    parameters are hidden if they match the default order.
   - `event` (optional) - If set, `Flop.Phoenix` will render links with a
     `phx-click` attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the header links.
@@ -337,6 +335,13 @@ defmodule Flop.Phoenix do
     likely be the same for all the tables in a project, so it probably makes
     sense to define them once in a function or set them in a wrapper function
     as described in the `Customization` section of the module documentation.
+
+  ## Flop.Schema
+
+  If you pass the `for` option when making the query with Flop, Flop Phoenix can
+  determine which table columns are sortable. It also hides the `order` and
+  `page_size` parameters if they match the default values defined with
+  `Flop.Schema`.
 
   ## Col slot
 
@@ -365,7 +370,7 @@ defmodule Flop.Phoenix do
       </Flop.Phoenix.table>
   """
   @doc since: "0.6.0"
-  @doc section: :generators
+  @doc section: :components
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns = Table.init_assigns(assigns)
@@ -379,7 +384,6 @@ defmodule Flop.Phoenix do
           <Table.render
             col={@col}
             foot={@foot}
-            for={@for}
             event={@event}
             items={@items}
             meta={@meta}
@@ -392,7 +396,6 @@ defmodule Flop.Phoenix do
         <Table.render
           col={@col}
           foot={@foot}
-          for={@for}
           event={@event}
           items={@items}
           meta={@meta}

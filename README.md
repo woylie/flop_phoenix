@@ -81,7 +81,6 @@ In your template, add a sortable table and pagination links.
 <h1>Pets</h1>
 
 <Flop.Phoenix.table
-  for={MyApp.Pet}
   items={@pets}
   meta={@meta}
   path_helper={{Routes, :pet_path, [@socket, :index]}}
@@ -91,7 +90,6 @@ In your template, add a sortable table and pagination links.
 </Flop.Phoenix.table>
 
 <Flop.Phoenix.pagination
-  for={MyApp.Pet}
   meta={@meta}
   path_helper={{Routes, :pet_path, [@socket, :index]}}
 />
@@ -103,14 +101,14 @@ list.
 
 ```elixir
 <Flop.Phoenix.pagination
-  for={MyApp.Pet}
   meta={@meta}
   path_helper={{Routes, :pet_path, [@conn, :index, @owner, [hide_menu: true]]}}
 />
 ```
 
-The `for` option allows Flop Phoenix to determine which table columns are
-sortable. It also allows it to hide the `order` and `page_size`
-parameters if they match the default values defined with `Flop.Schema`.
+If you pass the `for` option when making the query with Flop, Flop Phoenix can
+determine which table columns are sortable. It also hides the `order` and
+`page_size` parameters if they match the default values defined with
+`Flop.Schema`.
 
 Refer to the `Flop.Phoenix` module documentation for more examples.
