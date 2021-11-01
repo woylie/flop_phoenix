@@ -1355,4 +1355,37 @@ defmodule Flop.PhoenixTest do
       refute Keyword.has_key?(query, :order_directions)
     end
   end
+
+  describe "filter_hidden_inputs_for/1" do
+    test "generates hidden fields from the given form" do
+      form = %{form_for(:form, "/") | hidden: [id: 1]}
+
+      assert filter_hidden_inputs_for(form) == [
+               hidden_input(form, :id, value: 1)
+             ]
+    end
+
+    test "generates hidden fields for lists from the given form" do
+      form = %{form_for(:a, "/") | hidden: [field: ["a", "b", "c"]]}
+
+      assert filter_hidden_inputs_for(form) ==
+               [
+                 hidden_input(form, :field,
+                   name: "a[field][]",
+                   id: "a_field_0",
+                   value: "a"
+                 ),
+                 hidden_input(form, :field,
+                   name: "a[field][]",
+                   id: "a_field_1",
+                   value: "b"
+                 ),
+                 hidden_input(form, :field,
+                   name: "a[field][]",
+                   id: "a_field_2",
+                   value: "c"
+                 )
+               ]
+    end
+  end
 end
