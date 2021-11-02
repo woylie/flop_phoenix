@@ -282,6 +282,50 @@ defmodule Flop.Phoenix.FormDataTest do
       assert [] = Floki.find(html, "input#flop_filters_2_field")
     end
 
+    test "with :fields and :op option" do
+      meta = build(:meta_on_first_page, flop: %Flop{filters: []})
+      opts = [fields: [:name, {:age, op: :>}]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            hidden_inputs_for(fo)
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input#flop_filters_1_op")
+      assert Floki.attribute(input, "value") == [">"]
+    end
+
+    test "with :fields and :default option" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: [%Filter{field: :age, op: :>=, value: 10}]}
+        )
+
+      opts = [fields: [{:name, default: "George"}, {:age, op: :>=, default: 8}]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["name"]
+      assert [input] = Floki.find(html, "input#flop_filters_0_value")
+      assert Floki.attribute(input, "value") == ["George"]
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input#flop_filters_1_value")
+      assert Floki.attribute(input, "value") == ["10"]
+    end
+
     test "with filters and :id option" do
       meta =
         build(:meta_on_first_page,
