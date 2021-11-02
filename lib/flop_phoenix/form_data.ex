@@ -39,7 +39,10 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     name = if form.name, do: form.name <> "[filters]", else: "filters"
     id = if id = id || form.id, do: to_string(id <> "_filters"), else: "filters"
 
-    filters = filters_for(flop, fields, default)
+    filters =
+      flop
+      |> filters_for(fields, default)
+      |> reject_unfilterable(meta.schema)
 
     for {filter, index} <- Enum.with_index(filters) do
       index_string = Integer.to_string(index)
@@ -92,6 +95,13 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   defp filter_reducer(field, acc, filters) when is_atom(field) do
     filter_reducer({field, []}, acc, filters)
+  end
+
+  defp reject_unfilterable(filters, nil), do: filters
+
+  defp reject_unfilterable(filters, schema) do
+    filterable = schema |> struct() |> Flop.Schema.filterable()
+    Enum.reject(filters, &(&1.field not in filterable))
   end
 
   defp no_unsupported_options!(opts) do
