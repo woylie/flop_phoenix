@@ -1,4 +1,5 @@
 defimpl Phoenix.HTML.FormData, for: Flop.Meta do
+  alias Flop.Filter
   alias Flop.Meta
   alias Flop.Phoenix.Misc
 
@@ -32,11 +33,13 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
     {id, opts} = Keyword.pop(opts, :id)
     {default, opts} = Keyword.pop(opts, :default, [])
+    {fields, opts} = Keyword.pop(opts, :fields)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
     name = if form.name, do: form.name <> "[filters]", else: "filters"
     id = if id = id || form.id, do: to_string(id <> "_filters"), else: "filters"
-    filters = if flop.filters == [], do: default, else: flop.filters
+
+    filters = filters_for(flop, fields, default)
 
     for {filter, index} <- Enum.with_index(filters) do
       index_string = Integer.to_string(index)
@@ -64,6 +67,23 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     raise ArgumentError,
           "Only :filters is supported on " <>
             "inputs_for with Flop.Meta, got: #{inspect(field)}."
+  end
+
+  defp filters_for(%Flop{filters: []}, nil, default), do: default
+  defp filters_for(%Flop{filters: filters}, nil, _), do: filters
+
+  defp filters_for(%Flop{filters: filters}, fields, _) when is_list(fields) do
+    fields
+    |> Enum.reduce([], &filter_reducer(&1, &2, filters))
+    |> Enum.reverse()
+  end
+
+  defp filter_reducer(field, acc, filters) when is_atom(field) do
+    if filter = Enum.find(filters, &(&1.field == field && &1.op == :==)) do
+      [filter | acc]
+    else
+      [%Filter{field: field} | acc]
+    end
   end
 
   defp no_unsupported_options!(opts) do
