@@ -1,5 +1,6 @@
 defimpl Phoenix.HTML.FormData, for: Flop.Meta do
-  import Flop.Phoenix.Misc, only: [maybe_put: 3]
+  alias Flop.Meta
+  alias Flop.Phoenix.Misc
 
   def to_form(meta, opts) do
     {name, opts} = name_and_opts(meta, opts)
@@ -11,7 +12,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     %Phoenix.HTML.Form{
       data: meta.flop,
       errors: errors,
-      hidden: hidden_inputs(meta.flop, hidden),
+      hidden: hidden_inputs(meta, hidden),
       id: id,
       impl: __MODULE__,
       name: name,
@@ -87,14 +88,16 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     end
   end
 
-  defp hidden_inputs(%Flop{} = flop, hidden) do
+  defp hidden_inputs(%Meta{flop: %Flop{} = flop, schema: schema}, hidden) do
+    default_limit = Flop.get_option(:default_limit, for: schema)
+    default_order = Flop.get_option(:default_order, for: schema)
+
     hidden
-    |> maybe_put(:order_by, flop.order_by)
-    |> maybe_put(:order_directions, flop.order_directions)
-    |> maybe_put(:page_size, flop.page_size)
-    |> maybe_put(:limit, flop.limit)
-    |> maybe_put(:first, flop.first)
-    |> maybe_put(:last, flop.last)
+    |> Misc.maybe_put(:page_size, flop.page_size, default_limit)
+    |> Misc.maybe_put(:limit, flop.limit, default_limit)
+    |> Misc.maybe_put(:first, flop.first, default_limit)
+    |> Misc.maybe_put(:last, flop.last, default_limit)
+    |> Misc.maybe_put_order_params(flop, default_order)
   end
 
   def input_type(_meta, _form, :after), do: :text_input

@@ -79,6 +79,26 @@ defmodule Flop.Phoenix.FormDataTest do
       %Form{hidden: [last: 25]} = form_for(meta, "/")
     end
 
+    test "omits hidden inputs if the value matches default" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{
+            first: 20,
+            last: 20,
+            limit: 20,
+            page_size: 20,
+            order_by: [:name],
+            order_directions: [:asc]
+          },
+          schema: Pet
+        )
+
+      form_to_html(meta, fn f ->
+        assert f.hidden == []
+        ""
+      end)
+    end
+
     test "with hidden inputs for order" do
       meta =
         build(:meta_on_first_page,

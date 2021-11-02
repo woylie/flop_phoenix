@@ -121,6 +121,7 @@ defmodule Flop.Phoenix do
   import Phoenix.LiveView.Helpers
 
   alias Flop.Meta
+  alias Flop.Phoenix.Misc
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
 
@@ -468,50 +469,20 @@ defmodule Flop.Phoenix do
         {index, Map.from_struct(filter)}
       end)
 
-    keys = [
-      :after,
-      :before,
-      :first,
-      :last,
-      :offset,
-      :page
-    ]
-
     default_limit = Flop.get_option(:default_limit, opts)
     default_order = Flop.get_option(:default_order, opts)
 
-    keys
-    |> Enum.reduce([], &maybe_add_param(&2, &1, Map.get(flop, &1)))
-    |> maybe_add_param(:page_size, flop.page_size, default_limit)
-    |> maybe_add_param(:limit, flop.limit, default_limit)
-    |> maybe_add_order_params(flop, default_order)
-    |> maybe_add_param(:filters, filter_map)
-  end
-
-  defp maybe_add_param(params, key, value, default \\ nil)
-  defp maybe_add_param(params, _, nil, _), do: params
-  defp maybe_add_param(params, _, [], _), do: params
-  defp maybe_add_param(params, _, map, _) when map == %{}, do: params
-  defp maybe_add_param(params, :page, 1, _), do: params
-  defp maybe_add_param(params, :offset, 0, _), do: params
-  defp maybe_add_param(params, _, val, val), do: params
-  defp maybe_add_param(params, key, val, _), do: Keyword.put(params, key, val)
-
-  defp maybe_add_order_params(
-         params,
-         %Flop{order_by: order_by, order_directions: order_directions},
-         %{order_by: order_by, order_directions: order_directions}
-       ),
-       do: params
-
-  defp maybe_add_order_params(
-         params,
-         %Flop{order_by: order_by, order_directions: order_directions},
-         _
-       ) do
-    params
-    |> maybe_add_param(:order_by, order_by)
-    |> maybe_add_param(:order_directions, order_directions)
+    []
+    |> Misc.maybe_put(:offset, flop.offset, 0)
+    |> Misc.maybe_put(:page, flop.page, 1)
+    |> Misc.maybe_put(:after, flop.after)
+    |> Misc.maybe_put(:before, flop.before)
+    |> Misc.maybe_put(:page_size, flop.page_size, default_limit)
+    |> Misc.maybe_put(:limit, flop.limit, default_limit)
+    |> Misc.maybe_put(:first, flop.first, default_limit)
+    |> Misc.maybe_put(:last, flop.last, default_limit)
+    |> Misc.maybe_put_order_params(flop, default_order)
+    |> Misc.maybe_put(:filters, filter_map)
   end
 
   @doc """
