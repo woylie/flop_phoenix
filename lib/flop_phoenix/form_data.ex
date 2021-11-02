@@ -32,14 +32,11 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
     {id, opts} = Keyword.pop(opts, :id)
     {default, opts} = Keyword.pop(opts, :default, [])
-    {prepend, opts} = Keyword.pop(opts, :prepend, [])
-    {append, opts} = Keyword.pop(opts, :append, [])
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
     name = if form.name, do: form.name <> "[filters]", else: "filters"
     id = if id = id || form.id, do: to_string(id <> "_filters"), else: "filters"
     filters = if flop.filters == [], do: default, else: flop.filters
-    filters = prepend ++ filters ++ append
 
     for {filter, index} <- Enum.with_index(filters) do
       index_string = Integer.to_string(index)
@@ -70,14 +67,11 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   defp no_unsupported_options!(opts) do
-    if Keyword.has_key?(opts, :hidden) do
-      raise ArgumentError,
-            ":hidden is not supported on inputs_for with Flop.Meta."
-    end
-
-    if Keyword.has_key?(opts, :as) do
-      raise ArgumentError,
-            ":as is not supported on inputs_for with Flop.Meta."
+    for key <- [:append, :as, :hidden, :prepend] do
+      if Keyword.has_key?(opts, key) do
+        raise ArgumentError,
+              "#{inspect(key)} is not supported on inputs_for with Flop.Meta."
+      end
     end
   end
 
