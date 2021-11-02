@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Implement the `Phoenix.HTML.FormData` protocol for `Flop.Meta`. This means
+  you can pass the meta struct as `:for` option to the Phoenix `form_for`
+  functions now.
+
 ### Changed
 
 - Remove `:for` option. The schema module is now automatically derived from the
