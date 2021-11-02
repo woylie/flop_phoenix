@@ -171,7 +171,7 @@ defmodule Flop.Phoenix.FormDataTest do
         form_to_html(meta, fn f ->
           inputs_for(f, :filters, fn fo ->
             assert fo.data == filter
-            assert fo.hidden == [field: :name, op: :like]
+            assert fo.hidden == [op: :like, field: :name]
             assert fo.id == "flop_filters_0"
             assert fo.index == 0
             assert fo.name == "filters[0]"
@@ -200,14 +200,19 @@ defmodule Flop.Phoenix.FormDataTest do
 
       html =
         form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [default: [%Filter{field: :name}]], fn fo ->
-            assert fo.data == %Filter{field: :name, op: :==, value: nil}
-            assert fo.hidden == [field: :name, op: :==]
-            assert fo.id == "flop_filters_0"
-            assert fo.index == 0
-            assert fo.name == "filters[0]"
-            text_input(fo, :value)
-          end)
+          inputs_for(
+            f,
+            :filters,
+            [default: [%Filter{field: :name, op: :!=}]],
+            fn fo ->
+              assert fo.data == %Filter{field: :name, op: :!=, value: nil}
+              assert fo.hidden == [op: :!=, field: :name]
+              assert fo.id == "flop_filters_0"
+              assert fo.index == 0
+              assert fo.name == "filters[0]"
+              text_input(fo, :value)
+            end
+          )
         end)
 
       assert [input] = Floki.find(html, "input#flop_filters_0_field")
@@ -218,7 +223,7 @@ defmodule Flop.Phoenix.FormDataTest do
       assert [input] = Floki.find(html, "input#flop_filters_0_op")
       assert Floki.attribute(input, "name") == ["filters[0][op]"]
       assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["=="]
+      assert Floki.attribute(input, "value") == ["!="]
 
       assert [input] = Floki.find(html, "input#flop_filters_0_value")
       assert Floki.attribute(input, "name") == ["filters[0][value]"]
@@ -401,6 +406,25 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "name") == ["filters[0][op]"]
       assert Floki.attribute(input, "type") == ["text"]
       assert Floki.attribute(input, "value") == ["like"]
+    end
+
+    test "omits hidden input for default :op (:==)" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{
+            filters: [%Filter{field: :name, op: :==, value: "George"}]
+          }
+        )
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, [], fn fo ->
+            assert fo.hidden == [{:field, :name}]
+            ""
+          end)
+        end)
+
+      assert [] = Floki.find(html, "input#flop_filters_0_op")
     end
 
     test "raises error with unsupported options" do

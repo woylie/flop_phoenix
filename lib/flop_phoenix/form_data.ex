@@ -47,7 +47,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       hidden =
         if skip_hidden_op,
           do: [field: filter.field],
-          else: [field: filter.field, op: filter.op]
+          else: Misc.maybe_put([field: filter.field], :op, filter.op, :==)
 
       %Phoenix.HTML.Form{
         source: meta,
