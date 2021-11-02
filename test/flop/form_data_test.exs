@@ -195,7 +195,7 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "value") == ["George"]
     end
 
-    test "with filters and default option" do
+    test "with filters and :default option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
 
       html =
@@ -224,6 +224,62 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "name") == ["filters[0][value]"]
       assert Floki.attribute(input, "type") == ["text"]
       assert Floki.attribute(input, "value") == []
+    end
+
+    test "with :fields option" do
+      meta = build(:meta_on_first_page, flop: %Flop{filters: []})
+
+      opts = [fields: [:name, :age]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["name"]
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["age"]
+
+      assert [] = Floki.find(html, "input#flop_filters_2_field")
+    end
+
+    test "with :fields option and existing filters" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{
+            filters: [
+              %Filter{field: :species, value: :dog},
+              %Filter{field: :name, op: :!=, value: "Peter"},
+              %Filter{field: :name, value: "George"},
+              %Filter{field: :age, op: :>, value: 8}
+            ]
+          }
+        )
+
+      opts = [fields: [:name, :age]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["name"]
+      assert [input] = Floki.find(html, "input#flop_filters_0_value")
+      assert Floki.attribute(input, "value") == ["George"]
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input#flop_filters_1_value")
+      assert Floki.attribute(input, "value") == []
+
+      assert [] = Floki.find(html, "input#flop_filters_2_field")
     end
 
     test "with filters and :id option" do
