@@ -140,7 +140,28 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   def input_type(_meta, _form, :offset), do: :number_input
   def input_type(_meta, _form, :page), do: :number_input
   def input_type(_meta, _form, :page_size), do: :number_input
+
+  def input_type(
+        _meta,
+        %{data: %Filter{field: field}, source: %{schema: schema}},
+        :value
+      )
+      when not is_nil(schema) do
+    :type |> schema.__schema__(field) |> input_type_for_ecto_type()
+  end
+
   def input_type(_meta, _form, _field), do: :text_input
+
+  defp input_type_for_ecto_type(:boolean), do: :checkbox
+  defp input_type_for_ecto_type(:date), do: :date_select
+  defp input_type_for_ecto_type(:integer), do: :number_input
+  defp input_type_for_ecto_type(:naive_datetime), do: :datetime_select
+  defp input_type_for_ecto_type(:naive_datetime_usec), do: :datetime_select
+  defp input_type_for_ecto_type(:time), do: :time_select
+  defp input_type_for_ecto_type(:time_usec), do: :time_select
+  defp input_type_for_ecto_type(:utc_datetime), do: :datetime_select
+  defp input_type_for_ecto_type(:utc_datetime_usec), do: :datetime_select
+  defp input_type_for_ecto_type(_), do: :text_input
 
   def input_validations(_meta, _form, :after), do: [maxlength: 100]
   def input_validations(_meta, _form, :before), do: [maxlength: 100]
@@ -157,6 +178,18 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       [min: 1, max: max_limit]
     else
       [min: 1]
+    end
+  end
+
+  def input_validations(
+        _meta,
+        %{data: %Filter{field: field}, source: %{schema: schema}},
+        :value
+      )
+      when not is_nil(schema) do
+    case :type |> schema.__schema__(field) |> input_type_for_ecto_type() do
+      :text_input -> [maxlength: 100]
+      _ -> []
     end
   end
 

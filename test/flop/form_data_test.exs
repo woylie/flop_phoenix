@@ -498,6 +498,96 @@ defmodule Flop.Phoenix.FormDataTest do
         ""
       end)
     end
+
+    test "returns text_input for filter fields if no schema is passed" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: [%Filter{field: :name, op: :>=, value: "a"}]}
+        )
+
+      form_to_html(meta, fn f ->
+        inputs_for(f, :filters, fn fo ->
+          assert input_type(fo, :field) == :text_input
+          assert input_type(fo, :op) == :text_input
+          assert input_type(fo, :value) == :text_input
+          ""
+        end)
+      end)
+    end
+
+    test "returns input type depending on schema field type" do
+      mapping = [
+        integer: :number_input,
+        float: :text_input,
+        boolean: :checkbox,
+        string: :text_input,
+        decimal: :text_input,
+        date: :date_select,
+        time: :time_select,
+        time_usec: :time_select,
+        naive_datetime: :datetime_select,
+        naive_datetime_usec: :datetime_select,
+        utc_datetime: :datetime_select,
+        utc_datetime_usec: :datetime_select
+      ]
+
+      filters = mapping |> Keyword.keys() |> Enum.map(&%Filter{field: &1})
+
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: filters},
+          schema: __MODULE__.TestSchema
+        )
+
+      form_to_html(meta, fn f ->
+        inputs_for(f, :filters, fn fo ->
+          field = input_value(fo, :field)
+          expected = Keyword.fetch!(mapping, field)
+          assert input_type(fo, :field) == :text_input
+          assert input_type(fo, :op) == :text_input
+          assert input_type(fo, :value) == expected
+          ""
+        end)
+      end)
+    end
+  end
+
+  defmodule TestSchema do
+    use Ecto.Schema
+
+    @derive {
+      Flop.Schema,
+      filterable: [
+        :integer,
+        :float,
+        :boolean,
+        :string,
+        :decimal_field,
+        :date,
+        :time,
+        :time_usec,
+        :naive_datetime,
+        :naive_datetime_usec,
+        :utc_datetime,
+        :utc_datetime_usec
+      ],
+      sortable: []
+    }
+
+    schema "test_schema" do
+      field(:integer, :integer)
+      field(:float, :float)
+      field(:boolean, :boolean)
+      field(:string, :string)
+      field(:decimal_field, :decimal)
+      field(:date, :date)
+      field(:time, :time)
+      field(:time_usec, :time_usec)
+      field(:naive_datetime, :naive_datetime)
+      field(:naive_datetime_usec, :naive_datetime_usec)
+      field(:utc_datetime, :utc_datetime)
+      field(:utc_datetime_usec, :utc_datetime_usec)
+    end
   end
 
   describe "input_validations/3" do
@@ -527,6 +617,24 @@ defmodule Flop.Phoenix.FormDataTest do
         ""
       end)
     end
+
+    test "adds maxlength to all filter text input fields" do
+      fields = [:float, :string, :decimal]
+      filters = Enum.map(fields, &%Filter{field: &1})
+
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: filters},
+          schema: __MODULE__.TestSchema
+        )
+
+      form_to_html(meta, fn f ->
+        inputs_for(f, :filters, fn fo ->
+          assert input_validations(fo, :value) == [maxlength: 100]
+          ""
+        end)
+      end)
+    end
   end
 
   describe "input_value/2" do
@@ -537,6 +645,22 @@ defmodule Flop.Phoenix.FormDataTest do
         assert input_value(f, :page_size) == meta.flop.page_size
         assert input_value(f, :page) == meta.flop.page
         ""
+      end)
+    end
+
+    test "returns value from filter struct" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: [%Filter{field: :age, op: :>=, value: 8}]}
+        )
+
+      form_to_html(meta, fn f ->
+        inputs_for(f, :filters, fn fo ->
+          assert input_value(fo, :field) == :age
+          assert input_value(fo, :op) == :>=
+          assert input_value(fo, :value) == 8
+          ""
+        end)
       end)
     end
 
