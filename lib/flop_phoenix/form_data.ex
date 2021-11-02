@@ -78,12 +78,20 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     |> Enum.reverse()
   end
 
-  defp filter_reducer(field, acc, filters) when is_atom(field) do
-    if filter = Enum.find(filters, &(&1.field == field && &1.op == :==)) do
+  defp filter_reducer({field, opts}, acc, filters)
+       when is_atom(field) and is_list(opts) do
+    op = opts[:op] || :==
+    default = opts[:default]
+
+    if filter = Enum.find(filters, &(&1.field == field && &1.op == op)) do
       [filter | acc]
     else
-      [%Filter{field: field} | acc]
+      [%Filter{field: field, op: op, value: default} | acc]
     end
+  end
+
+  defp filter_reducer(field, acc, filters) when is_atom(field) do
+    filter_reducer({field, []}, acc, filters)
   end
 
   defp no_unsupported_options!(opts) do
