@@ -226,40 +226,6 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "value") == []
     end
 
-    test "with filters and prepend/append" do
-      meta =
-        build(:meta_on_first_page,
-          flop: %Flop{
-            filters: [%Filter{field: :name, op: :like, value: "George"}]
-          }
-        )
-
-      prepend = [%Filter{field: :age, op: :<=, value: 8}]
-      append = [%Filter{field: :species, op: :==, value: "dog"}]
-
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [prepend: prepend, append: append], fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "name") == ["filters[0][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
-
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "name") == ["filters[1][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["name"]
-
-      assert [input] = Floki.find(html, "input#flop_filters_2_field")
-      assert Floki.attribute(input, "name") == ["filters[2][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["species"]
-    end
-
     test "with filters and :id option" do
       meta =
         build(:meta_on_first_page,
@@ -340,7 +306,7 @@ defmodule Flop.Phoenix.FormDataTest do
     test "raises error with unsupported options" do
       meta = build(:meta_on_first_page)
 
-      for opt <- [:hidden, :as] do
+      for opt <- [:hidden, :as, :append, :prepend] do
         msg = ":#{opt} is not supported on inputs_for with Flop.Meta."
 
         assert_raise ArgumentError, msg, fn ->
