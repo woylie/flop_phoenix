@@ -420,8 +420,8 @@ defmodule Flop.Phoenix do
 
   ## Assigns
 
-  - `form` - The filter sub form.
-  - `text` (optional) - Either a function or a keyword list for setting the
+  - `form` - The filter form.
+  - `texts` (optional) - Either a function or a keyword list for setting the
     label text depending on the field.
 
   All additional assigns will be passed as attributes to the label element.
@@ -457,15 +457,15 @@ defmodule Flop.Phoenix do
   def filter_label(assigns) do
     is_filter_form!(assigns.form)
 
-    opts = assigns_to_attributes(assigns, [:form, :text])
+    opts = assigns_to_attributes(assigns, [:form, :texts])
 
     assigns =
       assigns
-      |> assign_new(:text, fn -> nil end)
+      |> assign_new(:texts, fn -> nil end)
       |> assign(:opts, opts)
 
     ~H"""
-    <%= label @form, :value, label_text(@form, @text), opts %>
+    <%= label @form, :value, label_text(@form, @texts), opts %>
     """
   end
 
