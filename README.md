@@ -120,7 +120,7 @@ You can render a filter form like this:
   <Flop.Phoenix.filter_fields let={elements} form={f} fields={[:name, :email]}>
     <%= elements.label %>
     <%= elements.input %>
-  </.filter_fields>
+  </Flop.Phoenix.filter_fields>
 </.form>
 ```
 
