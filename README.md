@@ -117,7 +117,7 @@ You can render a filter form like this:
 
 ```elixir
 <.form let={f} for={@meta}>
-  <.Flop.Phoenix.filter_fields let={elements} form={f} fields={[:name, :email]}>
+  <Flop.Phoenix.filter_fields let={elements} form={f} fields={[:name, :email]}>
     <%= elements.label %>
     <%= elements.input %>
   </.filter_fields>
