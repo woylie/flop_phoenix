@@ -111,4 +111,17 @@ determine which table columns are sortable. It also hides the `order` and
 `page_size` parameters if they match the default values defined with
 `Flop.Schema`.
 
+## Filter forms
+
+You can render a filter form like this:
+
+```elixir
+<.form let={f} for={@meta}>
+  <.Flop.Phoenix.filter_fields let={elements} form={f} fields={[:name, :email]}>
+    <%= elements.label %>
+    <%= elements.input %>
+  </.filter_fields>
+</.form>
+```
+
 Refer to the `Flop.Phoenix` module documentation for more examples.

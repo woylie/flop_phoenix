@@ -412,6 +412,143 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
+  Renders all inputs for a filter form including the hidden inputs.
+
+  If you need more control, you can use `filter_input/1` and `filter_label/1`
+  directly.
+
+  ## Example
+
+      <.form let={f} for={@meta}>
+        <.filter_fields let={elements} form={f} fields={[:email, :name]}>
+          <%= elements.label %>
+          <%= elements.input %>
+        </.filter_fields>
+      </.form>
+
+  ## Assigns
+
+  - `form` - The `Phoenix.HTML.Form`.
+  - `fields` - The list of fields and field options.
+  - `dynamic` (optional) - If `true`, fields are only rendered for filters that
+    are present in the `Flop.Meta` struct passed to the form. You can use this
+    for rendering filter forms that allow the user to add and remove filters
+    dynamically. The `fields` assign is only used for looking up the options
+    in that case. Defaults to `false`.
+  - `id` (optional) - Overrides the ID for the nested filter inputs.
+  - `input_opts` (optional) - Additional options passed to each input.
+  - `label_opts` (optional) - Additional options passed to each label.
+
+  ## Inner block
+
+  The generated labels and inputs are passed to the inner block instead of being
+  automatically rendered. This allows you to customize the markup.
+
+      <.filter_fields let={e} form={f} fields={[:email, :name]}>
+        <div class="field-label"><%= e.label %></div>
+        <div class="field-body"><%= e.input %></div>
+      </.filter_fields>
+
+  ## Field configuration
+
+  The fields can be passed as atoms or keywords with additional options.
+
+      fields={[:name, :email]}
+
+  Or
+
+      fields={[
+        name: [label: gettext("Name")],
+        email: [
+          label: gettext("Email"),
+          op: :ilike_and,
+          type: :email_input
+        ]
+      ]}
+
+  Options:
+
+  - `label`
+  - `op`
+  - `type`
+  - `default`
+
+  The value under the `:type` key matches the format used in `filter_input/1`.
+  Any additional options will be passed to the input (e.g. HTML classes).
+
+  ## Label and input opts
+
+  You can set default attributes for all labels and inputs:
+
+      <.filter_fields
+        let={e}
+        form={f}
+        fields={[:name]}
+        input_opts={[class: "input"]}
+        label_opts={[class: "label"]}
+      >
+
+  The additional options in the type configuration are merged into the input
+  opts. This means you can set a default class and override it for individual
+  fields.
+
+      <.filter_fields
+        let={e}
+        form={f}
+        fields={[
+          :name,
+          :email,
+          role: [type: {:select, ["author", "editor"], class: "select"}]
+        ]}
+        input_opts={[class: "input"]}
+      >
+  """
+  @doc since: "0.12.0"
+  @doc section: :components
+  @spec filter_fields(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_fields(assigns) do
+    is_meta_form!(assigns.form)
+    fields = assigns[:fields] || []
+
+    labels =
+      fields
+      |> Enum.map(fn
+        {field, opts} -> {field, opts[:label]}
+        field -> {field, nil}
+      end)
+      |> Enum.reject(fn {_, label} -> is_nil(label) end)
+
+    types =
+      fields
+      |> Enum.map(fn
+        {field, opts} -> {field, opts[:type]}
+        field -> {field, nil}
+      end)
+      |> Enum.reject(fn {_, type} -> is_nil(type) end)
+
+    inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
+
+    assigns =
+      assigns
+      |> assign(:fields, inputs_for_fields)
+      |> assign(:labels, labels)
+      |> assign(:types, types)
+      |> assign_new(:id, fn -> nil end)
+      |> assign_new(:input_opts, fn -> [] end)
+      |> assign_new(:label_opts, fn -> [] end)
+
+    ~H"""
+    <%= filter_hidden_inputs_for(@form) %>
+    <%= for ff <- inputs_for(@form, :filters, fields: @fields, id: @id) do %>
+      <%= render_slot(@inner_block, %{
+        label: ~H"<.filter_label form={ff} texts={@labels} {@label_opts} />",
+        input: ~H"<.filter_input form={ff} types={@types} {@input_opts} />"
+      }) %>
+    <% end %>
+    """
+  end
+
+  @doc """
   Renders a label for the `:value` field of a filter.
 
   This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
@@ -625,6 +762,23 @@ defmodule Flop.Phoenix do
             <.filter_label form={ff} />
             <.filter_input form={ff} />
           <% end %>
+        </.form>
+    """
+  end
+
+  defp is_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
+
+  defp is_meta_form!(_) do
+    raise ArgumentError, """
+    must be used with a filter form
+
+    Example:
+
+        <.form let={f} for={@meta}>
+          <.filter_fields let={elements} form={f} fields={[:email, :name]}>
+            <%= elements.label %>
+            <%= elements.input %>
+          </.filter_fields>
         </.form>
     """
   end
