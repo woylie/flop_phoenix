@@ -1749,6 +1749,157 @@ defmodule Flop.PhoenixTest do
     end
   end
 
+  describe "filter_fields/1" do
+    setup do
+      meta = build(:meta_on_first_page)
+
+      fields = [
+        {:email, [label: "E-mail"]},
+        {:phone, [op: :ilike, type: {:telephone_input, class: "phone-input"}]},
+        :field_without_opts
+      ]
+
+      %{fields: fields, meta: meta}
+    end
+
+    test "renders the hidden inputs", %{fields: fields, meta: meta} do
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            inner_block: []
+          )
+          |> raw()
+        end)
+
+      assert [input] = Floki.find(html, "input[id='flop_page_size']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["10"]
+    end
+
+    test "renders the labels and filter inputs", %{
+      fields: fields,
+      meta: meta
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            input_opts: [class: "input"],
+            label_opts: [class: "label"],
+            inner_block: %{
+              inner_block: fn _, e ->
+                [
+                  e.label |> rendered_to_string() |> raw(),
+                  e.input |> rendered_to_string() |> raw()
+                ]
+              end
+            }
+          )
+          |> raw()
+        end)
+
+      # labels
+      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
+      assert Floki.attribute(label, "class") == ["label"]
+      assert Floki.text(label) == "E-mail"
+      assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
+
+      # field inputs
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["email"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["phone"]
+
+      # op input
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_op']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["ilike"]
+
+      # value inputs
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+      assert Floki.attribute(input, "class") == ["input"]
+      assert Floki.attribute(input, "type") == ["text"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
+      assert Floki.attribute(input, "class") == ["phone-input"]
+      assert Floki.attribute(input, "type") == ["tel"]
+    end
+
+    test "optionally only renders existing filters", %{
+      fields: fields,
+      meta: meta
+    } do
+      meta = %{meta | flop: %Flop{filters: [%Filter{field: :phone}]}}
+
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            dynamic: true,
+            inner_block: %{
+              inner_block: fn _, e ->
+                [
+                  e.label |> rendered_to_string() |> raw(),
+                  e.input |> rendered_to_string() |> raw()
+                ]
+              end
+            }
+          )
+          |> raw()
+        end)
+
+      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
+      assert Floki.text(label) == "Phone"
+
+      assert [] = Floki.find(html, "label[for='flop_filters_1_value']")
+    end
+
+    test "passes the :id option to the filter form", %{
+      fields: fields,
+      meta: meta
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            id: "flip",
+            inner_block: %{
+              inner_block: fn _, e ->
+                [e.label |> rendered_to_string() |> raw()]
+              end
+            }
+          )
+          |> raw()
+        end)
+
+      assert [_] = Floki.find(html, "label[for='flip_filters_0_value']")
+    end
+
+    test "raises error if the form is not a form for meta", %{meta: meta} do
+      assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, [fields: [:email]], fn fo ->
+            render_component(&filter_fields/1, __changed__: %{}, form: fo)
+          end)
+        end)
+      end
+    end
+  end
+
   defmodule TestSchema do
     use Ecto.Schema
 
