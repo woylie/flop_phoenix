@@ -429,7 +429,8 @@ defmodule Flop.Phoenix do
   ## Assigns
 
   - `form` - The `Phoenix.HTML.Form`.
-  - `fields` - The list of fields and field options.
+  - `fields` - The list of fields and field options. Note that inputs will not
+    be rendered for fields that are not marked as filterable in the schema.
   - `dynamic` (optional) - If `true`, fields are only rendered for filters that
     are present in the `Flop.Meta` struct passed to the form. You can use this
     for rendering filter forms that allow the user to add and remove filters
@@ -554,6 +555,9 @@ defmodule Flop.Phoenix do
   This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
   `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
   the filter form.
+
+  Note that `inputs_for` will not render inputs for fields that are not marked
+  as filterable in the schema, even if passed in the options.
 
   ## Assigns
 
