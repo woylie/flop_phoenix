@@ -73,7 +73,7 @@ defmodule MyAppWeb.PetLive.Index do
 end
 ```
 
-## HEEx templates
+## Sortable table and pagination components
 
 In your template, add a sortable table and pagination links.
 
