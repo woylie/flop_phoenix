@@ -424,7 +424,7 @@ defmodule Flop.Phoenix do
   - `texts` (optional) - Either a function or a keyword list for setting the
     label text depending on the field.
 
-  All additional assigns will be passed as attributes to the label element.
+  All additional assigns will be passed to the label.
 
   ## Example
 
@@ -439,17 +439,23 @@ defmodule Flop.Phoenix do
 
   ## Label text
 
-  The label text is inferred from the value of the `:field` key of the filter.
-  To customize the label text, you can either a function that takes the field
-  name as an argument:
+  By default, the label text is inferred from the value of the `:field` key of
+  the filter. You can override the default type by passing a keyword list or a
+  function that maps fields to label texts.
 
-      def label_text(:email), do: gettext("Email")
+      <.filter_label form={ff} text={[
+        email: gettext("Email")
+        phone: gettext("Phone number")
+      ]} />
 
-      <.filter_label form={ff} text={label_text/1} />
+  Or
 
-  Or you can pass a keyword list with field-to-label mappings:
-
-      <.filter_label form={ff} text={[email: gettext("Email")]} />
+      <.filter_label form={ff} text={
+        fn
+          :email -> gettext("Email")
+          :phone -> gettext("Phone number")
+        end
+      } />
   """
   @doc since: "0.12.0"
   @doc section: :components
@@ -469,11 +475,146 @@ defmodule Flop.Phoenix do
     """
   end
 
+  defp label_text(form, nil), do: form |> input_value(:field) |> humanize()
+
+  defp label_text(form, func) when is_function(func, 1),
+    do: form |> input_value(:field) |> func.()
+
+  defp label_text(form, mapping) when is_list(mapping) do
+    field = input_value(form, :field)
+    Keyword.get(mapping, field, label_text(form, nil))
+  end
+
+  @doc """
+  Renders an input for the `:value` field and hidden inputs of a filter.
+
+  This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
+  `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
+  the filter form.
+
+  ## Assigns
+
+  - `form` - The filter form.
+  - `skip_hidden` (optional) - Disables the rendering of the hidden inputs for
+    the filter. Default: `false`.
+  - `types` (optional) - Either a function or a keyword list that maps fields
+    to input types
+
+  All additional assigns will be passed to the input function.
+
+  ## Example
+
+      <.form let={f} for={@meta}>
+        <%= filter_hidden_inputs_for(f) %>
+
+        <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
+          <.filter_label form={ff} />
+          <.filter_input form={ff} />
+        <% end %>
+      </.form>
+
+  ## Types
+
+  By default, the input type is inferred from the field type in the Ecto schema.
+  You can override the default type by passing a keyword list or a function that
+  maps fields to types.
+
+      <.filter_input form={ff} types={[
+        email: :email_input,
+        phone: :telephone_input
+      ]} />
+
+  Or
+
+      <.filter_input form={ff} types={
+        fn
+          :email -> :email_input
+          :phone -> :telephone_input
+        end
+      } />
+
+  The type can be given as:
+
+  - An atom referencing the input function from `Phoenix.HTML.Form`:
+    `:telephone_input`
+  - A tuple with an atom and additional options. The given list is merged into
+    the `opts` assign and passed to the input:
+    `{:telephone_input, class: "phone"}`
+  - A tuple with an atom, options for a select input, and additional options:
+    `{:select, ["Option a": "a", "Option B": "b"], class: "select"}`
+  - A 3-arity function taking the form, field and opts. This is useful for
+    custom input functions:
+    `fn form, field, opts -> ... end` or `&my_custom_input/3`
+  - A tuple with a 3-arity function and additional opts:
+    `{&my_custom_input/3, class: "input"}`
+  - A tuple with a 4-arity function, a list of options and additional opts:
+    `{fn form, field, options, opts -> ... end, ["Option a": "a", "Option B": "b"], class: "select"}`
+  """
+  @doc since: "0.12.0"
+  @doc section: :components
+  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_input(assigns) do
+    is_filter_form!(assigns.form)
+    opts = assigns_to_attributes(assigns, [:form, :skip_hidden, :type, :types])
+
+    assigns =
+      assigns
+      |> assign_new(:skip_hidden, fn -> false end)
+      |> assign(:type, type_for(assigns.form, assigns[:types]))
+      |> assign(:opts, opts)
+
+    ~H"""
+    <%= unless @skip_hidden do %><%= hidden_inputs_for @form %><% end %>
+    <%= render_input(@form, @type, @opts) %>
+    """
+  end
+
+  defp render_input(form, type, opts) when is_atom(type) do
+    apply(Phoenix.HTML.Form, type, [form, :value, opts])
+  end
+
+  defp render_input(form, {type, input_opts}, opts) when is_atom(type) do
+    opts = Keyword.merge(opts, input_opts)
+    apply(Phoenix.HTML.Form, type, [form, :value, opts])
+  end
+
+  defp render_input(form, {type, options, input_opts}, opts)
+       when is_atom(type) and is_list(options) do
+    opts = Keyword.merge(opts, input_opts)
+    apply(Phoenix.HTML.Form, type, [form, :value, options, opts])
+  end
+
+  defp render_input(form, func, opts) when is_function(func, 3) do
+    apply(func, [form, :value, opts])
+  end
+
+  defp render_input(form, {func, input_opts}, opts) when is_function(func, 3) do
+    opts = Keyword.merge(opts, input_opts)
+    apply(func, [form, :value, opts])
+  end
+
+  defp render_input(form, {func, options, input_opts}, opts)
+       when is_function(func, 4) and is_list(options) do
+    opts = Keyword.merge(opts, input_opts)
+    apply(func, [form, :value, options, opts])
+  end
+
+  defp type_for(form, nil), do: input_type(form, :value)
+
+  defp type_for(form, func) when is_function(func, 1) do
+    form |> input_value(:field) |> func.()
+  end
+
+  defp type_for(form, mapping) when is_list(mapping) do
+    field = input_value(form, :field)
+    Keyword.get(mapping, field, type_for(form, nil))
+  end
+
   defp is_filter_form!(%Form{data: %Filter{}, source: %Meta{}}), do: :ok
 
   defp is_filter_form!(_) do
     raise ArgumentError, """
-    filter_label/1 must be used with a filter form
+    must be used with a filter form
 
     Example:
 
@@ -486,16 +627,6 @@ defmodule Flop.Phoenix do
           <% end %>
         </.form>
     """
-  end
-
-  defp label_text(form, nil), do: form |> input_value(:field) |> humanize()
-
-  defp label_text(form, func) when is_function(func, 1),
-    do: form |> input_value(:field) |> func.()
-
-  defp label_text(form, mapping) when is_list(mapping) do
-    field = input_value(form, :field)
-    Keyword.get(mapping, field, label_text(form, nil))
   end
 
   @doc """

@@ -7,7 +7,7 @@
 - Implement the `Phoenix.HTML.FormData` protocol for `Flop.Meta`. This means
   you can pass the meta struct as `:for` option to the Phoenix `form_for`
   functions now.
-- Add `filter_label/1`.
+- Add the functions `filter_input/1` and `filter_label/1`.
 
 ### Changed
 
