@@ -420,9 +420,9 @@ defmodule Flop.Phoenix do
   ## Example
 
       <.form let={f} for={@meta}>
-        <.filter_fields let={elements} form={f} fields={[:email, :name]}>
-          <%= elements.label %>
-          <%= elements.input %>
+        <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+          <%= entry.label %>
+          <%= entry.input %>
         </.filter_fields>
       </.form>
 
@@ -779,9 +779,9 @@ defmodule Flop.Phoenix do
     Example:
 
         <.form let={f} for={@meta}>
-          <.filter_fields let={elements} form={f} fields={[:email, :name]}>
-            <%= elements.label %>
-            <%= elements.input %>
+          <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+            <%= entry.label %>
+            <%= entry.input %>
           </.filter_fields>
         </.form>
     """
