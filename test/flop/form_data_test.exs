@@ -1,20 +1,13 @@
 defmodule Flop.Phoenix.FormDataTest do
   use ExUnit.Case
 
-  import Phoenix.HTML
   import Phoenix.HTML.Form
   import Flop.Phoenix.Factory
+  import Flop.Phoenix.ViewHelpers
 
   alias Flop.Filter
   alias Flop.Phoenix.Pet
   alias Phoenix.HTML.Form
-
-  defp form_to_html(meta, opts \\ [], function) do
-    meta
-    |> form_for("/", opts, function)
-    |> safe_to_string()
-    |> Floki.parse_fragment!()
-  end
 
   describe "form_for/3" do
     test "with meta struct" do

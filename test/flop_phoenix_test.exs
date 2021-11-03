@@ -6,8 +6,10 @@ defmodule Flop.PhoenixTest do
   import ExUnit.CaptureLog
   import Flop.Phoenix
   import Flop.Phoenix.Factory
+  import Flop.Phoenix.ViewHelpers
   import Phoenix.LiveViewTest
 
+  alias Flop.Filter
   alias Flop.Phoenix.Pet
   alias Plug.Conn.Query
 
@@ -1386,6 +1388,106 @@ defmodule Flop.PhoenixTest do
                    value: "c"
                  )
                ]
+    end
+  end
+
+  describe "filter_label/1" do
+    setup do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{
+            filters: [%Filter{field: :name, op: :like, value: "George"}]
+          }
+        )
+
+      opts = [fields: [:email]]
+
+      %{meta: meta, opts: opts}
+    end
+
+    test "renders a label for the filter value field", %{
+      meta: meta,
+      opts: opts
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            (&filter_label/1)
+            |> render_component(__changed__: %{}, form: fo)
+            |> raw()
+          end)
+        end)
+
+      assert [label] = Floki.find(html, "label")
+      assert Floki.attribute(label, "for") == ["flop_filters_0_value"]
+      assert Floki.text(label) == "Email"
+    end
+
+    test "accepts a text function", %{
+      meta: meta,
+      opts: opts
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            (&filter_label/1)
+            |> render_component(
+              __changed__: %{},
+              form: fo,
+              text: fn :email -> "E-mail" end
+            )
+            |> raw()
+          end)
+        end)
+
+      assert [label] = Floki.find(html, "label")
+      assert Floki.text(label) == "E-mail"
+    end
+
+    test "accepts a mapping list", %{
+      meta: meta,
+      opts: opts
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            (&filter_label/1)
+            |> render_component(
+              __changed__: %{},
+              form: fo,
+              text: [email: "E-mail"]
+            )
+            |> raw()
+          end)
+        end)
+
+      assert [label] = Floki.find(html, "label")
+      assert Floki.text(label) == "E-mail"
+    end
+
+    test "falls back to inferred label if field is not in mappings", %{
+      meta: meta,
+      opts: opts
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            (&filter_label/1)
+            |> render_component(__changed__: %{}, form: fo, text: [])
+            |> raw()
+          end)
+        end)
+
+      assert [label] = Floki.find(html, "label")
+      assert Floki.text(label) == "Email"
+    end
+
+    test "raises error if the form is not a filter form", %{meta: meta} do
+      assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
+        form_to_html(meta, fn f ->
+          render_component(&filter_label/1, __changed__: %{}, form: f)
+        end)
+      end
     end
   end
 end
