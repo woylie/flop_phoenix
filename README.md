@@ -113,7 +113,10 @@ determine which table columns are sortable. It also hides the `order` and
 
 ## Filter forms
 
-You can render a filter form like this:
+This library implements `Phoenix.HTML.FormData` for the `Flop.Meta` struct,
+which means you can pass the struct to the Phoenix form functions. The
+easiest way to render a filter form is to use the `Flop.Phoenix.filter_fields/1`
+component:
 
 ```elixir
 <.form let={f} for={@meta}>
