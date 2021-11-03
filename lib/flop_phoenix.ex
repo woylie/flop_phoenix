@@ -120,10 +120,12 @@ defmodule Flop.Phoenix do
 
   import Phoenix.LiveView.Helpers
 
+  alias Flop.Filter
   alias Flop.Meta
   alias Flop.Phoenix.Misc
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
+  alias Phoenix.HTML.Form
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
@@ -407,6 +409,93 @@ defmodule Flop.Phoenix do
       <% end %>
     <% end %>
     """
+  end
+
+  @doc """
+  Renders a label for the `:value` field of a filter.
+
+  This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
+  `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
+  the filter form.
+
+  ## Assigns
+
+  - `form` - The filter sub form.
+  - `text` (optional) - Either a function or a keyword list for setting the
+    label text depending on the field.
+
+  All additional assigns will be passed as attributes to the label element.
+
+  ## Example
+
+      <.form let={f} for={@meta}>
+        <%= filter_hidden_inputs_for(f) %>
+
+        <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
+          <.filter_label form={ff} />
+          <.filter_input form={ff} />
+        <% end %>
+      </.form>
+
+  ## Label text
+
+  The label text is inferred from the value of the `:field` key of the filter.
+  To customize the label text, you can either a function that takes the field
+  name as an argument:
+
+      def label_text(:email), do: gettext("Email")
+
+      <.filter_label form={ff} text={label_text/1} />
+
+  Or you can pass a keyword list with field-to-label mappings:
+
+      <.filter_label form={ff} text={[email: gettext("Email")]} />
+  """
+  @doc since: "0.12.0"
+  @doc section: :components
+  @spec filter_label(map) :: Phoenix.LiveView.Rendered.t()
+  def filter_label(assigns) do
+    is_filter_form!(assigns.form)
+
+    opts = assigns_to_attributes(assigns, [:form, :text])
+
+    assigns =
+      assigns
+      |> assign_new(:text, fn -> nil end)
+      |> assign(:opts, opts)
+
+    ~H"""
+    <%= label @form, :value, label_text(@form, @text), opts %>
+    """
+  end
+
+  defp is_filter_form!(%Form{data: %Filter{}, source: %Meta{}}), do: :ok
+
+  defp is_filter_form!(_) do
+    raise ArgumentError, """
+    filter_label/1 must be used with a filter form
+
+    Example:
+
+        <.form let={f} for={@meta}>
+          <%= filter_hidden_inputs_for(f) %>
+
+          <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
+            <.filter_label form={ff} />
+            <.filter_input form={ff} />
+          <% end %>
+        </.form>
+    """
+  end
+
+  defp label_text(form, nil), do: form |> input_value(:field) |> humanize()
+
+  defp label_text(form, func) when is_function(func, 1),
+    do: form |> input_value(:field) |> func.()
+
+  defp label_text(form, mapping) when is_list(mapping) do
+    field = input_value(form, :field)
+    Keyword.get(mapping, field, label_text(form, nil))
   end
 
   @doc """
