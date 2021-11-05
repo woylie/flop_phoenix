@@ -11,11 +11,12 @@ defmodule Flop.Phoenix.FormDataTest do
 
   describe "form_for/3" do
     test "with meta struct" do
-      meta = build(:meta_on_first_page)
+      meta = build(:meta_on_first_page, errors: [limit: [{"whatever", nil}]])
 
       html =
         form_to_html(meta, fn f ->
           assert f.data == meta.flop
+          assert f.errors == meta.errors
           assert f.params == %{}
           assert f.source == meta
           ""
@@ -134,20 +135,6 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "name") == ["something"]
       assert Floki.attribute(input, "value") == ["else"]
     end
-
-    test "with :params" do
-      meta = build(:meta_on_first_page)
-
-      html =
-        form_to_html(meta, [params: %{"page_size" => 25}], fn f ->
-          number_input(f, :page_size)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_page_size")
-      assert Floki.attribute(input, "name") == ["page_size"]
-      assert Floki.attribute(input, "type") == ["number"]
-      assert Floki.attribute(input, "value") == ["25"]
-    end
   end
 
   describe "form_for/4" do
@@ -186,6 +173,108 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "name") == ["filters[0][value]"]
       assert Floki.attribute(input, "type") == ["text"]
       assert Floki.attribute(input, "value") == ["George"]
+    end
+
+    @tag capture_log: true
+    test "with filters and errors" do
+      invalid_params = %{
+        page: 0,
+        filters: [
+          %{field: :name, op: :like, value: "George"},
+          %{field: "age", op: "<>", value: "8"},
+          %{field: :species, value: "dog"}
+        ]
+      }
+
+      {:error, meta} = Flop.validate(invalid_params)
+
+      html =
+        form_to_html(meta, fn f ->
+          assert f.data == %Flop{}
+
+          assert f.params == %{
+                   "filters" => [
+                     %{"field" => :name, "op" => :like, "value" => "George"},
+                     %{"field" => "age", "op" => "<>", "value" => "8"},
+                     %{"field" => :species, "value" => "dog"}
+                   ],
+                   "page" => 0
+                 }
+
+          assert [{"must be greater than %{number}", _}] =
+                   Keyword.get(f.errors, :page)
+
+          inputs_for(f, :filters, fn fo ->
+            case fo.id do
+              "flop_filters_0" ->
+                assert fo.data == %Filter{}
+
+                assert fo.params == %{
+                         "field" => :name,
+                         "op" => :like,
+                         "value" => "George"
+                       }
+
+                assert fo.errors == []
+
+              "flop_filters_1" ->
+                assert fo.data == %Filter{}
+
+                assert fo.params == %{
+                         "field" => "age",
+                         "op" => "<>",
+                         "value" => "8"
+                       }
+
+                assert [op: [{"is invalid", _}]] = fo.errors
+
+              "flop_filters_2" ->
+                assert fo.data == %Filter{}
+
+                assert fo.params == %{
+                         "field" => :species,
+                         "value" => "dog"
+                       }
+
+                assert fo.errors == []
+            end
+
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [_] = Floki.find(html, "input#flop_filters_0_value")
+      assert [_] = Floki.find(html, "input#flop_filters_1_value")
+      assert [_] = Floki.find(html, "input#flop_filters_2_value")
+    end
+
+    test "with filters and without errors" do
+      valid_params = %{
+        page: 2,
+        page_size: 10,
+        filters: [
+          %{field: :name, op: :like, value: "George"},
+          %{field: :age, op: :==, value: 8},
+          %{field: :species, value: "dog"}
+        ]
+      }
+
+      {:ok, flop} = Flop.validate(valid_params)
+      meta = build(:meta_on_first_page, flop: flop)
+
+      html =
+        form_to_html(meta, fn f ->
+          assert f.errors == []
+
+          inputs_for(f, :filters, fn fo ->
+            assert fo.errors == []
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [_] = Floki.find(html, "input#flop_filters_0_value")
+      assert [_] = Floki.find(html, "input#flop_filters_1_value")
+      assert [_] = Floki.find(html, "input#flop_filters_2_value")
     end
 
     test "with filters and :default option" do
@@ -252,7 +341,7 @@ defmodule Flop.Phoenix.FormDataTest do
             filters: [
               %Filter{field: :species, value: :dog},
               %Filter{field: :name, op: :!=, value: "Peter"},
-              %Filter{field: :name, value: "George"},
+              %Filter{field: "name", value: "George"},
               %Filter{field: :age, op: :>, value: 8}
             ]
           }
@@ -278,6 +367,52 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "value") == []
 
       assert [] = Floki.find(html, "input#flop_filters_2_field")
+    end
+
+    @tag capture_log: true
+    test "with :fields option and errors" do
+      invalid_params = %{
+        filters: [
+          %{field: :species, value: :dog},
+          %{field: :name, value: "Peter"},
+          %{field: :name, value: "George"},
+          %{field: :age, op: :roundabout, value: 8},
+          %{field: :age, op: :>, value: 8}
+        ]
+      }
+
+      {:error, meta} = Flop.validate(invalid_params)
+
+      opts = [fields: [{:age, op: :>}, :name]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            case fo.id do
+              "flop_filters_0" ->
+                assert fo.data == %Filter{}
+                assert fo.params == %{"field" => :age, "op" => :>, "value" => 8}
+                assert fo.errors == []
+
+              "flop_filters_1" ->
+                assert fo.data == %Filter{}
+                assert fo.params == %{"field" => :name, "value" => "Peter"}
+                assert fo.errors == []
+            end
+
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input#flop_filters_0_value")
+      assert Floki.attribute(input, "value") == ["8"]
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["name"]
+      assert [input] = Floki.find(html, "input#flop_filters_1_value")
+      assert Floki.attribute(input, "value") == ["Peter"]
     end
 
     test "with :fields and :op option" do

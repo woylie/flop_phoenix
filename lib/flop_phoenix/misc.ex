@@ -63,7 +63,7 @@ defmodule Flop.Phoenix.Misc do
   Puts the order params of a into a keyword list only if they don't match the
   defaults passed as the last argument.
   """
-  @spec maybe_put_order_params(keyword, Flop.t(), map) :: keyword
+  @spec maybe_put_order_params(keyword, Flop.t() | map, map) :: keyword
   def maybe_put_order_params(
         params,
         %{order_by: order_by, order_directions: order_directions},
