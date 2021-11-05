@@ -5,22 +5,50 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   def to_form(meta, opts) do
     {name, opts} = name_and_opts(meta, opts)
-    {errors, opts} = Keyword.pop(opts, :errors, [])
     {hidden, opts} = Keyword.pop(opts, :hidden, [])
-    {params, opts} = Keyword.pop(opts, :params, %{})
     id = Keyword.get(opts, :id) || name || "flop"
 
     %Phoenix.HTML.Form{
       data: meta.flop,
-      errors: errors,
+      errors: meta.errors,
       hidden: hidden_inputs(meta, hidden),
       id: id,
       impl: __MODULE__,
       name: name,
       options: opts,
-      params: params,
+      params: meta.params,
       source: meta
     }
+  end
+
+  defp name_and_opts(_meta, opts) do
+    case Keyword.pop(opts, :as) do
+      {nil, opts} -> {nil, opts}
+      {name, opts} -> {to_string(name), opts}
+    end
+  end
+
+  defp hidden_inputs(
+         %Meta{flop: %Flop{} = flop, params: %{} = params, schema: schema},
+         hidden
+       ) do
+    default_limit = Flop.get_option(:default_limit, for: schema)
+    default_order = Flop.get_option(:default_order, for: schema)
+
+    page_size = params["page_size"] || flop.page_size
+    limit = params["limit"] || flop.limit
+    first = params["first"] || flop.first
+    last = params["last"] || flop.last
+    order_by = params["order_by"] || flop.order_by
+    order_directions = params["order_directions"] || flop.order_directions
+    order_params = %{order_by: order_by, order_directions: order_directions}
+
+    hidden
+    |> Misc.maybe_put(:page_size, page_size, default_limit)
+    |> Misc.maybe_put(:limit, limit, default_limit)
+    |> Misc.maybe_put(:first, first, default_limit)
+    |> Misc.maybe_put(:last, last, default_limit)
+    |> Misc.maybe_put_order_params(order_params, default_order)
   end
 
   def to_form(
@@ -40,17 +68,36 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     id = if id = id || form.id, do: to_string(id <> "_filters"), else: "filters"
 
     filters =
-      flop
-      |> filters_for(fields, default)
+      if form.errors == [],
+        do: flop.filters,
+        else: Map.get(form.params, "filters", [])
+
+    filter_errors = Keyword.get(form.errors, :filters, [])
+
+    filters_with_errors =
+      filters
+      |> filters_for(fields, default, filter_errors)
       |> reject_unfilterable(meta.schema)
 
-    for {filter, index} <- Enum.with_index(filters) do
+    for {{filter, errors}, index} <- Enum.with_index(filters_with_errors) do
       index_string = Integer.to_string(index)
 
       hidden =
         if skip_hidden_op,
-          do: [field: filter.field],
-          else: Misc.maybe_put([field: filter.field], :op, filter.op, :==)
+          do: [field: value(filter, :field)],
+          else:
+            Misc.maybe_put(
+              [field: value(filter, :field)],
+              :op,
+              value(filter, :op),
+              :==
+            )
+
+      {data, params} =
+        case filter do
+          %Filter{} -> {filter, %{}}
+          %{} -> {%Filter{}, filter}
+        end
 
       %Phoenix.HTML.Form{
         source: meta,
@@ -58,8 +105,9 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         index: index,
         id: id <> "_" <> index_string,
         name: name <> "[" <> index_string <> "]",
-        data: filter,
-        params: %{},
+        data: data,
+        errors: errors,
+        params: params,
         hidden: hidden,
         options: opts
       }
@@ -72,24 +120,35 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
             "inputs_for with Flop.Meta, got: #{inspect(field)}."
   end
 
-  defp filters_for(%Flop{filters: []}, nil, default), do: default
-  defp filters_for(%Flop{filters: filters}, nil, _), do: filters
+  # no filters, use default
+  defp filters_for([], nil, default, _), do: zip_errors(default, [])
 
-  defp filters_for(%Flop{filters: filters}, fields, _) when is_list(fields) do
+  # no static field configuration
+  defp filters_for(filters, nil, _, errors), do: zip_errors(filters, errors)
+
+  # with static field configuration
+  defp filters_for(filters, fields, _, errors) when is_list(fields) do
+    filters_with_errors = zip_errors(filters, errors)
+
     fields
-    |> Enum.reduce([], &filter_reducer(&1, &2, filters))
+    |> Enum.reduce([], &filter_reducer(&1, &2, filters_with_errors))
     |> Enum.reverse()
   end
+
+  defp zip_errors(filters, []), do: Enum.map(filters, &{&1, []})
+
+  defp zip_errors(filters, errors) when is_list(errors),
+    do: Enum.zip(filters, errors)
 
   defp filter_reducer({field, opts}, acc, filters)
        when is_atom(field) and is_list(opts) do
     op = opts[:op] || :==
     default = opts[:default]
 
-    if filter = Enum.find(filters, &(&1.field == field && &1.op == op)) do
+    if filter = find_filter_for_field(field, op, filters) do
       [filter | acc]
     else
-      [%Filter{field: field, op: op, value: default} | acc]
+      [{%Filter{field: field, op: op, value: default}, []} | acc]
     end
   end
 
@@ -97,11 +156,24 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     filter_reducer({field, []}, acc, filters)
   end
 
+  defp find_filter_for_field(field, op, filters) do
+    Enum.find(
+      filters,
+      fn {filter, _errors} ->
+        value(filter, :field) in [field, Atom.to_string(field)] &&
+          value(filter, :op, :==) in [op, Atom.to_string(op)]
+      end
+    )
+  end
+
   defp reject_unfilterable(filters, nil), do: filters
 
-  defp reject_unfilterable(filters, schema) do
+  defp reject_unfilterable(filters_with_errors, schema) do
     filterable = schema |> struct() |> Flop.Schema.filterable()
-    Enum.reject(filters, &(&1.field not in filterable))
+
+    Enum.reject(filters_with_errors, fn {filter, _} ->
+      filter.field not in filterable
+    end)
   end
 
   defp no_unsupported_options!(opts) do
@@ -111,25 +183,6 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
               "#{inspect(key)} is not supported on inputs_for with Flop.Meta."
       end
     end
-  end
-
-  defp name_and_opts(_meta, opts) do
-    case Keyword.pop(opts, :as) do
-      {nil, opts} -> {nil, opts}
-      {name, opts} -> {to_string(name), opts}
-    end
-  end
-
-  defp hidden_inputs(%Meta{flop: %Flop{} = flop, schema: schema}, hidden) do
-    default_limit = Flop.get_option(:default_limit, for: schema)
-    default_order = Flop.get_option(:default_order, for: schema)
-
-    hidden
-    |> Misc.maybe_put(:page_size, flop.page_size, default_limit)
-    |> Misc.maybe_put(:limit, flop.limit, default_limit)
-    |> Misc.maybe_put(:first, flop.first, default_limit)
-    |> Misc.maybe_put(:last, flop.last, default_limit)
-    |> Misc.maybe_put_order_params(flop, default_order)
   end
 
   def input_type(_meta, _form, :after), do: :text_input
@@ -207,5 +260,14 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   def input_value(_meta, _form, field) do
     raise ArgumentError, "expected field to be an atom, got: #{inspect(field)}"
+  end
+
+  defp value(map, key, default \\ nil) when is_atom(key) do
+    string_key = Atom.to_string(key)
+
+    case map do
+      %{^string_key => value} -> value
+      %{} -> Map.get(map, key, default)
+    end
   end
 end
