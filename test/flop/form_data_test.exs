@@ -582,6 +582,32 @@ defmodule Flop.Phoenix.FormDataTest do
       assert [] = Floki.find(html, "input#flop_filters_2_field")
     end
 
+    @tag capture_log: true
+    test "omits fields that are not filterable with string params" do
+      params = %{
+        "page" => 0,
+        "filters" => [
+          %{"field" => :age, "op" => :>=, "value" => 10},
+          %{"field" => :species, "op" => :==, "value" => "dog"}
+        ]
+      }
+
+      {:error, meta} = Flop.validate(params, for: Pet)
+      opts = [fields: [:species, :age, :specialty]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [] = Floki.find(html, "input#flop_filters_1_field")
+      assert [] = Floki.find(html, "input#flop_filters_2_field")
+    end
+
     test "raises error with unsupported options" do
       meta = build(:meta_on_first_page)
 

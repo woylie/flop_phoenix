@@ -172,7 +172,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     filterable = schema |> struct() |> Flop.Schema.filterable()
 
     Enum.reject(filters_with_errors, fn {filter, _} ->
-      filter.field not in filterable
+      value(filter, :field) not in filterable
     end)
   end
 
