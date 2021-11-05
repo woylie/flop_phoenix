@@ -70,33 +70,35 @@ defmodule Flop.Phoenix.Pagination do
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <nav {@opts[:wrapper_attrs]}>
-      <.previous_link
-        attrs={@opts[:previous_link_attrs]}
-        content={@opts[:previous_link_content]}
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-      <.next_link
-        attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-      <.page_links
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-    </nav>
+    <%= unless @meta.errors != [] do %>
+      <nav {@opts[:wrapper_attrs]}>
+        <.previous_link
+          attrs={@opts[:previous_link_attrs]}
+          content={@opts[:previous_link_content]}
+          event={@event}
+          meta={@meta}
+          page_link_helper={@page_link_helper}
+          opts={@opts}
+          target={@target}
+        />
+        <.next_link
+          attrs={@opts[:next_link_attrs]}
+          content={@opts[:next_link_content]}
+          event={@event}
+          meta={@meta}
+          page_link_helper={@page_link_helper}
+          opts={@opts}
+          target={@target}
+        />
+        <.page_links
+          event={@event}
+          meta={@meta}
+          page_link_helper={@page_link_helper}
+          opts={@opts}
+          target={@target}
+        />
+      </nav>
+    <% end %>
     """
   end
 

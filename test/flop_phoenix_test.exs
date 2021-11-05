@@ -888,6 +888,12 @@ defmodule Flop.PhoenixTest do
       refute href =~ "limit=2"
       refute href =~ "offset=3"
     end
+
+    @tag capture_log: true
+    test "does not render anything if meta has errors" do
+      {:error, meta} = Flop.validate(%{page: 0})
+      assert render_pagination(meta: meta) == []
+    end
   end
 
   describe "table/1" do
@@ -1283,6 +1289,12 @@ defmodule Flop.PhoenixTest do
                        meta: %Flop.Meta{flop: %Flop{}}
                      )
                    end
+    end
+
+    @tag capture_log: true
+    test "does not crash if meta has errors" do
+      {:error, meta} = Flop.validate(%{page: 0})
+      render_table(meta: meta)
     end
   end
 
