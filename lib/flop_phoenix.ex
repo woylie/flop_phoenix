@@ -623,7 +623,25 @@ defmodule Flop.Phoenix do
 
   defp label_text(form, mapping) when is_list(mapping) do
     field = input_value(form, :field)
-    Keyword.get(mapping, field, label_text(form, nil))
+    safe_get(mapping, field, label_text(form, nil))
+  end
+
+  defp safe_get(keyword, key, default)
+       when is_list(keyword) and is_atom(key) do
+    Keyword.get(keyword, key, default)
+  end
+
+  defp safe_get(keyword, key, default)
+       when is_list(keyword) and is_binary(key) do
+    value =
+      Enum.find(keyword, fn {current_key, _} ->
+        Atom.to_string(current_key) == key
+      end)
+
+    case value do
+      nil -> default
+      {_, value} -> value
+    end
   end
 
   @doc """
@@ -748,7 +766,7 @@ defmodule Flop.Phoenix do
 
   defp type_for(form, mapping) when is_list(mapping) do
     field = input_value(form, :field)
-    Keyword.get(mapping, field, type_for(form, nil))
+    safe_get(mapping, field, type_for(form, nil))
   end
 
   defp is_filter_form!(%Form{data: %Filter{}, source: %Meta{}}), do: :ok
