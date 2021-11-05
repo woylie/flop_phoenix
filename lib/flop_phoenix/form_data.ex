@@ -170,6 +170,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   defp reject_unfilterable(filters_with_errors, schema) do
     filterable = schema |> struct() |> Flop.Schema.filterable()
+    filterable = filterable ++ Enum.map(filterable, &Atom.to_string/1)
 
     Enum.reject(filters_with_errors, fn {filter, _} ->
       value(filter, :field) not in filterable

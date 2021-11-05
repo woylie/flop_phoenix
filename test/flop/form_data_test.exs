@@ -415,6 +415,55 @@ defmodule Flop.Phoenix.FormDataTest do
       assert Floki.attribute(input, "value") == ["Peter"]
     end
 
+    @tag capture_log: true
+    test "does not reject filterable fields when fields are strings" do
+      invalid_params = %{
+        "filters" => [
+          %{"field" => "name", "op" => "ilike_and", "value" => ""},
+          %{"field" => "age", "value" => ""}
+        ],
+        "page" => "0"
+      }
+
+      {:error, meta} = Flop.validate(invalid_params, for: Pet)
+      opts = [fields: [age: [label: "Age"], name: [op: :ilike_and]]]
+
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, opts, fn fo ->
+            case fo.id do
+              "flop_filters_0" ->
+                assert fo.data == %Filter{}
+                assert fo.params == %{"field" => "age", "value" => ""}
+                assert fo.errors == []
+
+              "flop_filters_1" ->
+                assert fo.data == %Filter{}
+
+                assert fo.params == %{
+                         "field" => "name",
+                         "value" => "",
+                         "op" => "ilike_and"
+                       }
+
+                assert fo.errors == []
+            end
+
+            text_input(fo, :value)
+          end)
+        end)
+
+      assert [input] = Floki.find(html, "input#flop_filters_0_field")
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input#flop_filters_0_value")
+      assert Floki.attribute(input, "value") == [""]
+
+      assert [input] = Floki.find(html, "input#flop_filters_1_field")
+      assert Floki.attribute(input, "value") == ["name"]
+      assert [input] = Floki.find(html, "input#flop_filters_1_value")
+      assert Floki.attribute(input, "value") == [""]
+    end
+
     test "with :fields and :op option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
       opts = [fields: [:name, {:age, op: :>}]]
