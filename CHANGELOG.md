@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.12.0] - 2021-11-08
+
 ### Added
 
 - Implement the `Phoenix.HTML.FormData` protocol for `Flop.Meta`. This means
