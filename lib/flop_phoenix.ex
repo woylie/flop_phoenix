@@ -578,6 +578,10 @@ defmodule Flop.Phoenix do
         <% end %>
       </.form>
 
+  `Flop.Phoenix.filter_hidden_inputs_for/1` is necessary because
+  `Phoenix.HTML.Form.hidden_inputs_for/1` does not support lists in versions
+  <= 3.1.0.
+
   ## Label text
 
   By default, the label text is inferred from the value of the `:field` key of
