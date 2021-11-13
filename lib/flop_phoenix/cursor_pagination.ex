@@ -71,7 +71,7 @@ defmodule Flop.Phoenix.CursorPagination do
         ) %>
       <% end %>
     <% else %>
-      <span {Keyword.put(@attrs, :disabled, true)}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
     <% end %>
     """
   end
@@ -89,7 +89,7 @@ defmodule Flop.Phoenix.CursorPagination do
         ) %>
       <% end %>
     <% else %>
-      <span {Keyword.put(@attrs, :disabled, true)}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
     <% end %>
     """
   end
@@ -118,6 +118,12 @@ defmodule Flop.Phoenix.CursorPagination do
     |> Keyword.put(:phx_value_to, direction)
     |> Keyword.put(:to, "#")
     |> Misc.maybe_put(:phx_target, target)
+  end
+
+  defp add_disabled_class(attrs, disabled_class) do
+    Keyword.update(attrs, :class, disabled_class, fn class ->
+      class <> " " <> disabled_class
+    end)
   end
 
   defp validate_path_helper_or_event!(%{path_helper: path_helper, event: event}) do

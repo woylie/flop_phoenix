@@ -270,8 +270,9 @@ defmodule Flop.PhoenixTest do
       html = render_pagination(meta: build(:meta_on_first_page))
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "disables previous link if on first page when using click handlers" do
@@ -284,8 +285,9 @@ defmodule Flop.PhoenixTest do
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -300,8 +302,7 @@ defmodule Flop.PhoenixTest do
 
       previous_link = Floki.find(html, "span:fl-contains('Prev')")
 
-      assert Floki.attribute(previous_link, "class") == ["prev"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
       assert Floki.text(previous_link) == "Prev"
     end
@@ -370,8 +371,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -381,8 +381,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -398,8 +397,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('N-n-next')")
 
-      assert Floki.attribute(next_link, "class") == ["next"]
-      assert Floki.attribute(next_link, "disabled") == ["disabled"]
+      assert Floki.attribute(next_link, "class") == ["next disabled"]
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
@@ -1045,8 +1043,10 @@ defmodule Flop.PhoenixTest do
         )
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "disables previous link if on first page when using click handlers" do
@@ -1058,8 +1058,10 @@ defmodule Flop.PhoenixTest do
         )
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -1074,8 +1076,7 @@ defmodule Flop.PhoenixTest do
 
       previous_link = Floki.find(html, "span:fl-contains('Prev')")
 
-      assert Floki.attribute(previous_link, "class") == ["prev"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
       assert Floki.text(previous_link) == "Prev"
     end
@@ -1144,8 +1145,7 @@ defmodule Flop.PhoenixTest do
         |> render_cursor_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -1159,8 +1159,7 @@ defmodule Flop.PhoenixTest do
         |> render_cursor_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -1176,8 +1175,7 @@ defmodule Flop.PhoenixTest do
         |> render_cursor_pagination()
         |> Floki.find("span:fl-contains('N-n-next')")
 
-      assert Floki.attribute(next_link, "class") == ["next"]
-      assert Floki.attribute(next_link, "disabled") == ["disabled"]
+      assert Floki.attribute(next_link, "class") == ["next disabled"]
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 

@@ -133,6 +133,8 @@ defmodule Flop.Phoenix do
 
   - `:current_link_attrs` - The attributes for the link to the current page.
     Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
+  - `:disabled` - The class which is added to disabled links. Default:
+    `#{inspect(Pagination.default_opts()[:disabled_class])}`.
   - `:ellipsis_attrs` - The attributes for the `<span>` that wraps the
     ellipsis.
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
@@ -165,6 +167,7 @@ defmodule Flop.Phoenix do
   """
   @type pagination_option ::
           {:current_link_attrs, keyword}
+          | {:disabled_class, String.t()}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
           | {:next_link_attrs, keyword}
