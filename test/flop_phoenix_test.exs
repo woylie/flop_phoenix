@@ -31,6 +31,20 @@ defmodule Flop.PhoenixTest do
     |> Floki.parse_fragment!()
   end
 
+  defp render_cursor_pagination(assigns) do
+    assigns =
+      assigns
+      |> Keyword.put(:__changed__, nil)
+      |> Keyword.put_new(
+        :path_helper,
+        {__MODULE__, :route_helper, @route_helper_opts}
+      )
+
+    (&cursor_pagination/1)
+    |> render_component(assigns)
+    |> Floki.parse_fragment!()
+  end
+
   defp render_table(assigns \\ [], component \\ &test_table/1) do
     assigns = Keyword.put(assigns, :__changed__, nil)
 
@@ -114,7 +128,7 @@ defmodule Flop.PhoenixTest do
     URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
 
-  describe "pagination/4" do
+  describe "pagination/1" do
     test "renders pagination wrapper" do
       html = render_pagination(meta: build(:meta_on_first_page))
       wrapper = Floki.find(html, "nav")
@@ -256,8 +270,9 @@ defmodule Flop.PhoenixTest do
       html = render_pagination(meta: build(:meta_on_first_page))
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "disables previous link if on first page when using click handlers" do
@@ -270,8 +285,9 @@ defmodule Flop.PhoenixTest do
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -286,8 +302,7 @@ defmodule Flop.PhoenixTest do
 
       previous_link = Floki.find(html, "span:fl-contains('Prev')")
 
-      assert Floki.attribute(previous_link, "class") == ["prev"]
-      assert Floki.attribute(previous_link, "disabled") == ["disabled"]
+      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
       assert Floki.text(previous_link) == "Prev"
     end
@@ -356,8 +371,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -367,8 +381,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('Next')")
 
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "disabled") == ["disabled"]
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
@@ -384,8 +397,7 @@ defmodule Flop.PhoenixTest do
         |> render_pagination()
         |> Floki.find("span:fl-contains('N-n-next')")
 
-      assert Floki.attribute(next_link, "class") == ["next"]
-      assert Floki.attribute(next_link, "disabled") == ["disabled"]
+      assert Floki.attribute(next_link, "class") == ["next disabled"]
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
@@ -893,6 +905,324 @@ defmodule Flop.PhoenixTest do
     test "does not render anything if meta has errors" do
       {:error, meta} = Flop.validate(%{page: 0})
       assert render_pagination(meta: meta) == []
+    end
+  end
+
+  describe "cursor_pagination/1" do
+    test "renders pagination wrapper" do
+      html = render_cursor_pagination(meta: build(:meta_with_cursors))
+      wrapper = Floki.find(html, "nav")
+
+      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
+      assert Floki.attribute(wrapper, "class") == ["pagination"]
+      assert Floki.attribute(wrapper, "role") == ["navigation"]
+    end
+
+    test "allows to overwrite wrapper class" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          opts: [wrapper_attrs: [class: "boo"]]
+        )
+
+      wrapper = Floki.find(html, "nav")
+
+      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
+      assert Floki.attribute(wrapper, "class") == ["boo"]
+      assert Floki.attribute(wrapper, "role") == ["navigation"]
+    end
+
+    test "allows to add attributes to wrapper" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          opts: [wrapper_attrs: [title: "paginate"]]
+        )
+
+      wrapper = Floki.find(html, "nav")
+
+      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
+      assert Floki.attribute(wrapper, "class") == ["pagination"]
+      assert Floki.attribute(wrapper, "role") == ["navigation"]
+      assert Floki.attribute(wrapper, "title") == ["paginate"]
+    end
+
+    test "renders previous link" do
+      html = render_cursor_pagination(meta: build(:meta_with_cursors))
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
+    test "supports a function/args tuple as path_helper" do
+      html =
+        render_cursor_pagination(
+          path_helper: {&route_helper/3, @route_helper_opts},
+          meta: build(:meta_with_cursors)
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
+    test "renders previous link when using click event handling" do
+      html =
+        render_cursor_pagination(
+          event: "paginate",
+          meta: build(:meta_with_cursors),
+          path_helper: nil
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "phx-click") == ["paginate"]
+      assert Floki.attribute(link, "phx-value-to") == ["previous"]
+      assert Floki.attribute(link, "href") == ["#"]
+    end
+
+    test "adds phx-target to previous link" do
+      html =
+        render_cursor_pagination(
+          event: "paginate",
+          meta: build(:meta_with_cursors),
+          path_helper: nil,
+          target: "here"
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "phx-target") == ["here"]
+    end
+
+    test "switches next and previous link" do
+      # default
+      html = render_cursor_pagination(meta: build(:meta_with_cursors))
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      link = Floki.find(html, "a:fl-contains('Next')")
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+
+      # reverse
+      html =
+        render_cursor_pagination(meta: build(:meta_with_cursors), reverse: true)
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+
+      link = Floki.find(html, "a:fl-contains('Next')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
+    test "merges query parameters into existing parameters" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          path_helper:
+            {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]},
+          opts: []
+        )
+
+      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(previous, "class") == ["pagination-previous"]
+      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
+      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
+
+      assert Floki.attribute(previous, "href") == [
+               "/pets?category=dinosaurs&last=10&before=B"
+             ]
+    end
+
+    test "allows to overwrite previous link attributes and content" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          opts: [
+            previous_link_attrs: [class: "prev", title: "p-p-previous"],
+            previous_link_content: tag(:i, class: "fas fa-chevron-left")
+          ]
+        )
+
+      assert [link] = Floki.find(html, "a[title='p-p-previous']")
+      assert Floki.attribute(link, "class") == ["prev"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+
+      assert link |> Floki.children() |> Floki.raw_html() ==
+               "<i class=\"fas fa-chevron-left\"></i>"
+    end
+
+    test "disables previous link if on first page" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors, has_previous_page?: false)
+        )
+
+      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
+    end
+
+    test "disables previous link if on first page when using click handlers" do
+      html =
+        render_cursor_pagination(
+          event: "e",
+          meta: build(:meta_with_cursors, has_previous_page?: false),
+          path_helper: nil
+        )
+
+      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+
+      assert Floki.attribute(previous_link, "class") == [
+               "pagination-previous disabled"
+             ]
+    end
+
+    test "allows to overwrite previous link class and content if disabled" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors, has_previous_page?: false),
+          opts: [
+            previous_link_attrs: [class: "prev", title: "no"],
+            previous_link_content: "Prev"
+          ]
+        )
+
+      previous_link = Floki.find(html, "span:fl-contains('Prev')")
+
+      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
+      assert Floki.attribute(previous_link, "title") == ["no"]
+      assert Floki.text(previous_link) == "Prev"
+    end
+
+    test "renders next link" do
+      link =
+        [meta: build(:meta_with_cursors)]
+        |> render_cursor_pagination()
+        |> Floki.find("a:fl-contains('Next')")
+
+      assert Floki.attribute(link, "class") == ["pagination-next"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+    end
+
+    test "renders next link when using click event handling" do
+      link =
+        [event: "paginate", meta: build(:meta_with_cursors), path_helper: nil]
+        |> render_cursor_pagination()
+        |> Floki.find("a:fl-contains('Next')")
+
+      assert Floki.attribute(link, "class") == ["pagination-next"]
+      assert Floki.attribute(link, "phx-click") == ["paginate"]
+      assert Floki.attribute(link, "phx-value-to") == ["next"]
+      assert Floki.attribute(link, "href") == ["#"]
+    end
+
+    test "adds phx-target to next link" do
+      link =
+        [
+          event: "paginate",
+          meta: build(:meta_with_cursors),
+          path_helper: nil,
+          target: "here"
+        ]
+        |> render_cursor_pagination()
+        |> Floki.find("a:fl-contains('Next')")
+
+      assert Floki.attribute(link, "phx-target") == ["here"]
+    end
+
+    test "allows to overwrite next link attributes and content" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          opts: [
+            next_link_attrs: [class: "next", title: "n-n-next"],
+            next_link_content: tag(:i, class: "fas fa-chevron-right")
+          ]
+        )
+
+      assert [link] = Floki.find(html, "a[title='n-n-next']")
+      assert Floki.attribute(link, "class") == ["next"]
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+
+      assert link |> Floki.children() |> Floki.raw_html() ==
+               "<i class=\"fas fa-chevron-right\"></i>"
+    end
+
+    test "disables next link if on last page" do
+      next =
+        [meta: build(:meta_with_cursors, has_next_page?: false)]
+        |> render_cursor_pagination()
+        |> Floki.find("span:fl-contains('Next')")
+
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
+      assert Floki.attribute(next, "href") == []
+    end
+
+    test "renders next link on last page when using click event handling" do
+      next =
+        [
+          event: "paginate",
+          meta: build(:meta_with_cursors, has_next_page?: false),
+          path_helper: nil
+        ]
+        |> render_cursor_pagination()
+        |> Floki.find("span:fl-contains('Next')")
+
+      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
+      assert Floki.attribute(next, "href") == []
+    end
+
+    test "allows to overwrite next link attributes and content when disabled" do
+      next_link =
+        [
+          meta: build(:meta_with_cursors, has_next_page?: false),
+          opts: [
+            next_link_attrs: [class: "next", title: "no"],
+            next_link_content: "N-n-next"
+          ]
+        ]
+        |> render_cursor_pagination()
+        |> Floki.find("span:fl-contains('N-n-next')")
+
+      assert Floki.attribute(next_link, "class") == ["next disabled"]
+      assert Floki.attribute(next_link, "title") == ["no"]
+    end
+
+    test "logs error if :for option is passed" do
+      assert capture_log(fn ->
+               render_cursor_pagination(
+                 for: Pet,
+                 meta: build(:meta_with_cursors)
+               )
+             end) =~ "The :for option is deprecated"
+    end
+
+    test "raises if neither path helper nor event are passed" do
+      assert_raise ArgumentError,
+                   ~r/^the :path_helper or :event option is required/,
+                   fn ->
+                     render_component(&cursor_pagination/1,
+                       __changed__: nil,
+                       meta: build(:meta_with_cursors)
+                     )
+                   end
+    end
+
+    @tag capture_log: true
+    test "does not render anything if meta has errors" do
+      {:error, meta} = Flop.validate(%{first: 1, last: 1})
+      assert render_cursor_pagination(meta: meta) == []
     end
   end
 

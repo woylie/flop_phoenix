@@ -17,6 +17,7 @@ defmodule Flop.Phoenix.Pagination do
         class: "pagination-link is-current",
         aria: [current: "page"]
       ],
+      disabled_class: "disabled",
       ellipsis_attrs: [class: "pagination-ellipsis"],
       ellipsis_content: raw("&hellip;"),
       next_link_attrs: [
@@ -116,7 +117,7 @@ defmodule Flop.Phoenix.Pagination do
         ) %>
       <% end %>
     <% else %>
-      <span {Keyword.put(@attrs, :disabled, "disabled")}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
     <% end %>
     """
   end
@@ -135,7 +136,7 @@ defmodule Flop.Phoenix.Pagination do
         ) %>
       <% end %>
     <% else %>
-      <span {Keyword.put(@attrs, :disabled, "disabled")}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
     <% end %>
     """
   end
@@ -336,6 +337,12 @@ defmodule Flop.Phoenix.Pagination do
     |> Keyword.put(:phx_value_page, page)
     |> Keyword.put(:to, "#")
     |> Misc.maybe_put(:phx_target, target)
+  end
+
+  defp add_disabled_class(attrs, disabled_class) do
+    Keyword.update(attrs, :class, disabled_class, fn class ->
+      class <> " " <> disabled_class
+    end)
   end
 
   defp add_page_link_aria_label(attrs, page, opts) do

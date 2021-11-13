@@ -88,4 +88,14 @@ defmodule Flop.Phoenix.Factory do
       total_pages: 0
     }
   end
+
+  def meta_with_cursors_factory do
+    %Meta{
+      flop: %Flop{first: 10, after: "A", page_size: 10},
+      has_next_page?: true,
+      has_previous_page?: true,
+      start_cursor: "B",
+      end_cursor: "C"
+    }
+  end
 end

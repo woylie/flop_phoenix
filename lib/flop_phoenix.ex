@@ -122,6 +122,7 @@ defmodule Flop.Phoenix do
 
   alias Flop.Filter
   alias Flop.Meta
+  alias Flop.Phoenix.CursorPagination
   alias Flop.Phoenix.Misc
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
@@ -132,6 +133,8 @@ defmodule Flop.Phoenix do
 
   - `:current_link_attrs` - The attributes for the link to the current page.
     Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
+  - `:disabled` - The class which is added to disabled links. Default:
+    `#{inspect(Pagination.default_opts()[:disabled_class])}`.
   - `:ellipsis_attrs` - The attributes for the `<span>` that wraps the
     ellipsis.
     Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
@@ -164,6 +167,7 @@ defmodule Flop.Phoenix do
   """
   @type pagination_option ::
           {:current_link_attrs, keyword}
+          | {:disabled_class, String.t()}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
           | {:next_link_attrs, keyword}
@@ -172,6 +176,31 @@ defmodule Flop.Phoenix do
           | {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
+          | {:previous_link_attrs, keyword}
+          | {:previous_link_content, Phoenix.HTML.safe() | binary}
+          | {:wrapper_attrs, keyword}
+
+  @typedoc """
+  Defines the available options for `Flop.Phoenix.cursor_pagination/1`.
+
+  - `:disabled` - The class which is added to disabled links. Default:
+    `#{inspect(CursorPagination.default_opts()[:disabled_class])}`.
+  - `:next_link_attrs` - The attributes for the link to the next page.
+    Default: `#{inspect(CursorPagination.default_opts()[:next_link_attrs])}`.
+  - `:next_link_content` - The content for the link to the next page.
+    Default: `#{inspect(CursorPagination.default_opts()[:next_link_content])}`.
+  - `:previous_link_attrs` - The attributes for the link to the previous page.
+    Default: `#{inspect(CursorPagination.default_opts()[:previous_link_attrs])}`.
+  - `:previous_link_content` - The content for the link to the previous page.
+    Default: `#{inspect(CursorPagination.default_opts()[:previous_link_content])}`.
+  - `:wrappers_attrs` - The attributes for the `<nav>` element that wraps the
+    pagination links.
+    Default: `#{inspect(CursorPagination.default_opts()[:wrappers_attrs])}`.
+  """
+  @type cursor_pagination_option ::
+          {:disabled_class, String.t()}
+          | {:next_link_attrs, keyword}
+          | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:previous_link_attrs, keyword}
           | {:previous_link_content, Phoenix.HTML.safe() | binary}
           | {:wrapper_attrs, keyword}
@@ -298,6 +327,84 @@ defmodule Flop.Phoenix do
         }
         target={@target}
       />
+    <% end %>
+    """
+  end
+
+  @doc """
+  Renders a cursor pagination element.
+
+  ## Example
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path_helper={{Routes, :pet_path, [@socket, :index]}}
+      />
+
+  ## Assigns
+
+  - `meta` - The meta information of the query as returned by the `Flop` query
+    functions.
+  - `path_helper` - The path helper to use for building the link URL. Can be an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
+    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
+    callback of the LiveView module.
+  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
+    attribute.
+  - `target` (optional) - Sets the `phx-target` attribute for the pagination
+    links.
+  - `reverse` (optional) - By default, the `next` link moves forward with the
+    `:after` parameter set to the end cursor, and the `previous` link moves
+    backward with the `:before` parameter set to the start cursor. If `reverse`
+    is set to `true`, the destinations of the links are switched.
+  - `opts` (optional) - Options to customize the pagination. See
+    `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
+    the function are deep merged into the default options. These options will
+    likely be the same for all the tables in a project, so it probably makes
+    sense to define them once in a function or set them in a wrapper function
+    as described in the `Customization` section of the module documentation.
+
+  ## Hiding default parameters
+
+  If you pass the `for` option to the Flop query function, Flop Phoenix hides
+  the `order` and `page_size` parameters if they match the default values
+  defined with `Flop.Schema`.
+
+  ## Previous/next links
+
+  By default, the previous and next links contain the texts `Previous` and
+  `Next`. To change this, you can pass the `:previous_link_content` and
+  `:next_link_content` options.
+  """
+  @doc section: :components
+  @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
+  def cursor_pagination(assigns) do
+    assigns = CursorPagination.init_assigns(assigns)
+
+    ~H"""
+    <%= unless @meta.errors != [] do %>
+      <nav {@opts[:wrapper_attrs]}>
+        <CursorPagination.render_link
+          attrs={@opts[:previous_link_attrs]}
+          content={@opts[:previous_link_content]}
+          direction={if @reverse, do: :next, else: :previous}
+          event={@event}
+          meta={@meta}
+          path_helper={@path_helper}
+          opts={@opts}
+          target={@target}
+        />
+        <CursorPagination.render_link
+          attrs={@opts[:next_link_attrs]}
+          content={@opts[:next_link_content]}
+          direction={if @reverse, do: :previous, else: :next}
+          event={@event}
+          meta={@meta}
+          path_helper={@path_helper}
+          opts={@opts}
+          target={@target}
+        />
+      </nav>
     <% end %>
     """
   end
