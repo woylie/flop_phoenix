@@ -394,6 +394,21 @@ defmodule Flop.Phoenix do
   `default_pagination_type` ensures that Flop defaults to the right pagination
   type when it cannot determine the type from the parameters. `pagination_types`
   ensures that parameters for other types are not accepted.
+
+  ## Order fields
+
+  The pagination cursor is based on the `ORDER BY` fields of the query. It is
+  important that the combination of order fields is unique across the data set.
+  You can use:
+
+  - the field with the primary key
+  - a field with a unique index
+  - all fields of a composite primary key or unique index
+
+  If you want to order by fields that are not unique, you can add the primary
+  key as the last order field. For example, if you want to order by family name
+  and given name, you should set the `order_by` parameter to
+  `[:family_name, :given_name, :id]`.
   """
   @doc section: :components
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
