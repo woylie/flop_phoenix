@@ -375,6 +375,25 @@ defmodule Flop.Phoenix do
   By default, the previous and next links contain the texts `Previous` and
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
+
+  ## Getting the right parameters from Flop
+
+  This component requires the start and end cursors to be set in `Flop.Meta`. If
+  you pass a `Flop.Meta` struct with page or offset-based parameters, this will
+  result in an error. You can enforce cursor-based pagination in your query
+  function with the `default_pagination_type` and `pagination_types` options.
+
+      def list_users(params) do
+        Flop.validate_and_run(Pet, params,
+          for: Pet,
+          default_pagination_type: :first,
+          pagination_types: [:first, :last]
+        )
+      end
+
+  `default_pagination_type` ensures that Flop defaults to the right pagination
+  type when it cannot determine the type from the parameters. `pagination_types`
+  ensures that parameters for other types are not accepted.
   """
   @doc section: :components
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
