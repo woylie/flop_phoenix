@@ -997,6 +997,26 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
+    test "switches next and previous link" do
+      # default
+      html = render_cursor_pagination(meta: build(:meta_with_cursors))
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      link = Floki.find(html, "a:fl-contains('Next')")
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+
+      # reverse
+      html =
+        render_cursor_pagination(meta: build(:meta_with_cursors), reverse: true)
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+
+      link = Floki.find(html, "a:fl-contains('Next')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
     test "merges query parameters into existing parameters" do
       html =
         render_cursor_pagination(

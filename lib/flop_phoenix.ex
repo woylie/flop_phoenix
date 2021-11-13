@@ -353,6 +353,10 @@ defmodule Flop.Phoenix do
     attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the pagination
     links.
+  - `reverse` (optional) - By default, the `next` link moves forward with the
+    `:after` parameter set to the end cursor, and the `previous` link moves
+    backward with the `:before` parameter set to the start cursor. If `reverse`
+    is set to `true`, the destinations of the links are switched.
   - `opts` (optional) - Options to customize the pagination. See
     `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
     the function are deep merged into the default options. These options will
@@ -380,18 +384,20 @@ defmodule Flop.Phoenix do
     ~H"""
     <%= unless @meta.errors != [] do %>
       <nav {@opts[:wrapper_attrs]}>
-        <CursorPagination.previous_link
+        <CursorPagination.render_link
           attrs={@opts[:previous_link_attrs]}
           content={@opts[:previous_link_content]}
+          direction={if @reverse, do: :next, else: :previous}
           event={@event}
           meta={@meta}
           path_helper={@path_helper}
           opts={@opts}
           target={@target}
         />
-        <CursorPagination.next_link
+        <CursorPagination.render_link
           attrs={@opts[:next_link_attrs]}
           content={@opts[:next_link_content]}
+          direction={if @reverse, do: :previous, else: :next}
           event={@event}
           meta={@meta}
           path_helper={@path_helper}

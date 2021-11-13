@@ -38,6 +38,7 @@ defmodule Flop.Phoenix.CursorPagination do
       assigns
       |> assign_new(:event, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
+      |> assign_new(:reverse, fn -> false end)
       |> assign_new(:target, fn -> nil end)
       |> assign(:opts, merge_opts(assigns[:opts] || []))
 
@@ -58,16 +59,16 @@ defmodule Flop.Phoenix.CursorPagination do
     |> Misc.deep_merge(opts)
   end
 
-  def previous_link(assigns) do
+  def render_link(assigns) do
     ~H"""
-    <%= if @meta.has_previous_page? do %>
+    <%= if show_link?(@meta, @direction) do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @target, :previous) do %>
+        <%= link add_phx_attrs(@attrs, @event, @target, @direction) do %>
           <%= @content %>
         <% end %>
       <% else %>
         <%= live_patch(@content,
-          Keyword.put(@attrs, :to, pagination_path(:previous, @path_helper, @meta))
+          Keyword.put(@attrs, :to, pagination_path(@direction, @path_helper, @meta))
         ) %>
       <% end %>
     <% else %>
@@ -76,23 +77,9 @@ defmodule Flop.Phoenix.CursorPagination do
     """
   end
 
-  def next_link(assigns) do
-    ~H"""
-    <%= if @meta.has_next_page? do %>
-      <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @target, :next) do %>
-          <%= @content %>
-        <% end %>
-      <% else %>
-        <%= live_patch(@content,
-          Keyword.put(@attrs, :to, pagination_path(:next, @path_helper, @meta))
-        ) %>
-      <% end %>
-    <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
-    <% end %>
-    """
-  end
+  defp show_link?(%Flop.Meta{has_previous_page?: true}, :previous), do: true
+  defp show_link?(%Flop.Meta{has_next_page?: true}, :next), do: true
+  defp show_link?(%Flop.Meta{}, _), do: false
 
   defp pagination_path(:previous, path_helper, %Flop.Meta{} = meta) do
     params =
