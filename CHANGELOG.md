@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add `cursor_pagination/1` component.
+
 ## [0.12.0] - 2021-11-08
 
 ### Added

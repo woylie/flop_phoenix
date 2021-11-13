@@ -86,7 +86,8 @@ defmodule Flop.Phoenix.Misc do
   environment.
   """
   @spec get_global_opts(atom) :: keyword
-  def get_global_opts(component) when component in [:pagination, :table] do
+  def get_global_opts(component)
+      when component in [:cursor_pagination, :pagination, :table] do
     case opts_func(component) do
       nil -> []
       {module, func} -> apply(module, func, [])
