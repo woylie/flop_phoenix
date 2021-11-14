@@ -376,6 +376,26 @@ defmodule Flop.Phoenix do
   `Next`. To change this, you can pass the `:previous_link_content` and
   `:next_link_content` options.
 
+  ## Handling parameters and events
+
+  If you set the `path_helper` assign, a link with query parameters is rendered.
+  In a LiveView, you need to handle the parameters in the
+  `Phoenix.LiveView.handle_params/3` callback.
+
+      def handle_params(params, _, socket) do
+        {pets, meta} = MyApp.list_pets(params)
+        {:noreply, assign(socket, meta: meta, pets: pets)}
+      end
+
+  If you use LiveView and set the `event` assign, you need to update the Flop
+  parameters in the `handle_event/3` callback.
+
+      def handle_event("paginate-users", %{"to" => to}, socket) do
+        flop = Flop.set_cursor(socket.assigns.meta, to)
+        {pets, meta} = MyApp.list_pets(flop)
+        {:noreply, assign(socket, meta: meta, pets: pets)}
+      end
+
   ## Getting the right parameters from Flop
 
   This component requires the start and end cursors to be set in `Flop.Meta`. If
@@ -383,8 +403,8 @@ defmodule Flop.Phoenix do
   result in an error. You can enforce cursor-based pagination in your query
   function with the `default_pagination_type` and `pagination_types` options.
 
-      def list_users(params) do
-        Flop.validate_and_run(Pet, params,
+      def list_pets(params) do
+        Flop.validate_and_run!(Pet, params,
           for: Pet,
           default_pagination_type: :first,
           pagination_types: [:first, :last]
