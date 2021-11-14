@@ -81,19 +81,10 @@ defmodule Flop.Phoenix.CursorPagination do
   defp show_link?(%Flop.Meta{has_next_page?: true}, :next), do: true
   defp show_link?(%Flop.Meta{}, _), do: false
 
-  defp pagination_path(:previous, path_helper, %Flop.Meta{} = meta) do
+  defp pagination_path(direction, path_helper, %Flop.Meta{} = meta) do
     params =
       meta
-      |> Flop.to_previous_cursor()
-      |> Flop.Phoenix.to_query(for: meta.schema)
-
-    Flop.Phoenix.build_path(path_helper, params)
-  end
-
-  defp pagination_path(:next, path_helper, %Flop.Meta{} = meta) do
-    params =
-      meta
-      |> Flop.to_next_cursor()
+      |> Flop.set_cursor(direction)
       |> Flop.Phoenix.to_query(for: meta.schema)
 
     Flop.Phoenix.build_path(path_helper, params)
