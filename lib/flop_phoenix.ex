@@ -195,7 +195,7 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(CursorPagination.default_opts()[:previous_link_content])}`.
   - `:wrappers_attrs` - The attributes for the `<nav>` element that wraps the
     pagination links.
-    Default: `#{inspect(CursorPagination.default_opts()[:wrappers_attrs])}`.
+    Default: `#{inspect(CursorPagination.default_opts()[:wrapper_attrs])}`.
   """
   @type cursor_pagination_option ::
           {:disabled_class, String.t()}
@@ -275,16 +275,10 @@ defmodule Flop.Phoenix do
     links.
   - `opts` (optional) - Options to customize the pagination. See
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options. These options will
-    likely be the same for all the tables in a project, so it probably makes
-    sense to define them once in a function or set them in a wrapper function
-    as described in the `Customization` section of the module documentation.
-
-  ## Hiding default parameters
-
-  If you pass the `for` option to the Flop query function, Flop Phoenix hides
-  the `order` and `page_size` parameters if they match the default values defined
-  with `Flop.Schema`.
+    function are deep merged into the default options. Since these options will
+    likely be the same for all the tables in a project, so it is recommended to
+    define them once in a function or set them in a wrapper function as
+    described in the `Customization` section of the module documentation.
 
   ## Page link options
 
@@ -359,28 +353,17 @@ defmodule Flop.Phoenix do
     is set to `true`, the destinations of the links are switched.
   - `opts` (optional) - Options to customize the pagination. See
     `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
-    the function are deep merged into the default options. These options will
-    likely be the same for all the tables in a project, so it probably makes
-    sense to define them once in a function or set them in a wrapper function
-    as described in the `Customization` section of the module documentation.
-
-  ## Hiding default parameters
-
-  If you pass the `for` option to the Flop query function, Flop Phoenix hides
-  the `order` and `page_size` parameters if they match the default values
-  defined with `Flop.Schema`.
-
-  ## Previous/next links
-
-  By default, the previous and next links contain the texts `Previous` and
-  `Next`. To change this, you can pass the `:previous_link_content` and
-  `:next_link_content` options.
+    the function are deep merged into the default options. Since these options
+    will likely be the same for all the tables in a project, so it is
+    recommended to define them once in a function or set them in a wrapper
+    function as described in the `Customization` section of the module
+    documentation.
 
   ## Handling parameters and events
 
   If you set the `path_helper` assign, a link with query parameters is rendered.
   In a LiveView, you need to handle the parameters in the
-  `Phoenix.LiveView.handle_params/3` callback.
+  `c:Phoenix.LiveView.handle_params/3` callback.
 
       def handle_params(params, _, socket) do
         {pets, meta} = MyApp.list_pets(params)

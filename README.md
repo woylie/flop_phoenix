@@ -111,6 +111,9 @@ determine which table columns are sortable. It also hides the `order` and
 `page_size` parameters if they match the default values defined with
 `Flop.Schema`.
 
+See `Flop.Phoenix.cursor_pagination/1` for instructions to set up cursor-based
+pagination.
+
 ## Filter forms
 
 This library implements `Phoenix.HTML.FormData` for the `Flop.Meta` struct,
