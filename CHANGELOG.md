@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.13.0] - 2021-11-14
+
 ### Added
 
 - Add `cursor_pagination/1` component.
@@ -9,7 +11,7 @@
 ### Changed
 
 - The pagination component adds the `disabled` class to the `span` that is
-  displayed when the previous or next link is disabled. Previously, the
+  displayed when the previous or next link is disabled now. Previously, the
   `disabled` attribute was set on the `span`. The class can be customized with
   the `:disabled_class` option.
 
