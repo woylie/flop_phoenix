@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         otp: ["22.3", "23.3", "24.1"]
-        elixir: ["1.12.3"]
+        elixir: ["1.12", "1.13"]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

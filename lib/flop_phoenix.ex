@@ -892,18 +892,18 @@ defmodule Flop.Phoenix do
   end
 
   defp render_input(form, func, opts) when is_function(func, 3) do
-    apply(func, [form, :value, opts])
+    func.(form, :value, opts)
   end
 
   defp render_input(form, {func, input_opts}, opts) when is_function(func, 3) do
     opts = Keyword.merge(opts, input_opts)
-    apply(func, [form, :value, opts])
+    func.(form, :value, opts)
   end
 
   defp render_input(form, {func, options, input_opts}, opts)
        when is_function(func, 4) and is_list(options) do
     opts = Keyword.merge(opts, input_opts)
-    apply(func, [form, :value, options, opts])
+    func.(form, :value, options, opts)
   end
 
   defp type_for(form, nil), do: input_type(form, :value)
