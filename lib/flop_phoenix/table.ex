@@ -47,6 +47,7 @@ defmodule Flop.Phoenix.Table do
   def init_assigns(assigns) do
     assigns =
       assigns
+      |> assign_new(:caption, fn -> nil end)
       |> assign_new(:event, fn -> nil end)
       |> assign_new(:foot, fn -> nil end)
       |> assign_new(:path_helper, fn -> nil end)
@@ -73,6 +74,14 @@ defmodule Flop.Phoenix.Table do
   def render(assigns) do
     ~H"""
     <table {@opts[:table_attrs]}>
+      <%= if @caption do %><caption><%= @caption %></caption><% end %>
+      <%= if Enum.any?(@col, & &1[:style]) do %>
+        <colgroup>
+          <%= for col <- @col do %>
+            <col style={col[:style]} />
+          <% end %>
+        </colgroup>
+      <% end %>
       <thead>
         <tr {@opts[:thead_tr_attrs]}>
           <%= for col <- @col do %>

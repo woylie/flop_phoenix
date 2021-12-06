@@ -476,6 +476,7 @@ defmodule Flop.Phoenix do
   - `event` (optional) - If set, `Flop.Phoenix` will render links with a
     `phx-click` attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the header links.
+  - `caption` (optional) - Content for the `<caption>` element.
   - `opts` (optional) - Keyword list with additional options (see
     `t:Flop.Phoenix.table_option/0`). Note that the options passed to the
     function are deep merged into the default options. These options will
@@ -504,6 +505,10 @@ defmodule Flop.Phoenix do
     to `true`.
   - `hide` (optional) - Boolean value to conditionally hide the column. Defaults
     to `false`.
+  - `style` (optional) - If set, a `<colgroup>` element is rendered and the
+    value of the `style` assign is set for the `<col>` element of the respective
+    column. You can set the `width`, `background` and `border` of a column this
+    way.
 
   ## Foot slot
 
@@ -529,6 +534,7 @@ defmodule Flop.Phoenix do
       <%= if @opts[:container] do %>
         <div {@opts[:container_attrs]}>
           <Table.render
+            caption={@caption}
             col={@col}
             foot={@foot}
             event={@event}
@@ -541,6 +547,7 @@ defmodule Flop.Phoenix do
         </div>
       <% else %>
         <Table.render
+          caption={@caption}
           col={@col}
           foot={@foot}
           event={@event}
