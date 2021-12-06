@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- `caption` assign for the `table` component.
+- `style` assign for the `:col` slot of the `table` component.
+
 ## [0.13.0] - 2021-11-14
 
 ### Added

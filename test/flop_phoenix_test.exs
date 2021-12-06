@@ -56,6 +56,7 @@ defmodule Flop.PhoenixTest do
   defp test_table(assigns) do
     assigns =
       assigns
+      |> assign_new(:caption, fn -> nil end)
       |> assign_new(:for, fn -> nil end)
       |> assign_new(:event, fn -> nil end)
       |> assign_new(:items, fn ->
@@ -72,6 +73,7 @@ defmodule Flop.PhoenixTest do
 
     ~H"""
     <Flop.Phoenix.table
+      caption={@caption}
       for={@for}
       event={@event}
       items={@items}
@@ -87,6 +89,23 @@ defmodule Flop.PhoenixTest do
       </:col>
       <:col let={pet} label="Species" field={:species}><%= pet.species %></:col>
       <:col>column without label</:col>
+    </Flop.Phoenix.table>
+    """
+  end
+
+  defp test_table_with_widths(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", age: 8}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+    >
+      <:col let={pet} label="Name" field={:name} style="width: 60%;">
+        <%= pet.name %>
+      </:col>
+      <:col let={pet} label="Name" field={:age} style="width: 40%;">
+        <%= pet.age %>
+      </:col>
     </Flop.Phoenix.table>
     """
   end
@@ -1550,6 +1569,42 @@ defmodule Flop.PhoenixTest do
                   {"tfoot", [], [{"tr", [], [{"td", [], ["snap"]}]}]}
                 ]}
              ] = html
+    end
+
+    test "renders colgroup" do
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"colgroup", _,
+                   [
+                     {"col", [{"style", "width: 60%;"}], _},
+                     {"col", [{"style", "width: 40%;"}], _}
+                   ]},
+                  {"thead", _, _},
+                  {"tbody", _, _}
+                ]}
+             ] = render_table([], &test_table_with_widths/1)
+    end
+
+    test "does not render a colgroup if no style attribute is set" do
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, _}
+                ]}
+             ] = render_table([], &test_table/1)
+    end
+
+    test "renders caption" do
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"caption", [], ["some caption"]},
+                  {"thead", _, _},
+                  {"tbody", _, _}
+                ]}
+             ] = render_table(caption: "some caption")
     end
 
     test "does not render table foot if option is not set" do
