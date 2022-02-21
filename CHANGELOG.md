@@ -4,6 +4,7 @@
 
 ### Added
 
+- `symbol_unsorted` option for the `table` component.
 - `caption` assign for the `table` component.
 - `style` assign for the `:col` slot of the `table` component.
 

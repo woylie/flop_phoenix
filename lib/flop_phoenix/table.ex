@@ -31,6 +31,7 @@ defmodule Flop.Phoenix.Table do
       symbol_asc: "▴",
       symbol_attrs: [class: "order-direction"],
       symbol_desc: "▾",
+      symbol_unsorted: nil,
       table_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
@@ -185,6 +186,9 @@ defmodule Flop.Phoenix.Table do
     <% end %>
     <%= if @direction in [:desc, :desc_nulls_first, :desc_nulls_last] do %>
       <span {@opts[:symbol_attrs]}><%= @opts[:symbol_desc] %></span>
+    <% end %>
+    <%= if is_nil(@direction) && !is_nil(@opts[:symbol_unsorted]) do %>
+      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_unsorted] %></span>
     <% end %>
     """
   end

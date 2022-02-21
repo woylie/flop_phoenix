@@ -1547,6 +1547,24 @@ defmodule Flop.PhoenixTest do
       assert Floki.text(span) == "desc"
     end
 
+    test "allows to set indicator for unsorted column" do
+      html =
+        render_table(
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [:name], order_directions: [:asc]}
+          },
+          opts: [symbol_unsorted: "random"]
+        )
+
+      assert [span] =
+               Floki.find(
+                 html,
+                 "th a:fl-contains('Email') + span.order-direction"
+               )
+
+      assert Floki.text(span) == "random"
+    end
+
     test "renders notice if item list is empty" do
       assert [{"p", [], ["No results."]}] = render_table(items: [])
     end
