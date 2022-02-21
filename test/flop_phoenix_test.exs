@@ -103,7 +103,24 @@ defmodule Flop.PhoenixTest do
       <:col let={pet} label="Name" field={:name} col_style="width: 60%;">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Name" field={:age} col_style="width: 40%;">
+      <:col let={pet} label="Age" field={:age} col_style="width: 40%;">
+        <%= pet.age %>
+      </:col>
+    </Flop.Phoenix.table>
+    """
+  end
+
+  defp test_table_with_column_attrs(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+    >
+      <:col let={pet} label="Name" field={:name} class="name-column">
+        <%= pet.name %>
+      </:col>
+      <:col let={pet} label="Age" field={:age} class="age-column">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -1293,6 +1310,12 @@ defmodule Flop.PhoenixTest do
       assert [_, _, _, _, _] = Floki.find(html, "th.bean")
       assert [_] = Floki.find(html, "tr.salt")
       assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
+    end
+
+    test "adds additional attributes to td" do
+      html = render_table([], &test_table_with_column_attrs/1)
+      assert [_, _] = Floki.find(html, "td.name-column")
+      assert [_, _] = Floki.find(html, "td.age-column")
     end
 
     test "doesn't render table if items list is empty" do

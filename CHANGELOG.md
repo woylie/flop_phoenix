@@ -8,6 +8,11 @@
 - `caption` assign for the `table` component.
 - `col_style` assign for the `:col` slot of the `table` component.
 
+### Changed
+
+- Additional attributes passed to the `<:col>` slot will now be added as
+  attributes to the `<td>` tags.
+
 ## [0.13.0] - 2021-11-14
 
 ### Added

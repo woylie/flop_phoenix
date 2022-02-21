@@ -105,7 +105,15 @@ defmodule Flop.Phoenix.Table do
           <tr {@opts[:tbody_tr_attrs]}>
             <%= for col <- @col do %>
               <%= if show_column?(col) do %>
-                <td {@opts[:tbody_td_attrs]}><%= render_slot(col, item) %></td>
+                <td
+                  {@opts[:tbody_td_attrs]}
+                  {
+                    assigns_to_attributes(
+                      col,
+                      [:col_style, :field, :hide, :label, :show]
+                    )
+                  }
+                ><%= render_slot(col, item) %></td>
               <% end %>
             <% end %>
           </tr>

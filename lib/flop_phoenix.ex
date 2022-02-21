@@ -513,6 +513,8 @@ defmodule Flop.Phoenix do
     element of the respective column. You can set the `width`, `background` and
     `border` of a column this way.
 
+  Any additional assigns will be added as attributes to the `<td>` elements.
+
   ## Foot slot
 
   You can optionally add a `foot`. The inner block will be rendered inside
