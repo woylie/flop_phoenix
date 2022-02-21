@@ -508,10 +508,10 @@ defmodule Flop.Phoenix do
     to `true`.
   - `hide` (optional) - Boolean value to conditionally hide the column. Defaults
     to `false`.
-  - `style` (optional) - If set, a `<colgroup>` element is rendered and the
-    value of the `style` assign is set for the `<col>` element of the respective
-    column. You can set the `width`, `background` and `border` of a column this
-    way.
+  - `col_style` (optional) - If set, a `<colgroup>` element is rendered and the
+    value of the `col_style` assign is set as `style` attribute for the `<col>`
+    element of the respective column. You can set the `width`, `background` and
+    `border` of a column this way.
 
   ## Foot slot
 

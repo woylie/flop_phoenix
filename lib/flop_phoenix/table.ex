@@ -76,10 +76,10 @@ defmodule Flop.Phoenix.Table do
     ~H"""
     <table {@opts[:table_attrs]}>
       <%= if @caption do %><caption><%= @caption %></caption><% end %>
-      <%= if Enum.any?(@col, & &1[:style]) do %>
+      <%= if Enum.any?(@col, & &1[:col_style]) do %>
         <colgroup>
           <%= for col <- @col do %>
-            <col style={col[:style]} />
+            <col style={col[:col_style]} />
           <% end %>
         </colgroup>
       <% end %>
