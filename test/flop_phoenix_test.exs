@@ -100,10 +100,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name} style="width: 60%;">
+      <:col let={pet} label="Name" field={:name} col_style="width: 60%;">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Name" field={:age} style="width: 40%;">
+      <:col let={pet} label="Name" field={:age} col_style="width: 40%;">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
