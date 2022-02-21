@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.14.0] - 2022-02-22
+
 ### Added
 
 - `symbol_unsorted` option for the `table` component.

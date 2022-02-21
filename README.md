@@ -13,7 +13,7 @@ application.
 ```elixir
 def deps do
   [
-    {:flop_phoenix, "~> 0.13.0"}
+    {:flop_phoenix, "~> 0.14.0"}
   ]
 end
 ```
