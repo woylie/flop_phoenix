@@ -668,16 +668,7 @@ defmodule Flop.Phoenix do
   def filter_fields(assigns) do
     is_meta_form!(assigns.form)
     fields = assigns[:fields] || []
-
-    labels =
-      fields
-      |> Enum.map(fn
-        {field, opts} -> {field, opts[:label]}
-        field -> {field, nil}
-      end)
-      |> IO.inspect()
-      # |> Enum.reject(fn {_, label} -> is_nil(label) end)
-      |> IO.inspect(label: "labels_____")
+    labels = get_filter_labels(assigns, fields)
 
     types =
       fields
@@ -687,10 +678,7 @@ defmodule Flop.Phoenix do
       end)
       |> Enum.reject(fn {_, type} -> is_nil(type) end)
 
-    IO.inspect(assigns[:dynamic])
-    IO.inspect(labels)
     inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
-    # IO.inspect(inputs_for_fields)
 
     assigns =
       assigns
@@ -710,6 +698,25 @@ defmodule Flop.Phoenix do
       }) %>
     <% end %>
     """
+  end
+
+  defp get_filter_labels(%{dynamic: true, form: form}, fields) do
+    dynamic_filters =
+      Enum.map(form.data.filters, fn %Flop.Filter{field: field} -> field end)
+
+    fields
+    |> Enum.map(fn
+      {field, opts} -> {field, opts[:label]}
+      field -> {field, nil}
+    end)
+    |> Enum.reject(fn {field, _} -> field not in dynamic_filters end)
+  end
+
+  defp get_filter_labels(_, fields) do
+    Enum.map(fields, fn
+      {field, opts} -> {field, opts[:label]}
+      field -> {field, nil}
+    end)
   end
 
   @doc """
@@ -772,14 +779,11 @@ defmodule Flop.Phoenix do
     is_filter_form!(assigns.form)
 
     opts = assigns_to_attributes(assigns, [:form, :texts])
-    # IO.inspect(opts)
 
     assigns =
       assigns
       |> assign_new(:texts, fn -> nil end)
       |> assign(:opts, opts)
-
-    # IO.inspect(assigns)
 
     ~H"""
     <%= label @form, :value, label_text(@form, @texts), opts %>

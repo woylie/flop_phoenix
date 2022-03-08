@@ -2368,13 +2368,11 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "type") == ["tel"]
     end
 
-    @tag :this
     test "optionally only renders existing filters", %{
       fields: fields,
       meta: meta
     } do
       meta = %{meta | flop: %Flop{filters: [%Filter{field: :phone}]}}
-      IO.inspect(meta)
 
       html =
         form_to_html(meta, fn f ->
