@@ -2271,6 +2271,40 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "type") == ["tel"]
     end
 
+    test "renders custom labels for identical field inputs", %{
+      meta: meta
+    } do
+      fields = [
+        {:email, [label: "E-mail"]},
+        {:email, [label: "Second E-mail"]}
+      ]
+
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            input_opts: [class: "input"],
+            label_opts: [class: "label"],
+            inner_block: %{
+              inner_block: fn _, e ->
+                [
+                  e.label |> rendered_to_string() |> raw(),
+                  e.input |> rendered_to_string() |> raw()
+                ]
+              end
+            }
+          )
+          |> raw()
+        end)
+
+      # labels
+      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
+      assert Floki.text(label) == "Second E-mail"
+    end
+
     @tag capture_log: true
     test "renders the labels and filter inputs with errors", %{
       fields: fields
@@ -2334,11 +2368,13 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "type") == ["tel"]
     end
 
+    @tag :this
     test "optionally only renders existing filters", %{
       fields: fields,
       meta: meta
     } do
       meta = %{meta | flop: %Flop{filters: [%Filter{field: :phone}]}}
+      IO.inspect(meta)
 
       html =
         form_to_html(meta, fn f ->

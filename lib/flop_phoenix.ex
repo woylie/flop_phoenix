@@ -675,7 +675,9 @@ defmodule Flop.Phoenix do
         {field, opts} -> {field, opts[:label]}
         field -> {field, nil}
       end)
-      |> Enum.reject(fn {_, label} -> is_nil(label) end)
+      |> IO.inspect()
+      # |> Enum.reject(fn {_, label} -> is_nil(label) end)
+      |> IO.inspect(label: "labels_____")
 
     types =
       fields
@@ -685,7 +687,10 @@ defmodule Flop.Phoenix do
       end)
       |> Enum.reject(fn {_, type} -> is_nil(type) end)
 
+    IO.inspect(assigns[:dynamic])
+    IO.inspect(labels)
     inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
+    # IO.inspect(inputs_for_fields)
 
     assigns =
       assigns
@@ -698,9 +703,9 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <%= filter_hidden_inputs_for(@form) %>
-    <%= for ff <- inputs_for(@form, :filters, fields: @fields, id: @id) do %>
+    <%= for {ff, label} <- inputs_for(@form, :filters, fields: @fields, id: @id) |> Enum.zip(@labels) do %>
       <%= render_slot(@inner_block, %{
-        label: ~H"<.filter_label form={ff} texts={@labels} {@label_opts} />",
+        label: ~H"<.filter_label form={ff} texts={label} {@label_opts} />",
         input: ~H"<.filter_input form={ff} types={@types} {@input_opts} />"
       }) %>
     <% end %>
@@ -767,25 +772,39 @@ defmodule Flop.Phoenix do
     is_filter_form!(assigns.form)
 
     opts = assigns_to_attributes(assigns, [:form, :texts])
+    # IO.inspect(opts)
 
     assigns =
       assigns
       |> assign_new(:texts, fn -> nil end)
       |> assign(:opts, opts)
 
+    # IO.inspect(assigns)
+
     ~H"""
     <%= label @form, :value, label_text(@form, @texts), opts %>
     """
   end
 
-  defp label_text(form, nil), do: form |> input_value(:field) |> humanize()
+  defp label_text(form, {_field, nil}) do
+    form |> input_value(:field) |> humanize()
+  end
 
-  defp label_text(form, func) when is_function(func, 1),
-    do: form |> input_value(:field) |> func.()
+  defp label_text(form, value) when value in [nil, []] do
+    form |> input_value(:field) |> humanize()
+  end
+
+  defp label_text(form, func) when is_function(func, 1) do
+    form |> input_value(:field) |> func.()
+  end
 
   defp label_text(form, mapping) when is_list(mapping) do
     field = input_value(form, :field)
     safe_get(mapping, field, label_text(form, nil))
+  end
+
+  defp label_text(_form, {_, label}) do
+    label
   end
 
   defp safe_get(keyword, key, default)
