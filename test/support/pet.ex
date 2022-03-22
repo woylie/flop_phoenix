@@ -10,8 +10,10 @@ defmodule Flop.Phoenix.Pet do
     sortable: [:name, :age],
     default_limit: 20,
     max_limit: 200,
-    default_order_by: [:name],
-    default_order_directions: [:asc]
+    default_order: %{
+      order_by: [:name],
+      order_directions: [:asc]
+    }
   }
 
   schema "pets" do
