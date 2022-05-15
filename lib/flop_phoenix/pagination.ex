@@ -117,7 +117,9 @@ defmodule Flop.Phoenix.Pagination do
         ) %>
       <% end %>
     <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
+        <%= @content %>
+      </span>
     <% end %>
     """
   end
@@ -136,7 +138,9 @@ defmodule Flop.Phoenix.Pagination do
         ) %>
       <% end %>
     <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
+        <%= @content %>
+      </span>
     <% end %>
     """
   end
@@ -157,11 +161,13 @@ defmodule Flop.Phoenix.Pagination do
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
-        range={get_page_link_range(
-          @meta.current_page,
-          @max_pages,
-          @meta.total_pages
-        )}
+        range={
+          get_page_link_range(
+            @meta.current_page,
+            @max_pages,
+            @meta.total_pages
+          )
+        }
         target={@target}
       />
     <% end %>
@@ -229,7 +235,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @event do %>
       <li>
-        <%= link @page, add_phx_attrs(@attrs, @event, @target, @page) %>
+        <%= link(@page, add_phx_attrs(@attrs, @event, @target, @page)) %>
       </li>
     <% else %>
       <li>

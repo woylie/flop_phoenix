@@ -319,9 +319,7 @@ defmodule Flop.Phoenix do
         event={@event}
         meta={@meta}
         opts={@opts}
-        page_link_helper={
-          Pagination.build_page_link_helper(@meta, @path_helper)
-        }
+        page_link_helper={Pagination.build_page_link_helper(@meta, @path_helper)}
         target={@target}
       />
     <% end %>
@@ -774,7 +772,7 @@ defmodule Flop.Phoenix do
       |> assign(:opts, opts)
 
     ~H"""
-    <%= label @form, :value, label_text(@form, @texts), opts %>
+    <%= label(@form, :value, label_text(@form, @texts), opts) %>
     """
   end
 
@@ -885,7 +883,9 @@ defmodule Flop.Phoenix do
       |> assign(:opts, opts)
 
     ~H"""
-    <%= unless @skip_hidden do %><%= hidden_inputs_for @form %><% end %>
+    <%= unless @skip_hidden do %>
+      <%= hidden_inputs_for(@form) %>
+    <% end %>
     <%= render_input(@form, @type, @opts) %>
     """
   end

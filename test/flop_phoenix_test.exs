@@ -136,7 +136,9 @@ defmodule Flop.PhoenixTest do
     >
       <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
       <:foot>
-        <tr><td>snap</td></tr>
+        <tr>
+          <td>snap</td>
+        </tr>
       </:foot>
     </Flop.Phoenix.table>
     """
@@ -149,11 +151,7 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col
-        let={pet}
-        label={{:safe, "<span>Hello</span>"}}
-        field={:name}
-      >
+      <:col let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
         <%= pet.name %>
       </:col>
     </Flop.Phoenix.table>

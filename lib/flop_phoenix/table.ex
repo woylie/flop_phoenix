@@ -75,7 +75,9 @@ defmodule Flop.Phoenix.Table do
   def render(assigns) do
     ~H"""
     <table {@opts[:table_attrs]}>
-      <%= if @caption do %><caption><%= @caption %></caption><% end %>
+      <%= if @caption do %>
+        <caption><%= @caption %></caption>
+      <% end %>
       <%= if Enum.any?(@col, & &1[:col_style]) do %>
         <colgroup>
           <%= for col <- @col do %>
@@ -113,7 +115,9 @@ defmodule Flop.Phoenix.Table do
                       [:col_style, :field, :hide, :label, :show]
                     )
                   }
-                ><%= render_slot(col, item) %></td>
+                >
+                  <%= render_slot(col, item) %>
+                </td>
               <% end %>
             <% end %>
           </tr>
@@ -161,8 +165,7 @@ defmodule Flop.Phoenix.Table do
                   Flop.push_order(@meta.flop, @field),
                   for: @meta.schema
                 )
-            )
-            %>
+            ) %>
           <% end %>
           <.arrow direction={@order_direction} opts={@opts} />
         </span>
