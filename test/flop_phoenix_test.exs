@@ -338,7 +338,7 @@ defmodule Flop.PhoenixTest do
 
       assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
-      assert Floki.text(previous_link) == "Prev"
+      assert String.trim(Floki.text(previous_link)) == "Prev"
     end
 
     test "renders next link" do
@@ -1132,7 +1132,7 @@ defmodule Flop.PhoenixTest do
 
       assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
-      assert Floki.text(previous_link) == "Prev"
+      assert String.trim(Floki.text(previous_link)) == "Prev"
     end
 
     test "renders next link" do
