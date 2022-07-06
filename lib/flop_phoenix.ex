@@ -101,7 +101,7 @@ defmodule Flop.Phoenix do
       def handle_event("paginate-pets", %{"page" => page}, socket) do
         flop = Flop.set_page(socket.assigns.meta.flop, page)
 
-        with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+        with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
           {:noreply, assign(socket, pets: pets, meta: meta)}
         end
       end
