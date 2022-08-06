@@ -1227,15 +1227,6 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
-    test "logs error if :for option is passed" do
-      assert capture_log(fn ->
-               render_cursor_pagination(
-                 for: Pet,
-                 meta: build(:meta_with_cursors)
-               )
-             end) =~ "The :for option is deprecated"
-    end
-
     test "raises if neither path helper nor event are passed" do
       assert_raise ArgumentError,
                    ~r/^the :path_helper or :event option is required/,

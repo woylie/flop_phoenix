@@ -357,31 +357,6 @@ defmodule Flop.Phoenix do
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       />
 
-  ## Assigns
-
-  - `meta` - The meta information of the query as returned by the `Flop` query
-    functions.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
-    the parameters will have to be handled in the `handle_params/3` callback of
-    the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the pagination
-    links.
-  - `reverse` (optional) - By default, the `next` link moves forward with the
-    `:after` parameter set to the end cursor, and the `previous` link moves
-    backward with the `:before` parameter set to the start cursor. If `reverse`
-    is set to `true`, the destinations of the links are switched.
-  - `opts` (optional) - Options to customize the pagination. See
-    `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
-    the function are deep merged into the default options. Since these options
-    will likely be the same for all the tables in a project, so it is
-    recommended to define them once in a function or set them in a wrapper
-    function as described in the `Customization` section of the module
-    documentation.
-
   ## Handling parameters and events
 
   If you set the `path_helper` assign, a link with query parameters is rendered.
@@ -438,6 +413,54 @@ defmodule Flop.Phoenix do
   """
   @doc section: :components
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: """
+    The meta information of the query as returned by the `Flop` query functions.
+    """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: "Sets the `phx-target` attribute for the pagination links."
+
+  attr :reverse, :boolean,
+    default: false,
+    doc: """
+    By default, the `next` link moves forward with the `:after` parameter set to
+    the end cursor, and the `previous` link moves backward with the `:before`
+    parameter set to the start cursor. If `reverse` is set to `true`, the
+    destinations of the links are switched.
+    """
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Options to customize the pagination. See
+    `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
+    the function are deep merged into the default options. Since these options
+    will likely be the same for all the tables in a project, so it is
+    recommended to define them once in a function or set them in a wrapper
+    function as described in the `Customization` section of the module
+    documentation.
+    """
+
   def cursor_pagination(assigns) do
     assigns = CursorPagination.init_assigns(assigns)
 
