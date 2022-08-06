@@ -18,7 +18,7 @@ defmodule Flop.Phoenix.Table do
         meta={@meta}
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       >
-        <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+        <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
       </Flop.Phoenix.table>
   """
 

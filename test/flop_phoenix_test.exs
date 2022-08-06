@@ -82,12 +82,12 @@ defmodule Flop.PhoenixTest do
       path_helper={@path_helper}
       target={@target}
     >
-      <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:col let={pet} label="Email" field={:email}><%= pet.email %></:col>
-      <:col let={pet} label="Age" hide={@hide_age} show={@show_age}>
+      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      <:col :let={pet} label="Email" field={:email}><%= pet.email %></:col>
+      <:col :let={pet} label="Age" hide={@hide_age} show={@show_age}>
         <%= pet.age %>
       </:col>
-      <:col let={pet} label="Species" field={:species}><%= pet.species %></:col>
+      <:col :let={pet} label="Species" field={:species}><%= pet.species %></:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
     """
@@ -100,10 +100,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name} col_style="width: 60%;">
+      <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Age" field={:age} col_style="width: 40%;">
+      <:col :let={pet} label="Age" field={:age} col_style="width: 40%;">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -117,10 +117,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name} class="name-column">
+      <:col :let={pet} label="Name" field={:name} class="name-column">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Age" field={:age} class="age-column">
+      <:col :let={pet} label="Age" field={:age} class="age-column">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -134,7 +134,7 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
       <:foot>
         <tr>
           <td>snap</td>
@@ -151,7 +151,7 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
+      <:col :let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
         <%= pet.name %>
       </:col>
     </Flop.Phoenix.table>

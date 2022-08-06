@@ -478,8 +478,8 @@ defmodule Flop.Phoenix do
     meta={@meta}
     path_helper={{Routes, :pet_path, [@socket, :index]}}
   >
-    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+    <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+    <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
   </Flop.Phoenix.table>
   ```
 
@@ -517,7 +517,7 @@ defmodule Flop.Phoenix do
   For each column to render, add one `<:col>` element.
 
   ```elixir
-  <:col let={pet} label="Name" field={:name} col_style="width: 20%;">
+  <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
     <%= pet.name %>
   </:col>
   ```
@@ -595,8 +595,8 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
-        <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+      <.form :let={f} for={@meta}>
+        <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
           <%= entry.label %>
           <%= entry.input %>
         </.filter_fields>
@@ -621,7 +621,7 @@ defmodule Flop.Phoenix do
   The generated labels and inputs are passed to the inner block instead of being
   automatically rendered. This allows you to customize the markup.
 
-      <.filter_fields let={e} form={f} fields={[:email, :name]}>
+      <.filter_fields :let={e} form={f} fields={[:email, :name]}>
         <div class="field-label"><%= e.label %></div>
         <div class="field-body"><%= e.input %></div>
       </.filter_fields>
@@ -658,7 +658,7 @@ defmodule Flop.Phoenix do
   You can set default attributes for all labels and inputs:
 
       <.filter_fields
-        let={e}
+        :let={e}
         form={f}
         fields={[:name]}
         input_opts={[class: "input"]}
@@ -670,7 +670,7 @@ defmodule Flop.Phoenix do
   fields.
 
       <.filter_fields
-        let={e}
+        :let={e}
         form={f}
         fields={[
           :name,
@@ -745,7 +745,7 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
+      <.form :let={f} for={@meta}>
         <%= filter_hidden_inputs_for(f) %>
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -843,7 +843,7 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
+      <.form :let={f} for={@meta}>
         <%= filter_hidden_inputs_for(f) %>
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -959,7 +959,7 @@ defmodule Flop.Phoenix do
 
     Example:
 
-        <.form let={f} for={@meta}>
+        <.form :let={f} for={@meta}>
           <%= filter_hidden_inputs_for(f) %>
 
           <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -978,8 +978,8 @@ defmodule Flop.Phoenix do
 
     Example:
 
-        <.form let={f} for={@meta}>
-          <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+        <.form :let={f} for={@meta}>
+          <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
             <%= entry.label %>
             <%= entry.input %>
           </.filter_fields>
