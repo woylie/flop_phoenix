@@ -158,14 +158,15 @@ defmodule Flop.Phoenix.Table do
               target={@target}
             />
           <% else %>
-            <%= live_patch(@label,
-              to:
-                build_path(
-                  @path_helper,
-                  Flop.push_order(@meta.flop, @field),
-                  for: @meta.schema
-                )
-            ) %>
+            <.link patch={
+              build_path(
+                @path_helper,
+                Flop.push_order(@meta.flop, @field),
+                for: @meta.schema
+              )
+            }>
+              <%= @label %>
+            </.link>
           <% end %>
           <.arrow direction={@order_direction} opts={@opts} />
         </span>

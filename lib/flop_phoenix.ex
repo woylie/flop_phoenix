@@ -70,7 +70,7 @@ defmodule Flop.Phoenix do
 
   ## Links
 
-  Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
+  Links are generated with `Phoenix.LiveView.Helpers.link/1`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
   which will be ignored outside of LiveViews and LiveComponents.
 
@@ -302,9 +302,10 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     The path helper to use for building the link URL. Can be an mfa tuple or a
-    function/args tuple. If set, links will be rendered with `live_patch/2` and
-    the parameters have to be handled in the `handle_params/3` callback of the
-    LiveView module.
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
     """
 
   attr :event, :string,
@@ -362,8 +363,9 @@ defmodule Flop.Phoenix do
     functions.
   - `path_helper` - The path helper to use for building the link URL. Can be an
     mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
+    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
   - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute.
   - `target` (optional) - Sets the `phx-target` attribute for the pagination
@@ -490,8 +492,9 @@ defmodule Flop.Phoenix do
   - `meta` - The `Flop.Meta` struct returned by the query function.
   - `path_helper` - The path helper to use for building the link URL. Can be an
     mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_path/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
+    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
   - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
     attribute.
   - `event` (optional) - If set, `Flop.Phoenix` will render links with a

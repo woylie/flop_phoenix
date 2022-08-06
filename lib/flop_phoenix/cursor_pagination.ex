@@ -67,10 +67,9 @@ defmodule Flop.Phoenix.CursorPagination do
           <%= @content %>
         <% end %>
       <% else %>
-        <%= live_patch(
-          @content,
-          Keyword.put(@attrs, :to, pagination_path(@direction, @path_helper, @meta))
-        ) %>
+        <.link patch={pagination_path(@direction, @path_helper, @meta)} {@attrs}>
+          <%= @content %>
+        </.link>
       <% end %>
     <% else %>
       <span {add_disabled_class(@attrs, @opts[:disabled_class])}>

@@ -445,21 +445,21 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 3']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
-      assert Floki.text(link) == "3"
+      assert String.trim(Floki.text(link)) == "3"
     end
 
     test "renders page links when using click event handling" do
@@ -550,7 +550,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "beep") == ["boop"]
@@ -558,7 +558,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
     end
 
     test "allows to overwrite pagination link aria label" do
@@ -573,14 +573,14 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='On to page 2']")
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
     end
 
     test "adds order parameters to links" do
