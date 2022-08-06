@@ -485,29 +485,6 @@ defmodule Flop.Phoenix do
   </Flop.Phoenix.table>
   ```
 
-  ## Assigns
-
-  - `items` - The list of items to be displayed in rows. This is the result list
-    returned by the query.
-  - `meta` - The `Flop.Meta` struct returned by the query function.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
-    the parameters will have to be handled in the `handle_params/3` callback of
-    the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `event` (optional) - If set, `Flop.Phoenix` will render links with a
-    `phx-click` attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the header links.
-  - `caption` (optional) - Content for the `<caption>` element.
-  - `opts` (optional) - Keyword list with additional options (see
-    `t:Flop.Phoenix.table_option/0`). Note that the options passed to the
-    function are deep merged into the default options. These options will
-    likely be the same for all the tables in a project, so it probably makes
-    sense to define them once in a function or set them in a wrapper function
-    as described in the `Customization` section of the module documentation.
-
   ## Flop.Schema
 
   If you pass the `for` option when making the query with Flop, Flop Phoenix can
@@ -552,6 +529,59 @@ defmodule Flop.Phoenix do
   @doc since: "0.6.0"
   @doc section: :components
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :items, :list,
+    required: true,
+    doc: """
+    The list of items to be displayed in rows. This is the result list returned
+    by the query.
+    """
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: "The `Flop.Meta` struct returned by the query function."
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: "Sets the `phx-target` attribute for the header links."
+
+  attr :caption, :string,
+    default: nil,
+    doc: "Content for the `<caption>` element."
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Keyword list with additional options (see `t:Flop.Phoenix.table_option/0`).
+    Note that the options passed to the function are deep merged into the
+    default options. These options will likely be the same for all the tables in
+    a project, so it probably makes sense to define them once in a function or
+    set them in a wrapper function as described in the `Customization` section
+    of the module documentation.
+    """
+
+  attr :col, :any, required: true, doc: "The slot for columns, see above."
+
+  attr :foot, :any,
+    default: nil,
+    doc: "The slot for the table footer, see above."
+
   def table(assigns) do
     assigns = Table.init_assigns(assigns)
 

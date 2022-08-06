@@ -46,22 +46,7 @@ defmodule Flop.Phoenix.Table do
   """
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:caption, fn -> nil end)
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:foot, fn -> nil end)
-      |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-
-    if assigns[:for] do
-      Logger.warn(
-        "The :for option is deprecated. The schema is automatically derived " <>
-          "from the Flop.Meta struct."
-      )
-    end
-
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
     validate_assigns!(assigns)
     assigns
   end
@@ -71,6 +56,16 @@ defmodule Flop.Phoenix.Table do
     |> Misc.deep_merge(Misc.get_global_opts(:table))
     |> Misc.deep_merge(opts)
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :path_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :caption, :string, required: true
+  attr :opts, :any, required: true
+  attr :col, :any, required: true
+  attr :items, :list, required: true
+  attr :foot, :any, required: true
 
   def render(assigns) do
     ~H"""
@@ -134,6 +129,14 @@ defmodule Flop.Phoenix.Table do
   defp show_column?(%{show: false}), do: false
   defp show_column?(_), do: true
 
+  attr :meta, Flop.Meta, required: true
+  attr :field, :atom, required: true
+  attr :label, :string, required: true
+  attr :path_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :any, required: true
+
   defp header_column(assigns) do
     index = order_index(assigns.meta.flop, assigns.field)
     direction = order_direction(assigns.meta.flop.order_directions, index)
@@ -191,6 +194,9 @@ defmodule Flop.Phoenix.Table do
   defp direction_to_aria(:asc_nulls_last), do: "ascending"
   defp direction_to_aria(:asc_nulls_first), do: "ascending"
 
+  attr :direction, :atom, required: true
+  attr :opts, :list, required: true
+
   defp arrow(assigns) do
     ~H"""
     <%= if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do %>
@@ -204,6 +210,11 @@ defmodule Flop.Phoenix.Table do
     <% end %>
     """
   end
+
+  attr :field, :atom, required: true
+  attr :label, :string, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
 
   defp sort_link(assigns) do
     ~H"""

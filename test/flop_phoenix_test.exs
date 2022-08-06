@@ -1453,12 +1453,6 @@ defmodule Flop.PhoenixTest do
       assert [] = Floki.find(html, "a:fl-contains('Species')")
     end
 
-    test "logs warning if :for option is passed" do
-      assert capture_log(fn ->
-               render_table(for: Pet)
-             end) =~ "The :for option is deprecated"
-    end
-
     test "hides default order and limit" do
       html =
         render_table(
@@ -1679,19 +1673,6 @@ defmodule Flop.PhoenixTest do
                        col: fn _ -> nil end,
                        event: "sort",
                        meta: %Flop.Meta{flop: %Flop{}}
-                     )
-                   end
-    end
-
-    test "raises if no meta is passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :meta option is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       col: fn _ -> nil end,
-                       event: "sort",
-                       items: []
                      )
                    end
     end
