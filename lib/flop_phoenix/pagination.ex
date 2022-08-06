@@ -44,20 +44,7 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-
-    if assigns[:for] do
-      Logger.warn(
-        "The :for option is deprecated. The schema is automatically derived " <>
-          "from the Flop.Meta struct."
-      )
-    end
-
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
     validate_path_helper_or_event!(assigns)
     assigns
   end
@@ -69,6 +56,13 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+
   def render(assigns) do
     ~H"""
     <%= unless @meta.errors != [] do %>
@@ -103,6 +97,14 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :content, :any, required: true
+  attr :attrs, :list, required: true
+  attr :opts, :list, required: true
+
   defp previous_link(assigns) do
     ~H"""
     <%= if @meta.has_previous_page? do %>
@@ -123,6 +125,14 @@ defmodule Flop.Phoenix.Pagination do
     <% end %>
     """
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :content, :any, required: true
+  attr :attrs, :list, required: true
+  attr :opts, :list, required: true
 
   defp next_link(assigns) do
     ~H"""
@@ -145,6 +155,12 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+
   defp page_links(assigns) do
     assigns =
       assign(
@@ -157,7 +173,6 @@ defmodule Flop.Phoenix.Pagination do
     <%= unless @opts[:page_links] == :hide do %>
       <.render_page_links
         event={@event}
-        max_pages={@max_pages}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
@@ -173,6 +188,13 @@ defmodule Flop.Phoenix.Pagination do
     <% end %>
     """
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+  attr :range, :any, required: true
 
   defp render_page_links(%{range: first..last} = assigns) do
     assigns = assign(assigns, first: first, last: last)
@@ -229,6 +251,13 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+  attr :page, :integer, required: true
+
   defp page_link_tag(%{meta: meta, opts: opts, page: page} = assigns) do
     assigns = assign(assigns, :attrs, attrs_for_page_link(page, meta, opts))
 
@@ -247,6 +276,9 @@ defmodule Flop.Phoenix.Pagination do
     <% end %>
     """
   end
+
+  attr :attrs, :list, required: true
+  attr :content, :any, required: true
 
   defp pagination_ellipsis(assigns) do
     ~H"""

@@ -12,7 +12,7 @@ defmodule FlopPhoenix.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      compilers: [:phoenix] ++ Mix.compilers(),
+      compilers: [:phoenix, :phoenix_live_view] ++ Mix.compilers(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -57,7 +57,8 @@ defmodule FlopPhoenix.MixProject do
       {:floki, "~> 0.33.1", only: :test},
       {:flop, "~> 0.15.0 or ~> 0.16.0 or ~> 0.17.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
-      {:phoenix_live_view, "~> 0.17.0"},
+      {:phoenix_live_view,
+       github: "phoenixframework/phoenix_live_view", branch: "master"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
   end

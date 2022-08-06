@@ -651,12 +651,6 @@ defmodule Flop.PhoenixTest do
       refute href =~ "order_directions[]="
     end
 
-    test "logs error if :for option is passed" do
-      assert capture_log(fn ->
-               render_pagination(for: Pet, meta: build(:meta_on_first_page))
-             end) =~ "The :for option is deprecated"
-    end
-
     test "does not require path_helper when passing event" do
       html =
         render_pagination(

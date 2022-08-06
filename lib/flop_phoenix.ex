@@ -264,25 +264,6 @@ defmodule Flop.Phoenix do
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       />
 
-  ## Assigns
-
-  - `meta` - The meta information of the query as returned by the `Flop` query
-    functions.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the pagination
-    links.
-  - `opts` (optional) - Options to customize the pagination. See
-    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options. Since these options will
-    likely be the same for all the tables in a project, so it is recommended to
-    define them once in a function or set them in a wrapper function as
-    described in the `Customization` section of the module documentation.
-
   ## Page link options
 
   By default, page links for all pages are shown. You can limit the number of
@@ -310,6 +291,45 @@ defmodule Flop.Phoenix do
   """
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: """
+    The meta information of the query as returned by the `Flop` query functions.
+    """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with `live_patch/2` and
+    the parameters have to be handled in the `handle_params/3` callback of the
+    LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: """
+    Sets the `phx-target` attribute for the pagination links.
+    """
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Options to customize the pagination. See
+    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
+    function are deep merged into the default options. Since these options will
+    likely be the same for all the tables in a project, so it is recommended to
+    define them once in a function or set them in a wrapper function as
+    described in the `Customization` section of the module documentation.
+    """
+
   def pagination(assigns) do
     assigns = Pagination.init_assigns(assigns)
 
