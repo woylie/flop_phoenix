@@ -75,9 +75,7 @@ defmodule Flop.Phoenix.Table do
       <% end %>
       <%= if Enum.any?(@col, & &1[:col_style]) do %>
         <colgroup>
-          <%= for col <- @col do %>
-            <col style={col[:col_style]} />
-          <% end %>
+          <col :for={col <- @col} style={col[:col_style]} />
         </colgroup>
       <% end %>
       <thead>
@@ -98,25 +96,23 @@ defmodule Flop.Phoenix.Table do
         </tr>
       </thead>
       <tbody>
-        <%= for item <- @items do %>
-          <tr {@opts[:tbody_tr_attrs]}>
-            <%= for col <- @col do %>
-              <%= if show_column?(col) do %>
-                <td
-                  {@opts[:tbody_td_attrs]}
-                  {
-                    assigns_to_attributes(
-                      col,
-                      [:col_style, :field, :hide, :label, :show]
-                    )
-                  }
-                >
-                  <%= render_slot(col, item) %>
-                </td>
-              <% end %>
+        <tr :for={item <- @items} {@opts[:tbody_tr_attrs]}>
+          <%= for col <- @col do %>
+            <%= if show_column?(col) do %>
+              <td
+                {@opts[:tbody_td_attrs]}
+                {
+                  assigns_to_attributes(
+                    col,
+                    [:col_style, :field, :hide, :label, :show]
+                  )
+                }
+              >
+                <%= render_slot(col, item) %>
+              </td>
             <% end %>
-          </tr>
-        <% end %>
+          <% end %>
+        </tr>
       </tbody>
       <%= if @foot do %>
         <tfoot><%= render_slot(@foot) %></tfoot>
