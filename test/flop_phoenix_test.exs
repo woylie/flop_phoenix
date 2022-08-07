@@ -3,7 +3,6 @@ defmodule Flop.PhoenixTest do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import ExUnit.CaptureLog
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Flop.Phoenix.ViewHelpers
