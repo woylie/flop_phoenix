@@ -83,8 +83,9 @@ defmodule FlopPhoenix.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"],
-      source_ref: "main",
+      extras: ["README.md", "CHANGELOG.md"],
+      source_ref: @version,
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
       groups_for_functions: [
         Components: &(&1[:section] == :components),
         Miscellaneous: &(&1[:section] == :miscellaneous)
