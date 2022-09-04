@@ -64,8 +64,7 @@ defmodule FlopPhoenix.MixProject do
 
   defp description do
     """
-    Flop Phoenix defines view helper functions for pagination, sorting and
-    filtering in Phoenix with Flop.
+    Phoenix components for pagination, sorting and filtering with Flop.
     """
   end
 
