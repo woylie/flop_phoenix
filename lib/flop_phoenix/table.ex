@@ -61,7 +61,9 @@ defmodule Flop.Phoenix.Table do
       <% end %>
       <%= if Enum.any?(@col, & &1[:col_style]) do %>
         <colgroup>
-          <col :for={col <- @col} style={col[:col_style]} />
+          <%= for col <- @col do %>
+            <col :if={show_column?(col)} style={col[:col_style]} />
+          <% end %>
         </colgroup>
       <% end %>
       <thead>
