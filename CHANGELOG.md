@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Changed
+
+- Use declarative assigns and replace `Phoenix.LiveView.Helpers.live_patch/1`
+  with `Phoenix.Component.link/1`.
+- Require `live_view ~> 0.18.0`.
+
+### Fixed
+
+- Apply `show` and `hide` attribute for columns to `colgroup` as well.
+
+## [0.14.2] - 2022-08-26
+
+### Changed
+
+- Support Flop `~> 0.17.0`.
+
+## [0.14.1] - 2022-03-22
+
+### Changed
+
+- Support Flop `~> 0.16.0`.
+
 ## [0.14.0] - 2022-02-22
 
 ### Added

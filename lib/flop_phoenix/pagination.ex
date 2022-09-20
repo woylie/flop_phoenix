@@ -4,8 +4,6 @@ defmodule Flop.Phoenix.Pagination do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Phoenix.Misc
 
   require Logger
@@ -44,20 +42,7 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-
-    if assigns[:for] do
-      Logger.warn(
-        "The :for option is deprecated. The schema is automatically derived " <>
-          "from the Flop.Meta struct."
-      )
-    end
-
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
     validate_path_helper_or_event!(assigns)
     assigns
   end
@@ -69,6 +54,13 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+
   def render(assigns) do
     ~H"""
     <%= unless @meta.errors != [] do %>
@@ -103,6 +95,14 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :content, :any, required: true
+  attr :attrs, :list, required: true
+  attr :opts, :list, required: true
+
   defp previous_link(assigns) do
     ~H"""
     <%= if @meta.has_previous_page? do %>
@@ -111,16 +111,25 @@ defmodule Flop.Phoenix.Pagination do
           <%= @content %>
         <% end %>
       <% else %>
-        <%= live_patch(
-          @content,
-          add_to_attr(@attrs, @page_link_helper, @meta.previous_page)
-        ) %>
+        <.link patch={@page_link_helper.(@meta.previous_page)} {@attrs}>
+          <%= @content %>
+        </.link>
       <% end %>
     <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
+        <%= @content %>
+      </span>
     <% end %>
     """
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :content, :any, required: true
+  attr :attrs, :list, required: true
+  attr :opts, :list, required: true
 
   defp next_link(assigns) do
     ~H"""
@@ -130,16 +139,23 @@ defmodule Flop.Phoenix.Pagination do
           <%= @content %>
         <% end %>
       <% else %>
-        <%= live_patch(
-          @content,
-          add_to_attr(@attrs, @page_link_helper, @meta.next_page)
-        ) %>
+        <.link patch={@page_link_helper.(@meta.next_page)} {@attrs}>
+          <%= @content %>
+        </.link>
       <% end %>
     <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
+        <%= @content %>
+      </span>
     <% end %>
     """
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
 
   defp page_links(assigns) do
     assigns =
@@ -153,20 +169,28 @@ defmodule Flop.Phoenix.Pagination do
     <%= unless @opts[:page_links] == :hide do %>
       <.render_page_links
         event={@event}
-        max_pages={@max_pages}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
-        range={get_page_link_range(
-          @meta.current_page,
-          @max_pages,
-          @meta.total_pages
-        )}
+        range={
+          get_page_link_range(
+            @meta.current_page,
+            @max_pages,
+            @meta.total_pages
+          )
+        }
         target={@target}
       />
     <% end %>
     """
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+  attr :range, :any, required: true
 
   defp render_page_links(%{range: first..last} = assigns) do
     assigns = assign(assigns, first: first, last: last)
@@ -223,24 +247,33 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+  attr :page, :integer, required: true
+
   defp page_link_tag(%{meta: meta, opts: opts, page: page} = assigns) do
     assigns = assign(assigns, :attrs, attrs_for_page_link(page, meta, opts))
 
     ~H"""
     <%= if @event do %>
       <li>
-        <%= link @page, add_phx_attrs(@attrs, @event, @target, @page) %>
+        <%= link(@page, add_phx_attrs(@attrs, @event, @target, @page)) %>
       </li>
     <% else %>
       <li>
-        <%= live_patch(
-          @page,
-          Keyword.put(@attrs, :to, @page_link_helper.(@page))
-        ) %>
+        <.link patch={@page_link_helper.(@page)} {@attrs}>
+          <%= @page %>
+        </.link>
       </li>
     <% end %>
     """
   end
+
+  attr :attrs, :list, required: true
+  attr :content, :any, required: true
 
   defp pagination_ellipsis(assigns) do
     ~H"""
@@ -325,10 +358,6 @@ defmodule Flop.Phoenix.Pagination do
         else: opts[:pagination_link_attrs]
 
     add_page_link_aria_label(attrs, page, opts)
-  end
-
-  defp add_to_attr(attrs, page_link_helper, page) do
-    Keyword.put(attrs, :to, page_link_helper.(page))
   end
 
   defp add_phx_attrs(attrs, event, target, page) do

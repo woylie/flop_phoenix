@@ -4,8 +4,6 @@ defmodule Flop.Phoenix.CursorPagination do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Phoenix.Misc
 
   require Logger
@@ -34,21 +32,7 @@ defmodule Flop.Phoenix.CursorPagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:reverse, fn -> false end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-
-    if assigns[:for] do
-      Logger.warn(
-        "The :for option is deprecated. The schema is automatically derived " <>
-          "from the Flop.Meta struct."
-      )
-    end
-
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts] || []))
     validate_path_helper_or_event!(assigns)
     assigns
   end
@@ -59,6 +43,15 @@ defmodule Flop.Phoenix.CursorPagination do
     |> Misc.deep_merge(opts)
   end
 
+  attr :meta, Flop.Meta, required: true
+  attr :direction, :atom, required: true
+  attr :attrs, :list, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :path_helper, :any, required: true
+  attr :content, :any, required: true
+  attr :opts, :list, required: true
+
   def render_link(assigns) do
     ~H"""
     <%= if show_link?(@meta, @direction) do %>
@@ -67,12 +60,14 @@ defmodule Flop.Phoenix.CursorPagination do
           <%= @content %>
         <% end %>
       <% else %>
-        <%= live_patch(@content,
-          Keyword.put(@attrs, :to, pagination_path(@direction, @path_helper, @meta))
-        ) %>
+        <.link patch={pagination_path(@direction, @path_helper, @meta)} {@attrs}>
+          <%= @content %>
+        </.link>
       <% end %>
     <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}><%= @content %></span>
+      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
+        <%= @content %>
+      </span>
     <% end %>
     """
   end

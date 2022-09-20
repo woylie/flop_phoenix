@@ -2,8 +2,6 @@ name: CI
 
 on:
   push:
-  pull_request:
-    types: [opened, edited]
 
 jobs:
   test:
@@ -11,13 +9,20 @@ jobs:
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ["22.3", "23.3", "24.1"]
-        elixir: ["1.12", "1.13"]
+        otp: ["22.3", "23.3", "24.3", "25.0"]
+        elixir: ["1.12", "1.13", "1.14"]
+        exclude:
+          - otp: "25.0"
+            elixir: "1.12"
+          - otp: "25.0"
+            elixir: "1.13"
+          - otp: "22.3"
+            elixir: "1.14"
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
@@ -36,4 +41,4 @@ jobs:
       - name: Generate docs
         run: mix docs
       - name: Run Tests
-        run: mix coveralls.github
+        run: mix coveralls.github --warnings-as-errors

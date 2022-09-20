@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.14.0"
+  @version "0.14.2"
 
   def project do
     [
@@ -50,22 +50,21 @@ defmodule FlopPhoenix.MixProject do
   defp deps do
     [
       {:credo, "~> 1.6.1", only: [:test], runtime: false},
-      {:dialyxir, "~> 1.1.0", only: [:test], runtime: false},
+      {:dialyxir, "~> 1.2.0", only: [:test], runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:ex_machina, "~> 2.4", only: :test},
       {:excoveralls, "~> 0.10", only: :test},
-      {:floki, "~> 0.32.0", only: :test},
-      {:flop, "~> 0.15.0"},
+      {:floki, "~> 0.33.1", only: :test},
+      {:flop, "~> 0.15.0 or ~> 0.16.0 or ~> 0.17.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
-      {:phoenix_live_view, "~> 0.17.0"},
+      {:phoenix_live_view, "~> 0.18.0"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
   end
 
   defp description do
     """
-    Flop Phoenix defines view helper functions for pagination, sorting and
-    filtering in Phoenix with Flop.
+    Phoenix components for pagination, sorting and filtering with Flop.
     """
   end
 
@@ -83,8 +82,9 @@ defmodule FlopPhoenix.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"],
-      source_ref: "main",
+      extras: ["README.md", "CHANGELOG.md"],
+      source_ref: @version,
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
       groups_for_functions: [
         Components: &(&1[:section] == :components),
         Miscellaneous: &(&1[:section] == :miscellaneous)
