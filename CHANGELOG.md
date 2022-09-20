@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Added an example for a custom filter form component to the readme.
+
 ### Changed
 
 - Use declarative assigns and replace `Phoenix.LiveView.Helpers.live_patch/1`

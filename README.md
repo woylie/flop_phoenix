@@ -131,3 +131,67 @@ component:
 ```
 
 Refer to the `Flop.Phoenix` module documentation for more examples.
+
+### Custom filter form component
+
+Your filter form probably requires a bit of custom markup. It is recommended to
+define a custom `filter_form` component that wraps
+`Flop.Phoenix.filter_fields/1`, so that you can apply the same markup
+throughout your live views.
+
+```elixir
+attr :meta, Flop.Meta, required: true
+attr :fields, :list, required: true
+attr :id, :string
+attr :change_event, :string, default: "update-filter"
+attr :reset_event, :string, default: "reset-filter"
+attr :target, :string
+
+def filter_form(assigns) do
+  ~H"""
+  <div class="filter-form">
+    <.form
+      :let={f}
+      for={@meta}
+      as={:filter}
+      phx-target={@target}
+      phx-change={@change_event}
+    >
+      <div class="filter-form-inputs">
+        <Flop.Phoenix.filter_fields
+          :let={%{input: input, label: label}}
+          form={f}
+          fields={@fields}
+        >
+          <div class="field">
+            <span class="visually-hidden"><%= label %></span>
+            <%= input %>
+          </div>
+        </Flop.Phoenix.filter_fields>
+      </div>
+
+      <div class="filter-form-reset">
+        <a href="#" class="button" phx_target={@target} phx_click={@reset_event}>
+          reset
+        </a>
+      </div>
+    </.form>
+  </div>
+  """
+end
+```
+
+Now you can render a filter form like this:
+
+```elixir
+<.filter_form
+  fields={
+    [
+      name: [label: gettext("Name"), op: :ilike_and],
+      email: [label: gettext("Email"), op: :ilike_and]
+    ]
+  }
+  meta={@meta}
+  id="user-filter-form"
+/>
+```
