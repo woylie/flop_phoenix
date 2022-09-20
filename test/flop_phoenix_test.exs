@@ -73,7 +73,6 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       caption={@caption}
-      for={@for}
       event={@event}
       items={@items}
       meta={@meta}

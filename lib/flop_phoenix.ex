@@ -118,8 +118,6 @@ defmodule Flop.Phoenix do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Filter
   alias Flop.Meta
   alias Flop.Phoenix.CursorPagination
@@ -514,40 +512,6 @@ defmodule Flop.Phoenix do
   determine which table columns are sortable. It also hides the `order` and
   `page_size` parameters if they match the default values defined with
   `Flop.Schema`.
-
-  ## Col slot
-
-  For each column to render, add one `<:col>` element.
-
-  ```elixir
-  <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
-    <%= pet.name %>
-  </:col>
-  ```
-
-  - `label` - The content for the header column.
-  - `field` (optional) - The field name for sorting.
-  - `show` (optional) - Boolean value to conditionally show the column. Defaults
-    to `true`.
-  - `hide` (optional) - Boolean value to conditionally hide the column. Defaults
-    to `false`.
-  - `col_style` (optional) - If set, a `<colgroup>` element is rendered and the
-    value of the `col_style` assign is set as `style` attribute for the `<col>`
-    element of the respective column. You can set the `width`, `background` and
-    `border` of a column this way.
-
-  Any additional assigns will be added as attributes to the `<td>` elements.
-
-  ## Foot slot
-
-  You can optionally add a `foot`. The inner block will be rendered inside
-  a `tfoot` element.
-
-      <Flop.Phoenix.table>
-        <:foot>
-          <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
-        </:foot>
-      </Flop.Phoenix.table>
   """
   @doc since: "0.6.0"
   @doc section: :components
@@ -599,11 +563,56 @@ defmodule Flop.Phoenix do
     of the module documentation.
     """
 
-  attr :col, :any, required: true, doc: "The slot for columns, see above."
+  slot :col,
+    required: true,
+    doc: """
+    For each column to render, add one `<:col>` element.
 
-  attr :foot, :any,
+    ```elixir
+    <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
+      <%= pet.name %>
+    </:col>
+    ```
+
+    Any additional assigns will be added as attributes to the `<td>` elements.
+
+    """ do
+    attr :label, :string, doc: "The content for the header column."
+    attr :field, :atom, doc: "The field name for sorting."
+
+    attr :show, :boolean,
+      doc: "Boolean value to conditionally show the column. Defaults to `true`."
+
+    attr :hide, :boolean,
+      doc:
+        "Boolean value to conditionally hide the column. Defaults to `false`."
+
+    attr :col_style, :string,
+      doc: """
+      If set, a `<colgroup>` element is rendered and the value of the
+      `col_style` assign is set as `style` attribute for the `<col>` element of
+      the respective column. You can set the `width`, `background` and `border`
+      of a column this way.
+      """
+
+    attr :rest, :global,
+      doc: """
+      Any additional attributes to pass to the `<td>`.
+      """
+  end
+
+  slot :foot,
     default: nil,
-    doc: "The slot for the table footer, see above."
+    doc: """
+    You can optionally add a `foot`. The inner block will be rendered inside
+    a `tfoot` element.
+
+        <Flop.Phoenix.table>
+          <:foot>
+            <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+          </:foot>
+        </Flop.Phoenix.table>
+    """
 
   def table(assigns) do
     assigns = Table.init_assigns(assigns)

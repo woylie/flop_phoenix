@@ -4,8 +4,6 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Phoenix.Misc
 
   require Logger
@@ -114,7 +112,7 @@ defmodule Flop.Phoenix.Table do
           <% end %>
         </tr>
       </tbody>
-      <%= if @foot do %>
+      <%= if @foot && @foot != [] do %>
         <tfoot><%= render_slot(@foot) %></tfoot>
       <% end %>
     </table>

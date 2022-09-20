@@ -4,8 +4,6 @@ defmodule Flop.Phoenix.CursorPagination do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Phoenix.Misc
 
   require Logger
