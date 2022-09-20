@@ -70,7 +70,7 @@ defmodule Flop.Phoenix do
 
   ## Links
 
-  Links are generated with `Phoenix.LiveView.Helpers.link/1`. This will
+  Links are generated with `Phoenix.Components.link/1`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
   which will be ignored outside of LiveViews and LiveComponents.
 
@@ -301,7 +301,7 @@ defmodule Flop.Phoenix do
     doc: """
     The path helper to use for building the link URL. Can be an mfa tuple or a
     function/args tuple. If set, links will be rendered with
-    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
     """
@@ -423,7 +423,7 @@ defmodule Flop.Phoenix do
     doc: """
     The path helper to use for building the link URL. Can be an mfa tuple or a
     function/args tuple. If set, links will be rendered with
-    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
     """
@@ -533,7 +533,7 @@ defmodule Flop.Phoenix do
     doc: """
     The path helper to use for building the link URL. Can be an mfa tuple or a
     function/args tuple. If set, links will be rendered with
-    `Phoenix.LiveView.Helpers.link/1` with the `patch` attribute. In a LiveView,
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
     """
