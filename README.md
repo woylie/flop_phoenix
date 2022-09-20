@@ -154,6 +154,7 @@ def filter_form(assigns) do
       :let={f}
       for={@meta}
       as={:filter}
+      id={@id}
       phx-target={@target}
       phx-change={@change_event}
     >
