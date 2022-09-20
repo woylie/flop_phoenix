@@ -1640,32 +1640,6 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
     end
 
-    test "raises if no cols are passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :col slot is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       event: "sort",
-                       items: [],
-                       meta: %Flop.Meta{flop: %Flop{}}
-                     )
-                   end
-    end
-
-    test "raises if no items are passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :items option is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       col: fn _ -> nil end,
-                       event: "sort",
-                       meta: %Flop.Meta{flop: %Flop{}}
-                     )
-                   end
-    end
-
     test "raises if neither path helper nor event are passed" do
       assert_raise ArgumentError,
                    ~r/^the :path_helper or :event option is required/,

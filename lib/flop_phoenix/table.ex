@@ -8,18 +8,6 @@ defmodule Flop.Phoenix.Table do
 
   require Logger
 
-  @example """
-  ## Example
-
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
-      >
-        <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      </Flop.Phoenix.table>
-  """
-
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -45,7 +33,7 @@ defmodule Flop.Phoenix.Table do
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
     assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
-    validate_assigns!(assigns)
+    validate_path_helper_or_event!(assigns)
     assigns
   end
 
@@ -239,50 +227,6 @@ defmodule Flop.Phoenix.Table do
 
   defp is_sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
-  end
-
-  defp validate_assigns!(assigns) do
-    validate_col!(assigns)
-    validate_items!(assigns)
-    validate_meta!(assigns)
-    validate_path_helper_or_event!(assigns)
-  end
-
-  defp validate_col!(assigns) do
-    unless assigns[:col] do
-      raise ArgumentError, """
-      the :col slot is required when rendering a table
-
-      Add at least one <:col> tag with a label.
-
-      #{@example}
-      """
-    end
-  end
-
-  defp validate_items!(assigns) do
-    unless assigns[:items] do
-      raise ArgumentError, """
-      the :items option is required when rendering a table
-
-      The value is the query result list. Each item in the list results in one
-      table row.
-
-      #{@example}
-      """
-    end
-  end
-
-  defp validate_meta!(assigns) do
-    unless assigns[:meta] do
-      raise ArgumentError, """
-      the :meta option is required when rendering a table
-
-      The value is the Flop.Meta struct returned by the query function.
-
-      #{@example}
-      """
-    end
   end
 
   defp validate_path_helper_or_event!(%{
