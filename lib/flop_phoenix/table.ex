@@ -4,23 +4,9 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import Phoenix.LiveView.Helpers
-
   alias Flop.Phoenix.Misc
 
   require Logger
-
-  @example """
-  ## Example
-
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
-      >
-        <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      </Flop.Phoenix.table>
-  """
 
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
@@ -46,23 +32,8 @@ defmodule Flop.Phoenix.Table do
   """
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:caption, fn -> nil end)
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:foot, fn -> nil end)
-      |> assign_new(:path_helper, fn -> nil end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-
-    if assigns[:for] do
-      Logger.warn(
-        "The :for option is deprecated. The schema is automatically derived " <>
-          "from the Flop.Meta struct."
-      )
-    end
-
-    validate_assigns!(assigns)
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
+    validate_path_helper_or_event!(assigns)
     assigns
   end
 
@@ -71,6 +42,16 @@ defmodule Flop.Phoenix.Table do
     |> Misc.deep_merge(Misc.get_global_opts(:table))
     |> Misc.deep_merge(opts)
   end
+
+  attr :meta, Flop.Meta, required: true
+  attr :path_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :caption, :string, required: true
+  attr :opts, :any, required: true
+  attr :col, :any, required: true
+  attr :items, :list, required: true
+  attr :foot, :any, required: true
 
   def render(assigns) do
     ~H"""
@@ -81,7 +62,7 @@ defmodule Flop.Phoenix.Table do
       <%= if Enum.any?(@col, & &1[:col_style]) do %>
         <colgroup>
           <%= for col <- @col do %>
-            <col style={col[:col_style]} />
+            <col :if={show_column?(col)} style={col[:col_style]} />
           <% end %>
         </colgroup>
       <% end %>
@@ -103,27 +84,25 @@ defmodule Flop.Phoenix.Table do
         </tr>
       </thead>
       <tbody>
-        <%= for item <- @items do %>
-          <tr {@opts[:tbody_tr_attrs]}>
-            <%= for col <- @col do %>
-              <%= if show_column?(col) do %>
-                <td
-                  {@opts[:tbody_td_attrs]}
-                  {
-                    assigns_to_attributes(
-                      col,
-                      [:col_style, :field, :hide, :label, :show]
-                    )
-                  }
-                >
-                  <%= render_slot(col, item) %>
-                </td>
-              <% end %>
+        <tr :for={item <- @items} {@opts[:tbody_tr_attrs]}>
+          <%= for col <- @col do %>
+            <%= if show_column?(col) do %>
+              <td
+                {@opts[:tbody_td_attrs]}
+                {
+                  assigns_to_attributes(
+                    col,
+                    [:col_style, :field, :hide, :label, :show]
+                  )
+                }
+              >
+                <%= render_slot(col, item) %>
+              </td>
             <% end %>
-          </tr>
-        <% end %>
+          <% end %>
+        </tr>
       </tbody>
-      <%= if @foot do %>
+      <%= if @foot && @foot != [] do %>
         <tfoot><%= render_slot(@foot) %></tfoot>
       <% end %>
     </table>
@@ -133,6 +112,14 @@ defmodule Flop.Phoenix.Table do
   defp show_column?(%{hide: true}), do: false
   defp show_column?(%{show: false}), do: false
   defp show_column?(_), do: true
+
+  attr :meta, Flop.Meta, required: true
+  attr :field, :atom, required: true
+  attr :label, :string, required: true
+  attr :path_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :any, required: true
 
   defp header_column(assigns) do
     index = order_index(assigns.meta.flop, assigns.field)
@@ -158,14 +145,15 @@ defmodule Flop.Phoenix.Table do
               target={@target}
             />
           <% else %>
-            <%= live_patch(@label,
-              to:
-                build_path(
-                  @path_helper,
-                  Flop.push_order(@meta.flop, @field),
-                  for: @meta.schema
-                )
-            ) %>
+            <.link patch={
+              build_path(
+                @path_helper,
+                Flop.push_order(@meta.flop, @field),
+                for: @meta.schema
+              )
+            }>
+              <%= @label %>
+            </.link>
           <% end %>
           <.arrow direction={@order_direction} opts={@opts} />
         </span>
@@ -190,6 +178,9 @@ defmodule Flop.Phoenix.Table do
   defp direction_to_aria(:asc_nulls_last), do: "ascending"
   defp direction_to_aria(:asc_nulls_first), do: "ascending"
 
+  attr :direction, :atom, required: true
+  attr :opts, :list, required: true
+
   defp arrow(assigns) do
     ~H"""
     <%= if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do %>
@@ -203,6 +194,11 @@ defmodule Flop.Phoenix.Table do
     <% end %>
     """
   end
+
+  attr :field, :atom, required: true
+  attr :label, :string, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
 
   defp sort_link(assigns) do
     ~H"""
@@ -233,50 +229,6 @@ defmodule Flop.Phoenix.Table do
 
   defp is_sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
-  end
-
-  defp validate_assigns!(assigns) do
-    validate_col!(assigns)
-    validate_items!(assigns)
-    validate_meta!(assigns)
-    validate_path_helper_or_event!(assigns)
-  end
-
-  defp validate_col!(assigns) do
-    unless assigns[:col] do
-      raise ArgumentError, """
-      the :col slot is required when rendering a table
-
-      Add at least one <:col> tag with a label.
-
-      #{@example}
-      """
-    end
-  end
-
-  defp validate_items!(assigns) do
-    unless assigns[:items] do
-      raise ArgumentError, """
-      the :items option is required when rendering a table
-
-      The value is the query result list. Each item in the list results in one
-      table row.
-
-      #{@example}
-      """
-    end
-  end
-
-  defp validate_meta!(assigns) do
-    unless assigns[:meta] do
-      raise ArgumentError, """
-      the :meta option is required when rendering a table
-
-      The value is the Flop.Meta struct returned by the query function.
-
-      #{@example}
-      """
-    end
   end
 
   defp validate_path_helper_or_event!(%{

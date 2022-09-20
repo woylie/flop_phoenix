@@ -3,7 +3,6 @@ defmodule Flop.PhoenixTest do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import ExUnit.CaptureLog
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Flop.Phoenix.ViewHelpers
@@ -74,7 +73,6 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       caption={@caption}
-      for={@for}
       event={@event}
       items={@items}
       meta={@meta}
@@ -82,12 +80,12 @@ defmodule Flop.PhoenixTest do
       path_helper={@path_helper}
       target={@target}
     >
-      <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:col let={pet} label="Email" field={:email}><%= pet.email %></:col>
-      <:col let={pet} label="Age" hide={@hide_age} show={@show_age}>
+      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      <:col :let={pet} label="Email" field={:email}><%= pet.email %></:col>
+      <:col :let={pet} label="Age" hide={@hide_age} show={@show_age}>
         <%= pet.age %>
       </:col>
-      <:col let={pet} label="Species" field={:species}><%= pet.species %></:col>
+      <:col :let={pet} label="Species" field={:species}><%= pet.species %></:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
     """
@@ -100,10 +98,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name} col_style="width: 60%;">
+      <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Age" field={:age} col_style="width: 40%;">
+      <:col :let={pet} label="Age" field={:age} col_style="width: 40%;">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -117,10 +115,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name} class="name-column">
+      <:col :let={pet} label="Name" field={:name} class="name-column">
         <%= pet.name %>
       </:col>
-      <:col let={pet} label="Age" field={:age} class="age-column">
+      <:col :let={pet} label="Age" field={:age} class="age-column">
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -134,7 +132,7 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
       <:foot>
         <tr>
           <td>snap</td>
@@ -151,7 +149,7 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
+      <:col :let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
         <%= pet.name %>
       </:col>
     </Flop.Phoenix.table>
@@ -445,21 +443,21 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 3']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
-      assert Floki.text(link) == "3"
+      assert String.trim(Floki.text(link)) == "3"
     end
 
     test "renders page links when using click event handling" do
@@ -550,7 +548,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "beep") == ["boop"]
@@ -558,7 +556,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
     end
 
     test "allows to overwrite pagination link aria label" do
@@ -573,14 +571,14 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.text(link) == "1"
+      assert String.trim(Floki.text(link)) == "1"
 
       assert [link] = Floki.find(html, "a[aria-label='On to page 2']")
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
-      assert Floki.text(link) == "2"
+      assert String.trim(Floki.text(link)) == "2"
     end
 
     test "adds order parameters to links" do
@@ -649,12 +647,6 @@ defmodule Flop.PhoenixTest do
       refute href =~ "page_size="
       refute href =~ "order_by[]="
       refute href =~ "order_directions[]="
-    end
-
-    test "logs error if :for option is passed" do
-      assert capture_log(fn ->
-               render_pagination(for: Pet, meta: build(:meta_on_first_page))
-             end) =~ "The :for option is deprecated"
     end
 
     test "does not require path_helper when passing event" do
@@ -1233,15 +1225,6 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
-    test "logs error if :for option is passed" do
-      assert capture_log(fn ->
-               render_cursor_pagination(
-                 for: Pet,
-                 meta: build(:meta_with_cursors)
-               )
-             end) =~ "The :for option is deprecated"
-    end
-
     test "raises if neither path helper nor event are passed" do
       assert_raise ArgumentError,
                    ~r/^the :path_helper or :event option is required/,
@@ -1459,12 +1442,6 @@ defmodule Flop.PhoenixTest do
       assert [] = Floki.find(html, "a:fl-contains('Species')")
     end
 
-    test "logs warning if :for option is passed" do
-      assert capture_log(fn ->
-               render_table(for: Pet)
-             end) =~ "The :for option is deprecated"
-    end
-
     test "hides default order and limit" do
       html =
         render_table(
@@ -1661,45 +1638,6 @@ defmodule Flop.PhoenixTest do
       assert [link] = Floki.find(html, "a:fl-contains('Name')")
       assert Floki.attribute(link, "phx-click") == ["sort-table"]
       assert Floki.attribute(link, "href") == ["#"]
-    end
-
-    test "raises if no cols are passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :col slot is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       event: "sort",
-                       items: [],
-                       meta: %Flop.Meta{flop: %Flop{}}
-                     )
-                   end
-    end
-
-    test "raises if no items are passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :items option is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       col: fn _ -> nil end,
-                       event: "sort",
-                       meta: %Flop.Meta{flop: %Flop{}}
-                     )
-                   end
-    end
-
-    test "raises if no meta is passed" do
-      assert_raise ArgumentError,
-                   ~r/^the :meta option is required when rendering a table/,
-                   fn ->
-                     render_component(&table/1,
-                       __changed__: nil,
-                       col: fn _ -> nil end,
-                       event: "sort",
-                       items: []
-                     )
-                   end
     end
 
     test "raises if neither path helper nor event are passed" do

@@ -70,7 +70,7 @@ defmodule Flop.Phoenix do
 
   ## Links
 
-  Links are generated with `Phoenix.LiveView.Helpers.live_patch/2`. This will
+  Links are generated with `Phoenix.Components.link/1`. This will
   lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
   which will be ignored outside of LiveViews and LiveComponents.
 
@@ -117,8 +117,6 @@ defmodule Flop.Phoenix do
 
   use Phoenix.Component
   use Phoenix.HTML
-
-  import Phoenix.LiveView.Helpers
 
   alias Flop.Filter
   alias Flop.Meta
@@ -264,25 +262,6 @@ defmodule Flop.Phoenix do
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       />
 
-  ## Assigns
-
-  - `meta` - The meta information of the query as returned by the `Flop` query
-    functions.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the pagination
-    links.
-  - `opts` (optional) - Options to customize the pagination. See
-    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options. Since these options will
-    likely be the same for all the tables in a project, so it is recommended to
-    define them once in a function or set them in a wrapper function as
-    described in the `Customization` section of the module documentation.
-
   ## Page link options
 
   By default, page links for all pages are shown. You can limit the number of
@@ -310,6 +289,46 @@ defmodule Flop.Phoenix do
   """
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: """
+    The meta information of the query as returned by the `Flop` query functions.
+    """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: """
+    Sets the `phx-target` attribute for the pagination links.
+    """
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Options to customize the pagination. See
+    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
+    function are deep merged into the default options. Since these options will
+    likely be the same for all the tables in a project, so it is recommended to
+    define them once in a function or set them in a wrapper function as
+    described in the `Customization` section of the module documentation.
+    """
+
   def pagination(assigns) do
     assigns = Pagination.init_assigns(assigns)
 
@@ -335,30 +354,6 @@ defmodule Flop.Phoenix do
         meta={@meta}
         path_helper={{Routes, :pet_path, [@socket, :index]}}
       />
-
-  ## Assigns
-
-  - `meta` - The meta information of the query as returned by the `Flop` query
-    functions.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_patch/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the pagination
-    links.
-  - `reverse` (optional) - By default, the `next` link moves forward with the
-    `:after` parameter set to the end cursor, and the `previous` link moves
-    backward with the `:before` parameter set to the start cursor. If `reverse`
-    is set to `true`, the destinations of the links are switched.
-  - `opts` (optional) - Options to customize the pagination. See
-    `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
-    the function are deep merged into the default options. Since these options
-    will likely be the same for all the tables in a project, so it is
-    recommended to define them once in a function or set them in a wrapper
-    function as described in the `Customization` section of the module
-    documentation.
 
   ## Handling parameters and events
 
@@ -416,6 +411,54 @@ defmodule Flop.Phoenix do
   """
   @doc section: :components
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: """
+    The meta information of the query as returned by the `Flop` query functions.
+    """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: "Sets the `phx-target` attribute for the pagination links."
+
+  attr :reverse, :boolean,
+    default: false,
+    doc: """
+    By default, the `next` link moves forward with the `:after` parameter set to
+    the end cursor, and the `previous` link moves backward with the `:before`
+    parameter set to the start cursor. If `reverse` is set to `true`, the
+    destinations of the links are switched.
+    """
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Options to customize the pagination. See
+    `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
+    the function are deep merged into the default options. Since these options
+    will likely be the same for all the tables in a project, so it is
+    recommended to define them once in a function or set them in a wrapper
+    function as described in the `Customization` section of the module
+    documentation.
+    """
+
   def cursor_pagination(assigns) do
     assigns = CursorPagination.init_assigns(assigns)
 
@@ -458,32 +501,10 @@ defmodule Flop.Phoenix do
     meta={@meta}
     path_helper={{Routes, :pet_path, [@socket, :index]}}
   >
-    <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-    <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+    <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+    <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
   </Flop.Phoenix.table>
   ```
-
-  ## Assigns
-
-  - `items` - The list of items to be displayed in rows. This is the result list
-    returned by the query.
-  - `meta` - The `Flop.Meta` struct returned by the query function.
-  - `path_helper` - The path helper to use for building the link URL. Can be an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `live_path/2` and the parameters have to be handled in the `handle_params/3`
-    callback of the LiveView module.
-  - `event` - If set, `Flop.Phoenix` will render links with a `phx-click`
-    attribute.
-  - `event` (optional) - If set, `Flop.Phoenix` will render links with a
-    `phx-click` attribute.
-  - `target` (optional) - Sets the `phx-target` attribute for the header links.
-  - `caption` (optional) - Content for the `<caption>` element.
-  - `opts` (optional) - Keyword list with additional options (see
-    `t:Flop.Phoenix.table_option/0`). Note that the options passed to the
-    function are deep merged into the default options. These options will
-    likely be the same for all the tables in a project, so it probably makes
-    sense to define them once in a function or set them in a wrapper function
-    as described in the `Customization` section of the module documentation.
 
   ## Flop.Schema
 
@@ -491,44 +512,108 @@ defmodule Flop.Phoenix do
   determine which table columns are sortable. It also hides the `order` and
   `page_size` parameters if they match the default values defined with
   `Flop.Schema`.
-
-  ## Col slot
-
-  For each column to render, add one `<:col>` element.
-
-  ```elixir
-  <:col let={pet} label="Name" field={:name} col_style="width: 20%;">
-    <%= pet.name %>
-  </:col>
-  ```
-
-  - `label` - The content for the header column.
-  - `field` (optional) - The field name for sorting.
-  - `show` (optional) - Boolean value to conditionally show the column. Defaults
-    to `true`.
-  - `hide` (optional) - Boolean value to conditionally hide the column. Defaults
-    to `false`.
-  - `col_style` (optional) - If set, a `<colgroup>` element is rendered and the
-    value of the `col_style` assign is set as `style` attribute for the `<col>`
-    element of the respective column. You can set the `width`, `background` and
-    `border` of a column this way.
-
-  Any additional assigns will be added as attributes to the `<td>` elements.
-
-  ## Foot slot
-
-  You can optionally add a `foot`. The inner block will be rendered inside
-  a `tfoot` element.
-
-      <Flop.Phoenix.table>
-        <:foot>
-          <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
-        </:foot>
-      </Flop.Phoenix.table>
   """
   @doc since: "0.6.0"
   @doc section: :components
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :items, :list,
+    required: true,
+    doc: """
+    The list of items to be displayed in rows. This is the result list returned
+    by the query.
+    """
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: "The `Flop.Meta` struct returned by the query function."
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    The path helper to use for building the link URL. Can be an mfa tuple or a
+    function/args tuple. If set, links will be rendered with
+    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
+    the parameters will have to be handled in the `handle_params/3` callback of
+    the LiveView module.
+    """
+
+  attr :event, :string,
+    default: nil,
+    doc: """
+    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    """
+
+  attr :target, :string,
+    default: nil,
+    doc: "Sets the `phx-target` attribute for the header links."
+
+  attr :caption, :string,
+    default: nil,
+    doc: "Content for the `<caption>` element."
+
+  attr :opts, :list,
+    default: [],
+    doc: """
+    Keyword list with additional options (see `t:Flop.Phoenix.table_option/0`).
+    Note that the options passed to the function are deep merged into the
+    default options. These options will likely be the same for all the tables in
+    a project, so it probably makes sense to define them once in a function or
+    set them in a wrapper function as described in the `Customization` section
+    of the module documentation.
+    """
+
+  slot :col,
+    required: true,
+    doc: """
+    For each column to render, add one `<:col>` element.
+
+    ```elixir
+    <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
+      <%= pet.name %>
+    </:col>
+    ```
+
+    Any additional assigns will be added as attributes to the `<td>` elements.
+
+    """ do
+    attr :label, :string, doc: "The content for the header column."
+    attr :field, :atom, doc: "The field name for sorting."
+
+    attr :show, :boolean,
+      doc: "Boolean value to conditionally show the column. Defaults to `true`."
+
+    attr :hide, :boolean,
+      doc:
+        "Boolean value to conditionally hide the column. Defaults to `false`."
+
+    attr :col_style, :string,
+      doc: """
+      If set, a `<colgroup>` element is rendered and the value of the
+      `col_style` assign is set as `style` attribute for the `<col>` element of
+      the respective column. You can set the `width`, `background` and `border`
+      of a column this way.
+      """
+
+    attr :rest, :global,
+      doc: """
+      Any additional attributes to pass to the `<td>`.
+      """
+  end
+
+  slot :foot,
+    default: nil,
+    doc: """
+    You can optionally add a `foot`. The inner block will be rendered inside
+    a `tfoot` element.
+
+        <Flop.Phoenix.table>
+          <:foot>
+            <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+          </:foot>
+        </Flop.Phoenix.table>
+    """
+
   def table(assigns) do
     assigns = Table.init_assigns(assigns)
 
@@ -575,8 +660,8 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
-        <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+      <.form :let={f} for={@meta}>
+        <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
           <%= entry.label %>
           <%= entry.input %>
         </.filter_fields>
@@ -601,7 +686,7 @@ defmodule Flop.Phoenix do
   The generated labels and inputs are passed to the inner block instead of being
   automatically rendered. This allows you to customize the markup.
 
-      <.filter_fields let={e} form={f} fields={[:email, :name]}>
+      <.filter_fields :let={e} form={f} fields={[:email, :name]}>
         <div class="field-label"><%= e.label %></div>
         <div class="field-body"><%= e.input %></div>
       </.filter_fields>
@@ -638,7 +723,7 @@ defmodule Flop.Phoenix do
   You can set default attributes for all labels and inputs:
 
       <.filter_fields
-        let={e}
+        :let={e}
         form={f}
         fields={[:name]}
         input_opts={[class: "input"]}
@@ -650,7 +735,7 @@ defmodule Flop.Phoenix do
   fields.
 
       <.filter_fields
-        let={e}
+        :let={e}
         form={f}
         fields={[
           :name,
@@ -725,7 +810,7 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
+      <.form :let={f} for={@meta}>
         <%= filter_hidden_inputs_for(f) %>
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -823,7 +908,7 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form let={f} for={@meta}>
+      <.form :let={f} for={@meta}>
         <%= filter_hidden_inputs_for(f) %>
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -939,7 +1024,7 @@ defmodule Flop.Phoenix do
 
     Example:
 
-        <.form let={f} for={@meta}>
+        <.form :let={f} for={@meta}>
           <%= filter_hidden_inputs_for(f) %>
 
           <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
@@ -958,8 +1043,8 @@ defmodule Flop.Phoenix do
 
     Example:
 
-        <.form let={f} for={@meta}>
-          <.filter_fields let={entry} form={f} fields={[:email, :name]}>
+        <.form :let={f} for={@meta}>
+          <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
             <%= entry.label %>
             <%= entry.input %>
           </.filter_fields>

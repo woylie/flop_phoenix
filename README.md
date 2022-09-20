@@ -85,8 +85,8 @@ In your template, add a sortable table and pagination links.
   meta={@meta}
   path_helper={{Routes, :pet_path, [@socket, :index]}}
 >
-  <:col let={pet} label="Name" field={:name}><%= pet.name %></:col>
-  <:col let={pet} label="Age" field={:age}><%= pet.age %></:col>
+  <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+  <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
 </Flop.Phoenix.table>
 
 <Flop.Phoenix.pagination
@@ -122,8 +122,8 @@ easiest way to render a filter form is to use the `Flop.Phoenix.filter_fields/1`
 component:
 
 ```elixir
-<.form let={f} for={@meta}>
-  <Flop.Phoenix.filter_fields let={entry} form={f} fields={[:name, :email]}>
+<.form :let={f} for={@meta}>
+  <Flop.Phoenix.filter_fields :let={entry} form={f} fields={[:name, :email]}>
     <%= entry.label %>
     <%= entry.input %>
   </Flop.Phoenix.filter_fields>
