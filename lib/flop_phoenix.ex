@@ -1370,6 +1370,112 @@ defmodule Flop.Phoenix do
   end
 
   @doc """
+  Removes the first filter for the given field in the `Flop.t` struct or keyword
+  list and returns the filter value and the updated struct or keyword list.
+
+  If a keyword list is passed, it is expected to have the same format as
+  returned by `Flop.Phoenix.to_query/2`.
+
+  You can use this function to write a custom path builder function in cases
+  where you need to set a filter value as a path parameter instead of a query
+  parameter. See `Flop.Phoenix.build_path/3` for an example.
+
+  ## Examples
+
+  ### With a Flop struct
+
+      iex> flop = %Flop{
+      ...>   page: 5,
+      ...>   filters: [
+      ...>     %Flop.Filter{field: :category, op: :==, value: "announcements"},
+      ...>     %Flop.Filter{field: :title, op: :==, value: "geo"}
+      ...>   ]
+      ...> }
+      iex> pop_filter(flop, :category)
+      {%Flop.Filter{field: :category, op: :==, value: "announcements"},
+       %Flop{
+         page: 5,
+         filters: [%Flop.Filter{field: :title, op: :==, value: "geo"}]
+       }}
+      iex> pop_filter(flop, :author)
+      {nil,
+       %Flop{
+         page: 5,
+         filters: [
+           %Flop.Filter{field: :category, op: :==, value: "announcements"},
+           %Flop.Filter{field: :title, op: :==, value: "geo"}
+         ]
+       }
+      }
+
+  ### With a keyword list
+
+      iex> params = [
+      ...>   filters: %{
+      ...>     0 => %{field: :category, op: :==, value: "announcements"},
+      ...>     1 => %{field: :title, op: :==, value: "geo"}
+      ...>   },
+      ...>   page: 5
+      ...> ]
+      iex> pop_filter(params, :category)
+      {%{field: :category, op: :==, value: "announcements"},
+       [
+         filters: %{0 => %{field: :title, op: :==, value: "geo"}},
+         page: 5
+       ]}
+      iex> pop_filter(params, :author)
+      {nil,
+       [
+         filters: %{
+           0 => %{field: :category, op: :==, value: "announcements"},
+           1 => %{field: :title, op: :==, value: "geo"}
+         },
+         page: 5
+       ]}
+
+      iex> pop_filter([], :category)
+      {nil, []}
+  """
+  @doc since: "0.15.0"
+  @doc section: :miscellaneous
+  @spec pop_filter(Flop.t(), atom) :: {any, Flop.t()}
+  @spec pop_filter(keyword, atom) :: {any, keyword}
+  def pop_filter(%Flop{} = flop, field) do
+    case Enum.find_index(flop.filters, &(&1.field == field)) do
+      nil ->
+        {nil, flop}
+
+      index ->
+        {filter, filters} = List.pop_at(flop.filters, index)
+        {filter, %{flop | filters: filters}}
+    end
+  end
+
+  def pop_filter(params, field) when is_list(params) do
+    filters = Keyword.get(params, :filters, %{})
+
+    index =
+      Enum.find_index(filters, fn {_, filter} ->
+        filter.field == field
+      end)
+
+    case index do
+      nil ->
+        {nil, params}
+
+      index ->
+        {filter, filters} = Map.pop(filters, index)
+
+        filters =
+          filters
+          |> Enum.with_index(fn {_, filter}, index -> {index, filter} end)
+          |> Enum.into(%{})
+
+        {filter, Keyword.put(params, :filters, filters)}
+    end
+  end
+
+  @doc """
   Generates hidden inputs for the given form.
 
   This does the same as `Phoenix.HTML.Form.hidden_inputs_for/1` in versions
