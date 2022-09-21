@@ -1885,7 +1885,11 @@ defmodule Flop.PhoenixTest do
         form_to_html(meta, fn f ->
           inputs_for(f, :filters, opts, fn fo ->
             (&filter_input/1)
-            |> render_component(__changed__: %{}, form: fo, class: "input")
+            |> render_component(
+              __changed__: %{},
+              form: fo,
+              input_opts: [class: "input"]
+            )
             |> raw()
           end)
         end)
