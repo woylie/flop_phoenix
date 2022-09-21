@@ -15,6 +15,7 @@
 ### Fixed
 
 - Apply `show` and `hide` attribute for columns to `colgroup` as well.
+- Correctly handle multiple inputs for the same field in `Flop.filter_fields/1`.
 
 ## [0.14.2] - 2022-08-26
 
