@@ -7,12 +7,18 @@
 This release adds support for passing URI strings instead of MFA or FA tuples to
 components and helper functions. This allows you to use the library with the
 verified routes introduced in Phoenix 1.7. Passing tuples pointing to route
-helpers is still supported.
+helpers is still supported. Alternatively, you can choose to pass a 1-ary path
+builder function. See `Flop.Phoenix.build_path/3` for examples.
 
 - Added an example for a custom filter form component to the readme.
 - Support passing a URI string as a path to the `table`, `pagination` and
   `cursor_pagination` components.
+- Support passing a 1-ary path builder function to the `table`, `pagination` and
+  `cursor_pagination` components.
 - Support passing a URI string as the first argument to `build_path/3`.
+- Support passing a 1-ary path builder function as the first argument to
+  `build_path/3`.
+- New function `Flop.Phoenix.pop_filter/2`.
 
 ### Changed
 
