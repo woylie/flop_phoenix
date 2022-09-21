@@ -83,7 +83,7 @@ In your template, add a sortable table and pagination links.
 <Flop.Phoenix.table
   items={@pets}
   meta={@meta}
-  path_helper={{Routes, :pet_path, [@socket, :index]}}
+  path={{Routes, :pet_path, [@socket, :index]}}
 >
   <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
   <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
@@ -91,18 +91,28 @@ In your template, add a sortable table and pagination links.
 
 <Flop.Phoenix.pagination
   meta={@meta}
-  path_helper={{Routes, :pet_path, [@socket, :index]}}
+  path={{Routes, :pet_path, [@socket, :index]}}
 />
 ```
 
-`path_helper` should reference the path helper function that builds a path to
+`path` should reference the path helper function that builds a path to
 the current page. Add any additional path and query parameters to the argument
 list.
 
 ```elixir
 <Flop.Phoenix.pagination
   meta={@meta}
-  path_helper={{Routes, :pet_path, [@conn, :index, @owner, [hide_menu: true]]}}
+  path={{Routes, :pet_path, [@conn, :index, @owner, [hide_menu: true]]}}
+/>
+```
+
+Alternatively, you can pass a URI string, which allows you to use the
+verified routes introduced in Phoenix 1.7.
+
+```elixir
+<Flop.Phoenix.pagination
+  meta={@meta}
+  path={~p"/pets"}
 />
 ```
 
