@@ -750,15 +750,12 @@ defmodule Flop.Phoenix do
   @spec filter_fields(map) :: Phoenix.LiveView.Rendered.t()
   def filter_fields(assigns) do
     is_meta_form!(assigns.form)
-    fields = assigns[:fields] || []
+    fields = normalize_filter_fields(assigns[:fields] || [])
     labels = get_filter_labels(assigns, fields)
 
     types =
       fields
-      |> Enum.map(fn
-        {field, opts} -> {field, opts[:type]}
-        field -> {field, nil}
-      end)
+      |> Enum.map(fn {field, opts} -> {field, opts[:type]} end)
       |> Enum.reject(fn {_, type} -> is_nil(type) end)
 
     inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
@@ -783,23 +780,39 @@ defmodule Flop.Phoenix do
     """
   end
 
+  defp normalize_filter_fields(fields) do
+    fields
+    |> Enum.map(fn
+      field when is_atom(field) ->
+        {field, []}
+
+      {field, opts} when is_atom(field) and is_list(opts) ->
+        {field, opts}
+
+      field ->
+        raise """
+        Invalid filter field config
+
+        Filters fields must be passed as a list of atoms or {atom, keyword} tuples.
+
+        Got:
+
+            #{inspect(field)}
+        """
+    end)
+  end
+
   defp get_filter_labels(%{dynamic: true, form: form}, fields) do
     dynamic_filters =
       Enum.map(form.data.filters, fn %Flop.Filter{field: field} -> field end)
 
     fields
-    |> Enum.map(fn
-      {field, opts} -> {field, opts[:label]}
-      field -> {field, nil}
-    end)
+    |> Enum.map(fn {field, opts} -> {field, opts[:label]} end)
     |> Enum.reject(fn {field, _} -> field not in dynamic_filters end)
   end
 
   defp get_filter_labels(_, fields) do
-    Enum.map(fields, fn
-      {field, opts} -> {field, opts[:label]}
-      field -> {field, nil}
-    end)
+    Enum.map(fields, fn {field, opts} -> {field, opts[:label]} end)
   end
 
   @doc """
