@@ -2430,6 +2430,86 @@ defmodule Flop.PhoenixTest do
       assert [] = Floki.find(html, "label[for='flop_filters_1_value']")
     end
 
+    test "matches dynamic filters and field config correctly", %{meta: meta} do
+      meta = %{
+        meta
+        | flop: %Flop{
+            filters: [
+              %Filter{field: :age, op: :>=, value: "8"},
+              %Filter{field: :name, value: "George"},
+              %Filter{field: :email, value: "geo"}
+            ]
+          }
+      }
+
+      fields = [
+        {:email, [label: "E-mail", type: {:email_input, class: "email-input"}]},
+        {:age,
+         [
+           label: "Age",
+           type: {:number_input, class: "number-input"}
+         ]},
+        :name
+      ]
+
+      html =
+        form_to_html(meta, fn f ->
+          (&filter_fields/1)
+          |> render_component(
+            __changed__: %{},
+            form: f,
+            fields: fields,
+            dynamic: true,
+            inner_block: %{
+              inner_block: fn _, e ->
+                [
+                  e.label |> rendered_to_string() |> raw(),
+                  e.input |> rendered_to_string() |> raw()
+                ]
+              end
+            }
+          )
+          |> raw()
+        end)
+
+      # labels
+      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
+      assert Floki.text(label) == "Age"
+      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
+      assert Floki.text(label) == "Name"
+      assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
+      assert Floki.text(label) == "E-mail"
+
+      # field inputs
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["age"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["name"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_2_field']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["email"]
+
+      # op input
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == [">="]
+
+      # value inputs
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+      assert Floki.attribute(input, "class") == ["number-input"]
+      assert Floki.attribute(input, "type") == ["number"]
+      assert Floki.attribute(input, "value") == ["8"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
+      assert Floki.attribute(input, "type") == ["text"]
+      assert Floki.attribute(input, "value") == ["George"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
+      assert Floki.attribute(input, "class") == ["email-input"]
+      assert Floki.attribute(input, "type") == ["email"]
+      assert Floki.attribute(input, "value") == ["geo"]
+    end
+
     test "passes the :id option to the filter form", %{
       fields: fields,
       meta: meta
