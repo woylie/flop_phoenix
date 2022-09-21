@@ -8,6 +8,43 @@ defmodule Flop.Phoenix.CursorPagination do
 
   require Logger
 
+  @path_event_error_msg """
+  the :path or :event option is required when rendering cursor pagination
+
+  The :path value can be a path as a string, a
+  {module, function_name, args} tuple or a {function, args} tuple.
+
+  The :event value needs to be a string.
+
+  ## Example
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={~p"/pets"}
+      />
+
+  or
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={{Routes, :pet_path, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={{&Routes.pet_path/3, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        event="paginate"
+      />
+  """
+
   @spec default_opts() :: [Flop.Phoenix.cursor_pagination_option()]
   def default_opts do
     [
@@ -32,8 +69,18 @@ defmodule Flop.Phoenix.CursorPagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns = assign(assigns, :opts, merge_opts(assigns[:opts] || []))
-    validate_path_helper_or_event!(assigns)
+    assigns =
+      assigns
+      |> assign(:opts, merge_opts(assigns[:opts] || []))
+      |> assign(:path, assigns[:path] || assigns[:path_helper])
+
+    if assigns[:path_helper] do
+      Logger.debug(
+        "The `path_helper` assign is deprecated. Use `path` instead."
+      )
+    end
+
+    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
     assigns
   end
 
@@ -48,7 +95,7 @@ defmodule Flop.Phoenix.CursorPagination do
   attr :attrs, :list, required: true
   attr :event, :string, required: true
   attr :target, :string, required: true
-  attr :path_helper, :any, required: true
+  attr :path, :any, required: true
   attr :content, :any, required: true
   attr :opts, :list, required: true
 
@@ -60,7 +107,7 @@ defmodule Flop.Phoenix.CursorPagination do
           <%= @content %>
         <% end %>
       <% else %>
-        <.link patch={pagination_path(@direction, @path_helper, @meta)} {@attrs}>
+        <.link patch={pagination_path(@direction, @path, @meta)} {@attrs}>
           <%= @content %>
         </.link>
       <% end %>
@@ -76,13 +123,13 @@ defmodule Flop.Phoenix.CursorPagination do
   defp show_link?(%Flop.Meta{has_next_page?: true}, :next), do: true
   defp show_link?(%Flop.Meta{}, _), do: false
 
-  defp pagination_path(direction, path_helper, %Flop.Meta{} = meta) do
+  defp pagination_path(direction, path, %Flop.Meta{} = meta) do
     params =
       meta
       |> Flop.set_cursor(direction)
       |> Flop.Phoenix.to_query(for: meta.schema)
 
-    Flop.Phoenix.build_path(path_helper, params)
+    Flop.Phoenix.build_path(path, params)
   end
 
   defp add_phx_attrs(attrs, event, target, direction) do
@@ -97,50 +144,5 @@ defmodule Flop.Phoenix.CursorPagination do
     Keyword.update(attrs, :class, disabled_class, fn class ->
       class <> " " <> disabled_class
     end)
-  end
-
-  defp validate_path_helper_or_event!(%{path_helper: path_helper, event: event}) do
-    case {path_helper, event} do
-      {{module, function, args}, nil}
-      when is_atom(module) and is_atom(function) and is_list(args) ->
-        :ok
-
-      {{function, args}, nil} when is_function(function) and is_list(args) ->
-        :ok
-
-      {nil, event} when is_binary(event) ->
-        :ok
-
-      _ ->
-        raise ArgumentError, """
-        the :path_helper or :event option is required when rendering pagination
-
-        The :path_helper value can be a {module, function_name, args} tuple or a
-        {function, args} tuple.
-
-        The :event value needs to be a string.
-
-        ## Example
-
-            <Flop.Phoenix.cursor_pagination
-              meta={@meta}
-              path_helper={{Routes, :pet_path, [@socket, :index]}}
-            />
-
-        or
-
-            <Flop.Phoenix.cursor_pagination
-              meta={@meta}
-              path_helper={{&Routes.pet_path/3, [@socket, :index]}}
-            />
-
-        or
-
-            <Flop.Phoenix.cursor_pagination
-              meta={@meta}
-              event="paginate"
-            />
-        """
-    end
   end
 end

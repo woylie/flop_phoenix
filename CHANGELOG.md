@@ -4,10 +4,19 @@
 
 ### Added
 
+This release adds support for passing URI strings instead of MFA or FA tuples to
+components and helper functions. This allows you to use the library with the
+verified routes introduced in Phoenix 1.7. Passing tuples pointing to route
+helpers is still supported.
+
 - Added an example for a custom filter form component to the readme.
+- Support passing a URI string as a path to the `table`, `pagination` and
+  `cursor_pagination` components.
+- Support passing a URI string as the first argument to `build_path/3`.
 
 ### Changed
 
+- Deprecate usage `path_helper` assign in favor of `path`.
 - Use declarative assigns and replace `Phoenix.LiveView.Helpers.live_patch/1`
   with `Phoenix.Component.link/1`.
 - Require `live_view ~> 0.18.0`.
@@ -19,15 +28,28 @@
   necessary (e.g. a list of select options that are rendered as option
   elements).
 
-```diff
-- <.filter_input form={ff} class="select" options={[:some, :options]} />
-+ <.filter_input form={ff} input_opts={[class: "select", options: [:some, :options]} />
-```
-
 ### Fixed
 
 - Apply `show` and `hide` attribute for columns to `colgroup` as well.
 - Correctly handle multiple inputs for the same field in `Flop.filter_fields/1`.
+
+### How to upgrade
+
+Rename the `path_helper` assigns of `table`, `pagination` and
+`cursor_pagination` components to `path`.
+
+```diff
+- <.pagination meta={@meta} path_helper={{Routes, :pet_path, [@socket, :index]}} />
++ <.pagination meta={@meta} path={{Routes, :pet_path, [@socket, :index]}} />
+```
+
+Wrap additional options passed to `Flop.Phoenix.filter_input/1` into a single
+`input_opts` assign.
+
+```diff
+- <.filter_input form={ff} class="select" options={[:some, :options]} />
++ <.filter_input form={ff} input_opts={[class: "select", options: [:some, :options]} />
+```
 
 ## [0.14.2] - 2022-08-26
 
