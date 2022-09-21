@@ -750,44 +750,66 @@ defmodule Flop.Phoenix do
   @spec filter_fields(map) :: Phoenix.LiveView.Rendered.t()
   def filter_fields(assigns) do
     is_meta_form!(assigns.form)
-    fields = assigns[:fields] || []
-
-    labels =
-      fields
-      |> Enum.map(fn
-        {field, opts} -> {field, opts[:label]}
-        field -> {field, nil}
-      end)
-      |> Enum.reject(fn {_, label} -> is_nil(label) end)
-
-    types =
-      fields
-      |> Enum.map(fn
-        {field, opts} -> {field, opts[:type]}
-        field -> {field, nil}
-      end)
-      |> Enum.reject(fn {_, type} -> is_nil(type) end)
-
+    fields = normalize_filter_fields(assigns[:fields] || [])
+    field_opts = match_field_opts(assigns, fields)
     inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
 
     assigns =
       assigns
       |> assign(:fields, inputs_for_fields)
-      |> assign(:labels, labels)
-      |> assign(:types, types)
       |> assign_new(:id, fn -> nil end)
       |> assign_new(:input_opts, fn -> [] end)
       |> assign_new(:label_opts, fn -> [] end)
+      |> assign(:field_opts, field_opts)
 
     ~H"""
     <%= filter_hidden_inputs_for(@form) %>
-    <%= for ff <- inputs_for(@form, :filters, fields: @fields, id: @id) do %>
+    <%= for {ff, {field, field_opts}} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
       <%= render_slot(@inner_block, %{
-        label: ~H"<.filter_label form={ff} texts={@labels} {@label_opts} />",
-        input: ~H"<.filter_input form={ff} types={@types} {@input_opts} />"
+        label:
+          ~H"<.filter_label form={ff} texts={[{field, field_opts[:label]}]} {@label_opts} />",
+        input:
+          ~H"<.filter_input form={ff} types={[{field, field_opts[:type]}]} {@input_opts} />"
       }) %>
     <% end %>
     """
+  end
+
+  defp inputs_for_filters(form, fields, field_opts, id) do
+    form
+    |> inputs_for(:filters, fields: fields, id: id)
+    |> Enum.zip(field_opts)
+  end
+
+  defp normalize_filter_fields(fields) do
+    Enum.map(fields, fn
+      field when is_atom(field) ->
+        {field, []}
+
+      {field, opts} when is_atom(field) and is_list(opts) ->
+        {field, opts}
+
+      field ->
+        raise """
+        Invalid filter field config
+
+        Filters fields must be passed as a list of atoms or {atom, keyword} tuples.
+
+        Got:
+
+            #{inspect(field)}
+        """
+    end)
+  end
+
+  defp match_field_opts(%{dynamic: true, form: form}, fields) do
+    Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
+      {field, fields[field] || []}
+    end)
+  end
+
+  defp match_field_opts(_, fields) do
+    fields
   end
 
   @doc """
@@ -861,10 +883,13 @@ defmodule Flop.Phoenix do
     """
   end
 
-  defp label_text(form, nil), do: form |> input_value(:field) |> humanize()
+  defp label_text(form, nil) do
+    form |> input_value(:field) |> humanize()
+  end
 
-  defp label_text(form, func) when is_function(func, 1),
-    do: form |> input_value(:field) |> func.()
+  defp label_text(form, func) when is_function(func, 1) do
+    form |> input_value(:field) |> func.()
+  end
 
   defp label_text(form, mapping) when is_list(mapping) do
     field = input_value(form, :field)
@@ -873,7 +898,7 @@ defmodule Flop.Phoenix do
 
   defp safe_get(keyword, key, default)
        when is_list(keyword) and is_atom(key) do
-    Keyword.get(keyword, key, default)
+    Keyword.get(keyword, key) || default
   end
 
   defp safe_get(keyword, key, default)
@@ -885,6 +910,7 @@ defmodule Flop.Phoenix do
 
     case value do
       nil -> default
+      {_, nil} -> default
       {_, value} -> value
     end
   end
@@ -964,7 +990,10 @@ defmodule Flop.Phoenix do
     assigns =
       assigns
       |> assign_new(:skip_hidden, fn -> false end)
-      |> assign(:type, type_for(assigns.form, assigns[:types]))
+      |> assign(
+        :type,
+        type_for(assigns.form, assigns[:types])
+      )
       |> assign(:opts, opts)
 
     ~H"""
