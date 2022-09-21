@@ -803,12 +803,9 @@ defmodule Flop.Phoenix do
   end
 
   defp get_filter_labels(%{dynamic: true, form: form}, fields) do
-    dynamic_filters =
-      Enum.map(form.data.filters, fn %Flop.Filter{field: field} -> field end)
-
-    fields
-    |> Enum.map(fn {field, opts} -> {field, opts[:label]} end)
-    |> Enum.reject(fn {field, _} -> field not in dynamic_filters end)
+    Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
+      {field, fields[field][:label]}
+    end)
   end
 
   defp get_filter_labels(_, fields) do
