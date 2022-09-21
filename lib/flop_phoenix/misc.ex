@@ -1,6 +1,8 @@
 defmodule Flop.Phoenix.Misc do
   @moduledoc false
 
+  require Logger
+
   @doc """
   Deep merge for keyword lists.
 
@@ -98,5 +100,29 @@ defmodule Flop.Phoenix.Misc do
     :flop_phoenix
     |> Application.get_env(component, [])
     |> Keyword.get(:opts)
+  end
+
+  @doc """
+  Validates that either a path helper in the right format or an event are
+  assigned, but not both.
+  """
+  def validate_path_or_event!(%{path: path, event: event}, error_msg) do
+    case {path, event} do
+      {{module, function, args}, nil}
+      when is_atom(module) and is_atom(function) and is_list(args) ->
+        :ok
+
+      {{function, args}, nil} when is_function(function) and is_list(args) ->
+        :ok
+
+      {path, nil} when is_binary(path) ->
+        :ok
+
+      {nil, event} when is_binary(event) ->
+        :ok
+
+      _ ->
+        raise ArgumentError, error_msg
+    end
   end
 end

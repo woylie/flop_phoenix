@@ -8,6 +8,43 @@ defmodule Flop.Phoenix.Pagination do
 
   require Logger
 
+  @path_event_error_msg """
+  the :path or :event option is required when rendering pagination
+
+  The :path value can be a path as a string, a
+  {module, function_name, args} tuple or a {function, args} tuple.
+
+  The :event value needs to be a string.
+
+  ## Example
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={~p"/pets"}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={{Routes, :pet_path, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={{&Routes.pet_path/3, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        event="paginate"
+      />
+  """
+
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
@@ -42,8 +79,18 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(assigns) do
-    assigns = assign(assigns, :opts, merge_opts(assigns[:opts]))
-    validate_path_helper_or_event!(assigns)
+    assigns =
+      assigns
+      |> assign(:opts, merge_opts(assigns[:opts] || []))
+      |> assign(:path, assigns[:path] || assigns[:path_helper])
+
+    if assigns[:path_helper] do
+      Logger.debug(
+        "The `path_helper` assign is deprecated. Use `path` instead."
+      )
+    end
+
+    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
     assigns
   end
 
@@ -303,12 +350,12 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(meta, path_helper) do
+  def build_page_link_helper(meta, path) do
     query_params = build_query_params(meta)
 
     fn page ->
       params = maybe_put_page(query_params, page)
-      Flop.Phoenix.build_path(path_helper, params)
+      Flop.Phoenix.build_path(path, params)
     end
   end
 
@@ -383,50 +430,5 @@ defmodule Flop.Phoenix.Pagination do
       [label: aria_label],
       &Keyword.put(&1, :label, aria_label)
     )
-  end
-
-  defp validate_path_helper_or_event!(%{path_helper: path_helper, event: event}) do
-    case {path_helper, event} do
-      {{module, function, args}, nil}
-      when is_atom(module) and is_atom(function) and is_list(args) ->
-        :ok
-
-      {{function, args}, nil} when is_function(function) and is_list(args) ->
-        :ok
-
-      {nil, event} when is_binary(event) ->
-        :ok
-
-      _ ->
-        raise ArgumentError, """
-        the :path_helper or :event option is required when rendering pagination
-
-        The :path_helper value can be a {module, function_name, args} tuple or a
-        {function, args} tuple.
-
-        The :event value needs to be a string.
-
-        ## Example
-
-            <Flop.Phoenix.pagination
-              meta={@meta}
-              path_helper={{Routes, :pet_path, [@socket, :index]}}
-            />
-
-        or
-
-            <Flop.Phoenix.pagination
-              meta={@meta}
-              path_helper={{&Routes.pet_path/3, [@socket, :index]}}
-            />
-
-        or
-
-            <Flop.Phoenix.pagination
-              meta={@meta}
-              event="paginate"
-            />
-        """
-    end
   end
 end

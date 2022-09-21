@@ -125,6 +125,7 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
   alias Phoenix.HTML.Form
+  alias Plug.Conn.Query
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
@@ -255,7 +256,12 @@ defmodule Flop.Phoenix do
   @doc """
   Generates a pagination element.
 
-  ## Example
+  ## Examples
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path_helper={~p"/pets"}
+      />
 
       <Flop.Phoenix.pagination
         meta={@meta}
@@ -296,15 +302,17 @@ defmodule Flop.Phoenix do
     The meta information of the query as returned by the `Flop` query functions.
     """
 
-  attr :path_helper, :any,
+  attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be an mfa tuple or a
-    function/args tuple. If set, links will be rendered with
+    The path helper to use for building the link URL. Can be a URI string, an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
     `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
     """
+
+  attr :path_helper, :any, default: nil, doc: "Deprecated. Use `:path` instead."
 
   attr :event, :string,
     default: nil,
@@ -338,7 +346,7 @@ defmodule Flop.Phoenix do
         event={@event}
         meta={@meta}
         opts={@opts}
-        page_link_helper={Pagination.build_page_link_helper(@meta, @path_helper)}
+        page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
         target={@target}
       />
     <% end %>
@@ -418,15 +426,19 @@ defmodule Flop.Phoenix do
     The meta information of the query as returned by the `Flop` query functions.
     """
 
-  attr :path_helper, :any,
+  attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be an mfa tuple or a
-    function/args tuple. If set, links will be rendered with
+    The path helper to use for building the link URL. Can be a URI string, an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
     `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
     """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: "Deprecated. Use `:path` instead."
 
   attr :event, :string,
     default: nil,
@@ -471,7 +483,7 @@ defmodule Flop.Phoenix do
           direction={if @reverse, do: :next, else: :previous}
           event={@event}
           meta={@meta}
-          path_helper={@path_helper}
+          path={@path}
           opts={@opts}
           target={@target}
         />
@@ -481,7 +493,7 @@ defmodule Flop.Phoenix do
           direction={if @reverse, do: :previous, else: :next}
           event={@event}
           meta={@meta}
-          path_helper={@path_helper}
+          path={@path}
           opts={@opts}
           target={@target}
         />
@@ -528,14 +540,20 @@ defmodule Flop.Phoenix do
     required: true,
     doc: "The `Flop.Meta` struct returned by the query function."
 
-  attr :path_helper, :any,
+  attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be an mfa tuple or a
-    function/args tuple. If set, links will be rendered with
+    The path helper to use for building the link URL. Can be a URI string, an
+    mfa tuple or a function/args tuple. If set, links will be rendered with
     `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
     the parameters will have to be handled in the `handle_params/3` callback of
     the LiveView module.
+    """
+
+  attr :path_helper, :any,
+    default: nil,
+    doc: """
+    Deprecated. Use `:path` instead.
     """
 
   attr :event, :string,
@@ -631,7 +649,7 @@ defmodule Flop.Phoenix do
             items={@items}
             meta={@meta}
             opts={@opts}
-            path_helper={@path_helper}
+            path={@path}
             target={@target}
           />
         </div>
@@ -644,7 +662,7 @@ defmodule Flop.Phoenix do
           items={@items}
           meta={@meta}
           opts={@opts}
-          path_helper={@path_helper}
+          path={@path}
           target={@target}
         />
       <% end %>
@@ -1180,8 +1198,12 @@ defmodule Flop.Phoenix do
   Builds a path that includes query parameters for the given `Flop` struct
   using the referenced Phoenix path helper function.
 
-  The first argument can be either an MFA tuple (module, function name as atom,
-  arguments) or a 2-tuple (function, arguments).
+  The first argument can be either one of:
+
+  - an MFA tuple (module, function name as atom, arguments)
+  - a 2-tuple (function, arguments)
+  - a URL string (e.g. `"/some/path"`; this option has been added so that you
+    can use Phoenix verified routes with the library)
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
@@ -1189,12 +1211,16 @@ defmodule Flop.Phoenix do
 
   ## Examples
 
+  With an MFA tuple:
+
       iex> flop = %Flop{page: 2, page_size: 10}
       iex> build_path(
       ...>   {Flop.PhoenixTest, :route_helper, [%Plug.Conn{}, :pets]},
       ...>   flop
       ...> )
       "/pets?page_size=10&page=2"
+
+  With a function/arguments tuple:
 
       iex> pet_path = fn _conn, :index, query ->
       ...>   "/pets?" <> Plug.Conn.Query.encode(query)
@@ -1207,6 +1233,15 @@ defmodule Flop.Phoenix do
   Phoenix application, you would pass something like
   `{Routes, :pet_path, args}` or `{&Routes.pet_path/3, args}` as the
   first argument.
+
+  You can also use this function with a verified route. Note that this example
+  uses a plain string which isn't verified, because we need the doctest to work,
+  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
+  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets", flop)
+      "/pets?page=2&page_size=10"
 
   You can also pass a `Flop.Meta` struct or a keyword list as the third
   argument.
@@ -1251,7 +1286,7 @@ defmodule Flop.Phoenix do
   @doc since: "0.6.0"
   @doc section: :miscellaneous
   @spec build_path(
-          {module, atom, [any]} | {function, [any]},
+          String.t() | {module, atom, [any]} | {function, [any]},
           Meta.t() | Flop.t() | keyword,
           keyword
         ) ::
@@ -1280,6 +1315,20 @@ defmodule Flop.Phoenix do
              is_list(flop_params) do
     final_args = build_final_args(args, flop_params)
     apply(func, final_args)
+  end
+
+  def build_path(uri, flop_params, _opts)
+      when is_binary(uri) and is_list(flop_params) do
+    uri = URI.parse(uri)
+
+    query =
+      (uri.query || "")
+      |> Query.decode()
+      |> Map.merge(Map.new(flop_params))
+
+    uri
+    |> Map.put(:query, Query.encode(query))
+    |> URI.to_string()
   end
 
   defp build_final_args(args, flop_params) do
