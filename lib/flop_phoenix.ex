@@ -306,10 +306,11 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
-    the parameters will have to be handled in the `handle_params/3` callback of
-    the LiveView module.
+    mfa tuple or a function/args tuple, or a function (see
+    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
+    LiveView, the parameters will have to be handled in the `handle_params/3`
+    callback of the LiveView module.
     """
 
   attr :path_helper, :any, default: nil, doc: "Deprecated. Use `:path` instead."
@@ -430,10 +431,11 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
-    the parameters will have to be handled in the `handle_params/3` callback of
-    the LiveView module.
+    mfa tuple or a function/args tuple, or a function (see
+    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
+    LiveView, the parameters will have to be handled in the `handle_params/3`
+    callback of the LiveView module.
     """
 
   attr :path_helper, :any,
@@ -544,10 +546,11 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple. If set, links will be rendered with
-    `Phoenix.Components.link/1` with the `patch` attribute. In a LiveView,
-    the parameters will have to be handled in the `handle_params/3` callback of
-    the LiveView module.
+    mfa tuple or a function/args tuple, or a function (see
+    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
+    LiveView, the parameters will have to be handled in the `handle_params/3`
+    callback of the LiveView module.
     """
 
   attr :path_helper, :any,
@@ -1204,6 +1207,7 @@ defmodule Flop.Phoenix do
   - a 2-tuple (function, arguments)
   - a URL string (e.g. `"/some/path"`; this option has been added so that you
     can use Phoenix verified routes with the library)
+  - a function that takes the Flop parameters as a keyword list as an argument
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
@@ -1211,7 +1215,7 @@ defmodule Flop.Phoenix do
 
   ## Examples
 
-  With an MFA tuple:
+  ### With an MFA tuple
 
       iex> flop = %Flop{page: 2, page_size: 10}
       iex> build_path(
@@ -1220,7 +1224,7 @@ defmodule Flop.Phoenix do
       ...> )
       "/pets?page_size=10&page=2"
 
-  With a function/arguments tuple:
+  ### With a function/arguments tuple
 
       iex> pet_path = fn _conn, :index, query ->
       ...>   "/pets?" <> Plug.Conn.Query.encode(query)
@@ -1234,14 +1238,7 @@ defmodule Flop.Phoenix do
   `{Routes, :pet_path, args}` or `{&Routes.pet_path/3, args}` as the
   first argument.
 
-  You can also use this function with a verified route. Note that this example
-  uses a plain string which isn't verified, because we need the doctest to work,
-  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
-  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
-
-      iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets", flop)
-      "/pets?page=2&page_size=10"
+  ### Passing a `Flop.Meta` struct or a keyword list
 
   You can also pass a `Flop.Meta` struct or a keyword list as the third
   argument.
@@ -1257,6 +1254,8 @@ defmodule Flop.Phoenix do
       iex> build_path({pet_path, [%Plug.Conn{}, :index]}, query_params)
       "/pets?page_size=10&page=2"
 
+  ### Additional path parameters
+
   If the path helper takes additional path parameters, just add them to the
   second argument.
 
@@ -1266,6 +1265,8 @@ defmodule Flop.Phoenix do
       iex> flop = %Flop{page: 2, page_size: 10}
       iex> build_path({user_pet_path, [%Plug.Conn{}, :index, 123]}, flop)
       "/users/123/pets?page_size=10&page=2"
+
+  ### Additional query parameters
 
   If the last path helper argument is a query parameter list, the Flop
   parameters are merged into it.
@@ -1282,6 +1283,81 @@ defmodule Flop.Phoenix do
       ...>   flop
       ...> )
       "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
+
+  ### With a URI string or verified route
+
+  You can also use this function with a verified route. Note that this example
+  uses a plain string which isn't verified, because we need the doctest to work,
+  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
+  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets", flop)
+      "/pets?page=2&page_size=10"
+
+  ### Set page as path parameter
+
+  Finally, you can also pass a function that takes the Flop parameters as
+  a keyword list as an argument. Default values will not be included in the
+  parameters passed to the function. You can use this if you need to set some
+  of the parameters as path parameters instead of query parameters.
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path(
+      ...>   fn params ->
+      ...>     {page, params} = Keyword.pop(params, :page)
+      ...>     query = Plug.Conn.Query.encode(params)
+      ...>     if page, do: "/pets/page/\#{page}?\#{query}", else: "/pets?\#{query}"
+      ...>   end,
+      ...>   flop
+      ...> )
+      "/pets/page/2?page_size=10"
+
+  Note that in this example, the anonymous function just returns a string. With
+  Phoenix 1.7, you will be able to use verified routes.
+
+      build_path(
+        fn params ->
+          {page, query} = Keyword.pop(params, :page)
+          if page, do: ~p"/pets/page/\#{page}?\#{query}", else: ~p"/pets?\#{query}"
+        end,
+        flop
+      )
+
+  Note that the keyword list passed to the path builder function is built using
+  `Plug.Conn.Query.encode/2`, which means filters are formatted as map with
+  integer keys.
+
+  ### Set filter value as path parameter
+
+  If you need to set a filter value as a path parameter, you can use
+  `Flop.Phoenix.pop_filter/2` to manipulate the parameters (again, replace the
+  plain strings with verified routes and remove the `encode` line in Phoenix
+  1.7).
+
+      iex> flop = %Flop{
+      ...>   page: 5,
+      ...>   order_by: [:published_at],
+      ...>   filters: [
+      ...>     %Flop.Filter{field: :category, op: :==, value: "announcements"}
+      ...>   ]
+      ...> }
+      iex> build_path(
+      ...>   fn params ->
+      ...>     {page, params} = Keyword.pop(params, :page)
+      ...>     {category, params} = pop_filter(params, :category)
+      ...>     query = Plug.Conn.Query.encode(params)
+      ...>
+      ...>     case {page, category} do
+      ...>       {nil, nil} -> "/articles?\#{query}"
+      ...>       {page, nil} -> "/articles/page/\#{page}?\#{query}"
+      ...>       {nil, %{value: category}} -> "/articles/category/\#{category}?\#{query}"
+      ...>       {page, %{value: category}} -> "/articles/category/\#{category}/page/\#{page}?\#{query}"
+      ...>     end
+      ...>   end,
+      ...>   flop
+      ...> )
+      "/articles/category/announcements/page/5?order_by[]=published_at"
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
@@ -1291,13 +1367,13 @@ defmodule Flop.Phoenix do
           keyword
         ) ::
           String.t()
-  def build_path(tuple, meta_or_flop_or_params, opts \\ [])
+  def build_path(path, meta_or_flop_or_params, opts \\ [])
 
-  def build_path(tuple, %Meta{flop: flop}, opts),
-    do: build_path(tuple, flop, opts)
+  def build_path(path, %Meta{flop: flop}, opts),
+    do: build_path(path, flop, opts)
 
-  def build_path(tuple, %Flop{} = flop, opts) do
-    build_path(tuple, Flop.Phoenix.to_query(flop, opts))
+  def build_path(path, %Flop{} = flop, opts) do
+    build_path(path, Flop.Phoenix.to_query(flop, opts))
   end
 
   def build_path({module, func, args}, flop_params, _opts)
@@ -1315,6 +1391,11 @@ defmodule Flop.Phoenix do
              is_list(flop_params) do
     final_args = build_final_args(args, flop_params)
     apply(func, final_args)
+  end
+
+  def build_path(func, flop_params, _opts)
+      when is_function(func, 1) and is_list(flop_params) do
+    func.(flop_params)
   end
 
   def build_path(uri, flop_params, _opts)
@@ -1339,6 +1420,112 @@ defmodule Flop.Phoenix do
 
       _ ->
         args ++ [flop_params]
+    end
+  end
+
+  @doc """
+  Removes the first filter for the given field in the `Flop.t` struct or keyword
+  list and returns the filter value and the updated struct or keyword list.
+
+  If a keyword list is passed, it is expected to have the same format as
+  returned by `Flop.Phoenix.to_query/2`.
+
+  You can use this function to write a custom path builder function in cases
+  where you need to set a filter value as a path parameter instead of a query
+  parameter. See `Flop.Phoenix.build_path/3` for an example.
+
+  ## Examples
+
+  ### With a Flop struct
+
+      iex> flop = %Flop{
+      ...>   page: 5,
+      ...>   filters: [
+      ...>     %Flop.Filter{field: :category, op: :==, value: "announcements"},
+      ...>     %Flop.Filter{field: :title, op: :==, value: "geo"}
+      ...>   ]
+      ...> }
+      iex> pop_filter(flop, :category)
+      {%Flop.Filter{field: :category, op: :==, value: "announcements"},
+       %Flop{
+         page: 5,
+         filters: [%Flop.Filter{field: :title, op: :==, value: "geo"}]
+       }}
+      iex> pop_filter(flop, :author)
+      {nil,
+       %Flop{
+         page: 5,
+         filters: [
+           %Flop.Filter{field: :category, op: :==, value: "announcements"},
+           %Flop.Filter{field: :title, op: :==, value: "geo"}
+         ]
+       }
+      }
+
+  ### With a keyword list
+
+      iex> params = [
+      ...>   filters: %{
+      ...>     0 => %{field: :category, op: :==, value: "announcements"},
+      ...>     1 => %{field: :title, op: :==, value: "geo"}
+      ...>   },
+      ...>   page: 5
+      ...> ]
+      iex> pop_filter(params, :category)
+      {%{field: :category, op: :==, value: "announcements"},
+       [
+         filters: %{0 => %{field: :title, op: :==, value: "geo"}},
+         page: 5
+       ]}
+      iex> pop_filter(params, :author)
+      {nil,
+       [
+         filters: %{
+           0 => %{field: :category, op: :==, value: "announcements"},
+           1 => %{field: :title, op: :==, value: "geo"}
+         },
+         page: 5
+       ]}
+
+      iex> pop_filter([], :category)
+      {nil, []}
+  """
+  @doc since: "0.15.0"
+  @doc section: :miscellaneous
+  @spec pop_filter(Flop.t(), atom) :: {any, Flop.t()}
+  @spec pop_filter(keyword, atom) :: {any, keyword}
+  def pop_filter(%Flop{} = flop, field) do
+    case Enum.find_index(flop.filters, &(&1.field == field)) do
+      nil ->
+        {nil, flop}
+
+      index ->
+        {filter, filters} = List.pop_at(flop.filters, index)
+        {filter, %{flop | filters: filters}}
+    end
+  end
+
+  def pop_filter(params, field) when is_list(params) do
+    filters = Keyword.get(params, :filters, %{})
+
+    index =
+      Enum.find_index(filters, fn {_, filter} ->
+        filter.field == field
+      end)
+
+    case index do
+      nil ->
+        {nil, params}
+
+      index ->
+        {filter, filters} = Map.pop(filters, index)
+
+        filters =
+          filters
+          |> Enum.with_index(fn {_, filter}, index -> {index, filter} end)
+          |> Enum.into(%{})
+
+        {filter, Keyword.put(params, :filters, filters)}
     end
   end
 

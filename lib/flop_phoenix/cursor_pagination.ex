@@ -12,7 +12,8 @@ defmodule Flop.Phoenix.CursorPagination do
   the :path or :event option is required when rendering cursor pagination
 
   The :path value can be a path as a string, a
-  {module, function_name, args} tuple or a {function, args} tuple.
+  {module, function_name, args} tuple, a {function, args} tuple, or a 1-ary
+  function.
 
   The :event value needs to be a string.
 
@@ -35,6 +36,13 @@ defmodule Flop.Phoenix.CursorPagination do
       <Flop.Phoenix.cursor_pagination
         meta={@meta}
         path={{&Routes.pet_path/3, [@socket, :index]}}
+      />
+
+  or
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={&build_path/1}
       />
 
   or

@@ -106,23 +106,21 @@ defmodule Flop.Phoenix.Misc do
   Validates that either a path helper in the right format or an event are
   assigned, but not both.
   """
-  def validate_path_or_event!(%{path: path, event: event}, error_msg) do
-    case {path, event} do
-      {{module, function, args}, nil}
-      when is_atom(module) and is_atom(function) and is_list(args) ->
-        :ok
+  def validate_path_or_event!(%{path: {module, function, args}, event: nil}, _)
+      when is_atom(module) and is_atom(function) and is_list(args),
+      do: :ok
 
-      {{function, args}, nil} when is_function(function) and is_list(args) ->
-        :ok
+  def validate_path_or_event!(%{path: {function, args}, event: nil}, _)
+      when is_function(function) and is_list(args),
+      do: :ok
 
-      {path, nil} when is_binary(path) ->
-        :ok
+  def validate_path_or_event!(%{path: path, event: nil}, _)
+      when is_binary(path) or is_function(path, 1),
+      do: :ok
 
-      {nil, event} when is_binary(event) ->
-        :ok
+  def validate_path_or_event!(%{path: nil, event: event}, _)
+      when is_binary(event),
+      do: :ok
 
-      _ ->
-        raise ArgumentError, error_msg
-    end
-  end
+  def validate_path_or_event!(_, error_msg), do: raise(ArgumentError, error_msg)
 end
