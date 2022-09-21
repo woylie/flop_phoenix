@@ -11,6 +11,18 @@
 - Use declarative assigns and replace `Phoenix.LiveView.Helpers.live_patch/1`
   with `Phoenix.Component.link/1`.
 - Require `live_view ~> 0.18.0`.
+- `Flop.Phoenix.filter_input/1` requires additional options for the input
+  function to be passed in the `input_opts` assign, instead of passing them
+  directly to the component. This was necessary because the global attributes
+  you can define with declarative assigns in LiveView 0.18 are meant for HTML
+  attributes, while the input options may contain any additional attributes
+  necessary (e.g. a list of select options that are rendered as option
+  elements).
+
+```diff
+- <.filter_input form={ff} class="select" options={[:some, :options]} />
++ <.filter_input form={ff} input_opts={[class: "select", options: [:some, :options]} />
+```
 
 ### Fixed
 

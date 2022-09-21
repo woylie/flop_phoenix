@@ -667,29 +667,6 @@ defmodule Flop.Phoenix do
         </.filter_fields>
       </.form>
 
-  ## Assigns
-
-  - `form` - The `Phoenix.HTML.Form`.
-  - `fields` - The list of fields and field options. Note that inputs will not
-    be rendered for fields that are not marked as filterable in the schema.
-  - `dynamic` (optional) - If `true`, fields are only rendered for filters that
-    are present in the `Flop.Meta` struct passed to the form. You can use this
-    for rendering filter forms that allow the user to add and remove filters
-    dynamically. The `fields` assign is only used for looking up the options
-    in that case. Defaults to `false`.
-  - `id` (optional) - Overrides the ID for the nested filter inputs.
-  - `input_opts` (optional) - Additional options passed to each input.
-  - `label_opts` (optional) - Additional options passed to each label.
-
-  ## Inner block
-
-  The generated labels and inputs are passed to the inner block instead of being
-  automatically rendered. This allows you to customize the markup.
-
-      <.filter_fields :let={e} form={f} fields={[:email, :name]}>
-        <div class="field-label"><%= e.label %></div>
-        <div class="field-body"><%= e.input %></div>
-      </.filter_fields>
 
   ## Field configuration
 
@@ -748,6 +725,57 @@ defmodule Flop.Phoenix do
   @doc since: "0.12.0"
   @doc section: :components
   @spec filter_fields(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :form, Phoenix.HTML.Form, required: true
+
+  attr :fields, :list,
+    default: [],
+    doc: """
+    The list of fields and field options. Note that inputs will not be rendered
+    for fields that are not marked as filterable in the schema.
+
+    If `dynamic` is set to `false`, only fields in this list are rendered. If
+    `dynamic` is set to `true`, only fields for filters present in the given
+    `Flop.Meta` struct are rendered, and the fields are rendered even if they
+    are not passed in the `fields` list. In the latter case, `fields` is
+    optional, but you can still pass label and input configuration this way.
+
+    Note that in a dynamic form, it is not possible to configure a single field
+    multiple times.
+    """
+
+  attr :dynamic, :boolean,
+    default: false,
+    doc: """
+    If `true`, fields are only rendered for filters that are present in the
+    `Flop.Meta` struct passed to the form. You can use this for rendering filter
+    forms that allow the user to add and remove filters dynamically. The
+    `fields` assign is only used for looking up the options in that case.
+    """
+
+  attr :id, :string,
+    default: nil,
+    doc: "Overrides the ID for the nested filter inputs."
+
+  attr :input_opts, :list,
+    default: [],
+    doc: "Additional options passed to each input."
+
+  attr :label_opts, :list,
+    default: [],
+    doc: "Additional options passed to each label."
+
+  slot :inner_block,
+    doc: """
+    The generated labels and inputs are passed to the inner block instead of being
+    automatically rendered. This allows you to customize the markup.
+
+        <.filter_fields :let={e} form={f} fields={[:email, :name]}>
+          <div class="field-label"><%= e.label %></div>
+          <div class="field-body"><%= e.input %></div>
+        </.filter_fields>
+    """
+
   def filter_fields(assigns) do
     is_meta_form!(assigns.form)
     fields = normalize_filter_fields(assigns[:fields] || [])
@@ -757,9 +785,6 @@ defmodule Flop.Phoenix do
     assigns =
       assigns
       |> assign(:fields, inputs_for_fields)
-      |> assign_new(:id, fn -> nil end)
-      |> assign_new(:input_opts, fn -> [] end)
-      |> assign_new(:label_opts, fn -> [] end)
       |> assign(:field_opts, field_opts)
 
     ~H"""
@@ -769,7 +794,7 @@ defmodule Flop.Phoenix do
         label:
           ~H"<.filter_label form={ff} texts={[{field, field_opts[:label]}]} {@label_opts} />",
         input:
-          ~H"<.filter_input form={ff} types={[{field, field_opts[:type]}]} {@input_opts} />"
+          ~H"<.filter_input form={ff} types={[{field, field_opts[:type]}]} input_opts={@input_opts} />"
       }) %>
     <% end %>
     """
@@ -822,14 +847,6 @@ defmodule Flop.Phoenix do
   Note that `inputs_for` will not render inputs for fields that are not marked
   as filterable in the schema, even if passed in the options.
 
-  ## Assigns
-
-  - `form` - The filter form.
-  - `texts` (optional) - Either a function or a keyword list for setting the
-    label text depending on the field.
-
-  All additional assigns will be passed to the label.
-
   ## Example
 
       <.form :let={f} for={@meta}>
@@ -868,18 +885,24 @@ defmodule Flop.Phoenix do
   @doc since: "0.12.0"
   @doc section: :components
   @spec filter_label(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :form, Phoenix.HTML.Form, required: true
+
+  attr :texts, :any,
+    default: nil,
+    doc: """
+    Either a function or a keyword list for setting the label text depending on
+    the field.
+    """
+
+  attr :rest, :global,
+    doc: "Additional attributes to be added to the `<label>`."
+
   def filter_label(assigns) do
     is_filter_form!(assigns.form)
 
-    opts = assigns_to_attributes(assigns, [:form, :texts])
-
-    assigns =
-      assigns
-      |> assign_new(:texts, fn -> nil end)
-      |> assign(:opts, opts)
-
     ~H"""
-    <%= label(@form, :value, label_text(@form, @texts), opts) %>
+    <%= label(@form, :value, label_text(@form, @texts), Keyword.new(@rest)) %>
     """
   end
 
@@ -921,16 +944,6 @@ defmodule Flop.Phoenix do
   This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
   `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
   the filter form.
-
-  ## Assigns
-
-  - `form` - The filter form.
-  - `skip_hidden` (optional) - Disables the rendering of the hidden inputs for
-    the filter. Default: `false`.
-  - `types` (optional) - Either a function or a keyword list that maps fields
-    to input types
-
-  All additional assigns will be passed to the input function.
 
   ## Example
 
@@ -983,24 +996,30 @@ defmodule Flop.Phoenix do
   @doc since: "0.12.0"
   @doc section: :components
   @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :form, Phoenix.HTML.Form, required: true
+
+  attr :skip_hidden, :boolean,
+    default: false,
+    doc: "Disables the rendering of the hidden inputs for the filter."
+
+  attr :types, :any,
+    default: nil,
+    doc: "Either a function or a keyword list that maps fields to input types."
+
+  attr :input_opts, :any,
+    default: [],
+    doc: "Additional options to be passed to the input function."
+
   def filter_input(assigns) do
     is_filter_form!(assigns.form)
-    opts = assigns_to_attributes(assigns, [:form, :skip_hidden, :type, :types])
-
-    assigns =
-      assigns
-      |> assign_new(:skip_hidden, fn -> false end)
-      |> assign(
-        :type,
-        type_for(assigns.form, assigns[:types])
-      )
-      |> assign(:opts, opts)
+    assigns = assign(assigns, :type, type_for(assigns.form, assigns[:types]))
 
     ~H"""
     <%= unless @skip_hidden do %>
       <%= hidden_inputs_for(@form) %>
     <% end %>
-    <%= render_input(@form, @type, @opts) %>
+    <%= render_input(@form, @type, @input_opts) %>
     """
   end
 
