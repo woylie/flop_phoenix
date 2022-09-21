@@ -116,6 +116,10 @@ verified routes introduced in Phoenix 1.7.
 />
 ```
 
+For some more examples, have a look at the documentation of
+`Flop.Phoenix.build_path/3`. The `path` assign can be passed in any format that
+is accepted by `Flop.Phoenix.build_path/3`.
+
 If you pass the `for` option when making the query with Flop, Flop Phoenix can
 determine which table columns are sortable. It also hides the `order` and
 `page_size` parameters if they match the default values defined with
