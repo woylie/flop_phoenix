@@ -182,6 +182,12 @@ defmodule Flop.PhoenixTest do
     URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
 
+  def path_func(params) do
+    {page, params} = Keyword.pop(params, :page)
+    query = Query.encode(params)
+    if page, do: "/pets/page/#{page}?#{query}", else: "/pets?#{query}"
+  end
+
   describe "pagination/1" do
     test "renders pagination wrapper" do
       html = render_pagination(meta: build(:meta_on_first_page))
@@ -264,6 +270,17 @@ defmodule Flop.PhoenixTest do
                assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
              end) =~
                "The `path_helper` assign is deprecated. Use `path` instead."
+    end
+
+    test "supports a function as path" do
+      html =
+        render_pagination(
+          path: &path_func/1,
+          meta: build(:meta_on_first_page)
+        )
+
+      link = Floki.find(html, "a:fl-contains('Next')")
+      assert Floki.attribute(link, "href") == ["/pets/page/2?page_size=10"]
     end
 
     test "supports a URI string as path" do
@@ -1072,6 +1089,17 @@ defmodule Flop.PhoenixTest do
                "The `path_helper` assign is deprecated. Use `path` instead."
     end
 
+    test "supports a function as path" do
+      html =
+        render_cursor_pagination(
+          path: &path_func/1,
+          meta: build(:meta_with_cursors)
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
     test "supports a URI string as path" do
       html =
         render_cursor_pagination(
@@ -1455,6 +1483,15 @@ defmodule Flop.PhoenixTest do
                       ]
              end) =~
                "The `path_helper` assign is deprecated. Use `path` instead."
+    end
+
+    test "supports a function/ as path" do
+      html = render_table(path: &path_func/1)
+      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+
+      assert Floki.attribute(a, "href") == [
+               "/pets?order_directions[]=asc&order_by[]=name"
+             ]
     end
 
     test "supports a URI string as path" do

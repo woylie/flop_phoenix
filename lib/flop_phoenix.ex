@@ -1204,6 +1204,7 @@ defmodule Flop.Phoenix do
   - a 2-tuple (function, arguments)
   - a URL string (e.g. `"/some/path"`; this option has been added so that you
     can use Phoenix verified routes with the library)
+  - a function that takes the Flop parameters as a keyword list as an argument
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
@@ -1233,15 +1234,6 @@ defmodule Flop.Phoenix do
   Phoenix application, you would pass something like
   `{Routes, :pet_path, args}` or `{&Routes.pet_path/3, args}` as the
   first argument.
-
-  You can also use this function with a verified route. Note that this example
-  uses a plain string which isn't verified, because we need the doctest to work,
-  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
-  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
-
-      iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets", flop)
-      "/pets?page=2&page_size=10"
 
   You can also pass a `Flop.Meta` struct or a keyword list as the third
   argument.
@@ -1282,6 +1274,36 @@ defmodule Flop.Phoenix do
       ...>   flop
       ...> )
       "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
+
+  You can also use this function with a verified route. Note that this example
+  uses a plain string which isn't verified, because we need the doctest to work,
+  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
+  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets", flop)
+      "/pets?page=2&page_size=10"
+
+  And finally, you can also pass a function that takes the Flop parameters as
+  a keyword list as an argument. Default values will not be included in the
+  parameters passed to the function. You can use this if you need to set some
+  of the parameters as path parameters instead of query parameters.
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path(fn params ->
+      ...>   {page, params} = Keyword.pop(params, :page)
+      ...>   query = Plug.Conn.Query.encode(params)
+      ...>   if page, do: "/pets/page/\#{page}?\#{query}", else: "/pets?\#{query}"
+      ...> end, flop)
+      "/pets/page/2?page_size=10"
+
+  Note that in this example, the anonymous function just returns a string. With
+  Phoenix 1.7, you will be able to use verified routes.
+
+      build_path(fn params ->
+        {page, query} = Keyword.pop(params, :page)
+        if page, do: ~p"/pets/page/\#{page}?\#{query}", else: ~p"/pets?\#{query}"
+      end, flop)
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
@@ -1315,6 +1337,11 @@ defmodule Flop.Phoenix do
              is_list(flop_params) do
     final_args = build_final_args(args, flop_params)
     apply(func, final_args)
+  end
+
+  def build_path(func, flop_params, _opts)
+      when is_function(func, 1) and is_list(flop_params) do
+    func.(flop_params)
   end
 
   def build_path(uri, flop_params, _opts)

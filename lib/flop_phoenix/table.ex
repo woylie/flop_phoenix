@@ -11,8 +11,8 @@ defmodule Flop.Phoenix.Table do
   @path_event_error_msg """
   the :path or :event option is required when rendering a table
 
-  The :path value can be a {module, function_name, args} tuple or a
-  {function, args} tuple.
+  The :path value can be a {module, function_name, args} tuple, a
+  {function, args} tuple, or a 1-ary function.
 
   The :event value needs to be a string.
 
@@ -38,6 +38,14 @@ defmodule Flop.Phoenix.Table do
         items={@pets}
         meta={@meta}
         path={{&Routes.pet_path/3, [@socket, :index]}}
+      >
+
+  or
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path={&build_path/1}
       >
 
   or
