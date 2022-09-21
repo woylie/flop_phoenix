@@ -82,12 +82,6 @@ defmodule Flop.Phoenix.CursorPagination do
       |> assign(:opts, merge_opts(assigns[:opts] || []))
       |> assign(:path, assigns[:path] || assigns[:path_helper])
 
-    if assigns[:path_helper] do
-      Logger.debug(
-        "The `path_helper` assign is deprecated. Use `path` instead."
-      )
-    end
-
     Misc.validate_path_or_event!(assigns, @path_event_error_msg)
     assigns
   end

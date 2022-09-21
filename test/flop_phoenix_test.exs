@@ -3,7 +3,6 @@ defmodule Flop.PhoenixTest do
   use Phoenix.Component
   use Phoenix.HTML
 
-  import ExUnit.CaptureLog
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Flop.Phoenix.ViewHelpers
@@ -258,18 +257,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a function/args tuple as path_helper" do
-      assert capture_log([level: :debug], fn ->
-               html =
-                 render_pagination(
-                   path_helper: {&route_helper/3, @route_helper_opts},
-                   meta: build(:meta_on_second_page)
-                 )
+      html =
+        render_pagination(
+          path_helper: {&route_helper/3, @route_helper_opts},
+          meta: build(:meta_on_second_page)
+        )
 
-               link = Floki.find(html, "a:fl-contains('Previous')")
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
-               assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-             end) =~
-               "The `path_helper` assign is deprecated. Use `path` instead."
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
     test "supports a function as path" do
@@ -1073,20 +1069,17 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a function/args tuple as path_helper" do
-      assert capture_log([level: :debug], fn ->
-               html =
-                 render_cursor_pagination(
-                   path_helper: {&route_helper/3, @route_helper_opts},
-                   meta: build(:meta_with_cursors)
-                 )
+      html =
+        render_cursor_pagination(
+          path_helper: {&route_helper/3, @route_helper_opts},
+          meta: build(:meta_with_cursors)
+        )
 
-               link = Floki.find(html, "a:fl-contains('Previous')")
+      link = Floki.find(html, "a:fl-contains('Previous')")
 
-               assert Floki.attribute(link, "href") == [
-                        "/pets?last=10&before=B"
-                      ]
-             end) =~
-               "The `path_helper` assign is deprecated. Use `path` instead."
+      assert Floki.attribute(link, "href") == [
+               "/pets?last=10&before=B"
+             ]
     end
 
     test "supports a function as path" do
@@ -1470,19 +1463,13 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a function/args tuple as path_helper" do
-      assert capture_log([level: :debug], fn ->
-               html =
-                 render_table(
-                   path_helper: {&route_helper/3, @route_helper_opts}
-                 )
+      html = render_table(path_helper: {&route_helper/3, @route_helper_opts})
 
-               assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
-               assert Floki.attribute(a, "href") == [
-                        "/pets?order_directions[]=asc&order_by[]=name"
-                      ]
-             end) =~
-               "The `path_helper` assign is deprecated. Use `path` instead."
+      assert Floki.attribute(a, "href") == [
+               "/pets?order_directions[]=asc&order_by[]=name"
+             ]
     end
 
     test "supports a function/ as path" do
