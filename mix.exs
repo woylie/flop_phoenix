@@ -64,7 +64,7 @@ defmodule FlopPhoenix.MixProject do
 
   defp description do
     """
-    Phoenix components for pagination, sorting and filtering with Flop.
+    Phoenix components for pagination, sortable tables and filter forms using Flop.
     """
   end
 
