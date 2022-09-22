@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.15.0] - 2022-09-22
+
 ### Added
 
 This release adds support for passing URI strings instead of MFA or FA tuples to
