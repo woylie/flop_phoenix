@@ -2,8 +2,8 @@
 
 ![CI](https://github.com/woylie/flop_phoenix/workflows/CI/badge.svg) [![Hex](https://img.shields.io/hexpm/v/flop_phoenix)](https://hex.pm/packages/flop_phoenix) [![Coverage Status](https://coveralls.io/repos/github/woylie/flop_phoenix/badge.svg)](https://coveralls.io/github/woylie/flop_phoenix)
 
-Flop Phoenix is an Elixir library for filtering, ordering and pagination
-with Ecto, Phoenix and [Flop](https://hex.pm/packages/flop).
+Phoenix components for pagination, sortable tables and filter forms with
+[Flop](https://hex.pm/packages/flop) and [Ecto](https://hex.pm/packages/ecto).
 
 ## Installation
 
@@ -66,14 +66,18 @@ defmodule MyAppWeb.PetLive.Index do
 
   @impl Phoenix.LiveView
   def handle_params(params, _, socket) do
-    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
-      {:noreply, assign(socket, %{pets: pets, meta: meta})}
+    case Pets.list_pets(params) do
+      {:ok, {pets, meta}} ->
+        {:noreply, assign(socket, %{pets: pets, meta: meta})}
+
+      _ ->
+        {:noreply, push_navigate(socket, to: Routes.pet_index_path(socket, :index))}
     end
   end
 end
 ```
 
-## Sortable table and pagination components
+## Sortable tables and pagination
 
 In your template, add a sortable table and pagination links.
 
@@ -116,9 +120,10 @@ verified routes introduced in Phoenix 1.7.
 />
 ```
 
-For some more examples, have a look at the documentation of
-`Flop.Phoenix.build_path/3`. The `path` assign can be passed in any format that
-is accepted by `Flop.Phoenix.build_path/3`.
+You can also use a custom path builder function, in case you need to set some
+parameters in the path instead of the query. For more examples, have a look at
+the documentation of `Flop.Phoenix.build_path/3`. The `path` assign can use any
+format that is accepted by `Flop.Phoenix.build_path/3`.
 
 If you pass the `for` option when making the query with Flop, Flop Phoenix can
 determine which table columns are sortable. It also hides the `order` and
@@ -156,10 +161,11 @@ throughout your live views.
 ```elixir
 attr :meta, Flop.Meta, required: true
 attr :fields, :list, required: true
-attr :id, :string
+attr :id, :string, default: nil
 attr :change_event, :string, default: "update-filter"
 attr :reset_event, :string, default: "reset-filter"
-attr :target, :string
+attr :target, :string, default: nil
+attr :debounce, :integer, default: 100
 
 def filter_form(assigns) do
   ~H"""
@@ -177,6 +183,7 @@ def filter_form(assigns) do
           :let={%{input: input, label: label}}
           form={f}
           fields={@fields}
+          input_opts={[phx_debounce: @debounce]}
         >
           <div class="field">
             <span class="visually-hidden"><%= label %></span>
@@ -200,13 +207,32 @@ Now you can render a filter form like this:
 
 ```elixir
 <.filter_form
-  fields={
-    [
-      name: [label: gettext("Name"), op: :ilike_and],
-      email: [label: gettext("Email"), op: :ilike_and]
-    ]
-  }
+  fields={[:name, :email]}
   meta={@meta}
   id="user-filter-form"
 />
+```
+
+You will need to handle the `update-filter` and `reset-filter` events with the
+`handle_event/3` callback function of your LiveView.
+
+```elixir
+@impl true
+def handle_event("update-filter", %{"filter" => params}, socket) do
+  {:noreply,
+   push_patch(socket, to: Routes.pet_index_path(socket, :index, params))}
+end
+
+@impl true
+def handle_event("reset-filter", _, %{assigns: assigns} = socket) do
+  flop = assigns.meta.flop |> Flop.set_page(1) |> Flop.reset_filters()
+
+  path =
+    Flop.Phoenix.build_path(
+      {Routes, :pet_index_path, [socket, :index]},
+      flop
+    )
+
+  {:noreply, push_patch(socket, to: path)}
+end
 ```

@@ -1,6 +1,7 @@
 defmodule Flop.Phoenix do
   @moduledoc """
-  Components for Phoenix and Flop.
+  Phoenix components for pagination, sortable tables and filter forms with
+  [Flop](https://hex.pm/packages/flop).
 
   ## Introduction
 
@@ -260,12 +261,12 @@ defmodule Flop.Phoenix do
 
       <Flop.Phoenix.pagination
         meta={@meta}
-        path_helper={~p"/pets"}
+        path={~p"/pets"}
       />
 
       <Flop.Phoenix.pagination
         meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
+        path={{Routes, :pet_path, [@socket, :index]}}
       />
 
   ## Page link options
@@ -305,12 +306,13 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple, or a function (see
-    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
+    route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details. If set, links will be
     rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
     LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module.
+    callback of the LiveView module. Alternatively, set `:event`, if you don't
+    want the parameters to appear in the URL.
     """
 
   attr :path_helper, :any, default: nil, doc: "Deprecated. Use `:path` instead."
@@ -319,6 +321,7 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    Alternatively, set `:path`, if you want the parameters to appear in the URL.
     """
 
   attr :target, :string,
@@ -333,7 +336,7 @@ defmodule Flop.Phoenix do
     Options to customize the pagination. See
     `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
     function are deep merged into the default options. Since these options will
-    likely be the same for all the tables in a project, so it is recommended to
+    likely be the same for all the tables in a project, it is recommended to
     define them once in a function or set them in a wrapper function as
     described in the `Customization` section of the module documentation.
     """
@@ -361,12 +364,12 @@ defmodule Flop.Phoenix do
 
       <Flop.Phoenix.cursor_pagination
         meta={@meta}
-        path_helper={{Routes, :pet_path, [@socket, :index]}}
+        path={{Routes, :pet_path, [@socket, :index]}}
       />
 
   ## Handling parameters and events
 
-  If you set the `path_helper` assign, a link with query parameters is rendered.
+  If you set the `path` assign, a link with query parameters is rendered.
   In a LiveView, you need to handle the parameters in the
   `c:Phoenix.LiveView.handle_params/3` callback.
 
@@ -430,12 +433,13 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple, or a function (see
-    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
+    route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details. If set, links will be
     rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
     LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module.
+    callback of the LiveView module. Alternatively, set `:event`, if you don't
+    want the parameters to appear in the URL.
     """
 
   attr :path_helper, :any,
@@ -446,6 +450,7 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    Alternatively, set `:path`, if you want the parameters to appear in the URL.
     """
 
   attr :target, :string,
@@ -467,9 +472,9 @@ defmodule Flop.Phoenix do
     Options to customize the pagination. See
     `t:Flop.Phoenix.cursor_pagination_option/0`. Note that the options passed to
     the function are deep merged into the default options. Since these options
-    will likely be the same for all the tables in a project, so it is
-    recommended to define them once in a function or set them in a wrapper
-    function as described in the `Customization` section of the module
+    will likely be the same for all the cursor pagination links in a project,
+    it is recommended to define them once in a function or set them in a
+    wrapper function as described in the `Customization` section of the module
     documentation.
     """
 
@@ -513,7 +518,7 @@ defmodule Flop.Phoenix do
   <Flop.Phoenix.table
     items={@pets}
     meta={@meta}
-    path_helper={{Routes, :pet_path, [@socket, :index]}}
+    path={{Routes, :pet_path, [@socket, :index]}}
   >
     <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
     <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
@@ -545,12 +550,13 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    The path helper to use for building the link URL. Can be a URI string, an
-    mfa tuple or a function/args tuple, or a function (see
-    `Flop.Phoenix.build_path/3` for more examples). If set, links will be
+    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
+    route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details. If set, links will be
     rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
     LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module.
+    callback of the LiveView module. Alternatively, set `:event`, if you don't
+    want the parameters to appear in the URL.
     """
 
   attr :path_helper, :any,
@@ -563,6 +569,7 @@ defmodule Flop.Phoenix do
     default: nil,
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
+    Alternatively, set `:path`, if you want the parameters to appear in the URL.
     """
 
   attr :target, :string,
@@ -578,8 +585,8 @@ defmodule Flop.Phoenix do
     doc: """
     Keyword list with additional options (see `t:Flop.Phoenix.table_option/0`).
     Note that the options passed to the function are deep merged into the
-    default options. These options will likely be the same for all the tables in
-    a project, so it probably makes sense to define them once in a function or
+    default options. Since these options will likely be the same for all the
+    tables in a project, it is recommended to define them once in a function or
     set them in a wrapper function as described in the `Customization` section
     of the module documentation.
     """
@@ -714,7 +721,8 @@ defmodule Flop.Phoenix do
   - `default`
 
   The value under the `:type` key matches the format used in `filter_input/1`.
-  Any additional options will be passed to the input (e.g. HTML classes).
+  Any additional options will be passed to the input function
+  (e.g. HTML classes or a list of options).
 
   ## Label and input opts
 
@@ -724,7 +732,7 @@ defmodule Flop.Phoenix do
         :let={e}
         form={f}
         fields={[:name]}
-        input_opts={[class: "input"]}
+        input_opts={[class: "input", phx_debounce: 100]}
         label_opts={[class: "label"]}
       >
 
@@ -753,7 +761,8 @@ defmodule Flop.Phoenix do
     default: [],
     doc: """
     The list of fields and field options. Note that inputs will not be rendered
-    for fields that are not marked as filterable in the schema.
+    for fields that are not marked as filterable in the schema
+    (see `Flop.Schema`).
 
     If `dynamic` is set to `false`, only fields in this list are rendered. If
     `dynamic` is set to `true`, only fields for filters present in the given
