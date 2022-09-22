@@ -1295,6 +1295,12 @@ defmodule Flop.Phoenix do
       iex> build_path("/pets", flop)
       "/pets?page=2&page_size=10"
 
+  The Flop query parameters will be merged into existing query parameters.
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets?species=dogs", flop)
+      "/pets?page=2&page_size=10&species=dogs"
+
   ### Set page as path parameter
 
   Finally, you can also pass a function that takes the Flop parameters as
