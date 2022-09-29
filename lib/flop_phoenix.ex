@@ -1377,11 +1377,13 @@ defmodule Flop.Phoenix do
   @doc since: "0.6.0"
   @doc section: :miscellaneous
   @spec build_path(
-          String.t() | {module, atom, [any]} | {function, [any]},
+          String.t()
+          | {module, atom, [any]}
+          | {function, [any]}
+          | (keyword -> String.t()),
           Meta.t() | Flop.t() | keyword,
           keyword
-        ) ::
-          String.t()
+        ) :: String.t()
   def build_path(path, meta_or_flop_or_params, opts \\ [])
 
   def build_path(path, %Meta{flop: flop}, opts),
