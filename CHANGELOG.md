@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.15.1] - 2022-09-30
+
 ### Fixed
 
 - Typespec of `Flop.Phoenix.build_path/3`.
