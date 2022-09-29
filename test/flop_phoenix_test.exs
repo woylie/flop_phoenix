@@ -1932,7 +1932,7 @@ defmodule Flop.PhoenixTest do
 
       assert [label] = Floki.find(html, "label")
       assert Floki.attribute(label, "for") == ["flop_filters_0_value"]
-      assert Floki.text(label) == "Email"
+      assert String.trim(Floki.text(label)) == "Email"
     end
 
     test "accepts a text function", %{
@@ -1955,7 +1955,7 @@ defmodule Flop.PhoenixTest do
 
       assert [label] = Floki.find(html, "label")
       assert Floki.attribute(label, "class") == ["field-label"]
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
     end
 
     test "accepts a mapping list", %{
@@ -1976,7 +1976,7 @@ defmodule Flop.PhoenixTest do
         end)
 
       assert [label] = Floki.find(html, "label")
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
     end
 
     test "falls back to inferred label if field is not in mappings", %{
@@ -1993,7 +1993,7 @@ defmodule Flop.PhoenixTest do
         end)
 
       assert [label] = Floki.find(html, "label")
-      assert Floki.text(label) == "Email"
+      assert String.trim(Floki.text(label)) == "Email"
     end
 
     test "raises error if the form is not a filter form", %{meta: meta} do
@@ -2324,7 +2324,7 @@ defmodule Flop.PhoenixTest do
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
       assert Floki.attribute(label, "class") == ["label"]
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
       assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
 
       # field inputs
@@ -2387,11 +2387,11 @@ defmodule Flop.PhoenixTest do
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
       assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert Floki.text(label) == "Minimum Age"
+      assert String.trim(Floki.text(label)) == "Minimum Age"
       assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert Floki.text(label) == "Second E-mail"
+      assert String.trim(Floki.text(label)) == "Second E-mail"
 
       # field inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
@@ -2451,11 +2451,11 @@ defmodule Flop.PhoenixTest do
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.text(label) == "Email"
+      assert String.trim(Floki.text(label)) == "Email"
       assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert Floki.text(label) == "Minimum Age"
+      assert String.trim(Floki.text(label)) == "Minimum Age"
       assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert Floki.text(label) == "Second E-mail"
+      assert String.trim(Floki.text(label)) == "Second E-mail"
 
       # field inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
@@ -2515,7 +2515,7 @@ defmodule Flop.PhoenixTest do
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
       assert Floki.attribute(label, "class") == ["label"]
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
       assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
 
       # field inputs
@@ -2567,7 +2567,7 @@ defmodule Flop.PhoenixTest do
         end)
 
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.text(label) == "Phone"
+      assert String.trim(Floki.text(label)) == "Phone"
 
       assert [] = Floki.find(html, "label[for='flop_filters_1_value']")
     end
@@ -2616,11 +2616,11 @@ defmodule Flop.PhoenixTest do
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.text(label) == "Age"
+      assert String.trim(Floki.text(label)) == "Age"
       assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert Floki.text(label) == "Name"
+      assert String.trim(Floki.text(label)) == "Name"
       assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert Floki.text(label) == "E-mail"
+      assert String.trim(Floki.text(label)) == "E-mail"
 
       # field inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")

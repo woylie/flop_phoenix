@@ -932,7 +932,9 @@ defmodule Flop.Phoenix do
     is_filter_form!(assigns.form)
 
     ~H"""
-    <%= label(@form, :value, label_text(@form, @texts), Keyword.new(@rest)) %>
+    <label for={Phoenix.HTML.Form.input_id(@form, :value)} {@rest}>
+      <%= label_text(@form, @texts) %>
+    </label>
     """
   end
 
