@@ -953,6 +953,32 @@ defmodule Flop.Phoenix do
 
   @doc """
   Renders hidden inputs for the given form.
+
+  You can use this for convenience if you have a complex form layout that cannot
+  be accomplished with `Flop.Phoenix.filter_fields/1`. Put it as a direct child
+  of the `form` component to render the hidden inputs for pagination and order
+  parameters. Then use `Phoenix.HTML.Form.inputs_for/3` to render a single
+  filter field, and place this component within the `do` block to render the
+  hidden inputs for the filter field and operator.
+
+      <.form :let={f} for={@meta}>
+        <.hidden_inputs_for_filter form={@form} />
+
+        <div class="field-group">
+          <div class="field">
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:name]) do %>
+              <.hidden_inputs_for_filter form={ff} />
+              <.input label="Name" type="text" field={{ff, :value}} />
+            <% end %>
+          </div>
+          <div class="field">
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:email]) do %>
+              <.hidden_inputs_for_filter form={ff} />
+              <.input label="E-mail" type="email" field={{ff, :value}} />
+            <% end %>
+          </div>
+        </div>
+      </.form>
   """
   @doc since: "0.16.0"
   @doc section: :components
