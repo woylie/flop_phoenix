@@ -692,18 +692,34 @@ defmodule Flop.Phoenix do
   @doc """
   Renders all inputs for a filter form including the hidden inputs.
 
-  If you need more control, you can use `filter_input/1` and `filter_label/1`
-  directly.
-
   ## Example
 
       <.form :let={f} for={@meta}>
-        <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
-          <%= entry.label %>
-          <%= entry.input %>
+        <.filter_fields :let={i} form={f} fields={[:email, :name]}>
+          <.input
+            id={i.id}
+            name={i.name}
+            label={i.label}
+            type={i.type}
+            value={i.value}
+            field={i.field}
+            {i.rest}
+          />
         </.filter_fields>
       </.form>
 
+  This assumes that you have defined an `input` component that renders a form
+  input including the label.
+
+  Most options passed to the inner block should be self-explaining.
+
+  - The `type` is the input type as a string, _not_ the name of the
+    `Phoenix.HTML.Form` input function (e.g. `"text"`, not `:text_input`). The
+    type is derived from the type of the field being filtered on, but it can
+    be overridden in the field options.
+  - The `field` is a `Phoenix.HTML.Form.t` / field name tuple
+    (e.g. `{f, :name}`).
+  - `rest` contains any additional field options passed.
 
   ## Field configuration
 
@@ -718,47 +734,27 @@ defmodule Flop.Phoenix do
         email: [
           label: gettext("Email"),
           op: :ilike_and,
-          type: :email_input
+          type: "email_input"
+        ],
+        age: [
+          label: gettext("Age"),
+          type: "select",
+          prompt: "",
+          options: [
+            {gettext("young"), :young},
+            {gettext("old"), :old)}
+          ]
         ]
       ]}
 
-  Options:
+  Available options:
 
   - `label`
   - `op`
   - `type`
-  - `default`
 
-  The value under the `:type` key matches the format used in `filter_input/1`.
-  Any additional options will be passed to the input function
-  (e.g. HTML classes or a list of options).
-
-  ## Label and input opts
-
-  You can set default attributes for all labels and inputs:
-
-      <.filter_fields
-        :let={e}
-        form={f}
-        fields={[:name]}
-        input_opts={[class: "input", phx_debounce: 100]}
-        label_opts={[class: "label"]}
-      >
-
-  The additional options in the type configuration are merged into the input
-  opts. This means you can set a default class and override it for individual
-  fields.
-
-      <.filter_fields
-        :let={e}
-        form={f}
-        fields={[
-          :name,
-          :email,
-          role: [type: {:select, ["author", "editor"], class: "select"}]
-        ]}
-        input_opts={[class: "input"]}
-      >
+  Any additional options will be passed to the input component (e.g. HTML
+  classes or a list of options).
   """
   @doc since: "0.12.0"
   @doc section: :components
@@ -845,8 +841,7 @@ defmodule Flop.Phoenix do
         type: type_for(ff, opts[:type]),
         value: Phoenix.HTML.Form.input_value(ff, :value),
         field: {ff, :value},
-        rest: Keyword.drop(opts, [:id, :label, :type])
-        # todo: options slot
+        rest: Keyword.drop(opts, [:label, :type])
       }) %>
     <% end %>
     """
