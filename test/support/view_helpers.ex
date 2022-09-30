@@ -82,9 +82,9 @@ defmodule Flop.Phoenix.ViewHelpers do
   def input(%{field: {f, field}} = assigns) do
     assigns
     |> assign(field: nil)
-    |> assign_new(:name, fn -> Phoenix.HTML.Form.input_name(f, field) end)
-    |> assign_new(:id, fn -> Phoenix.HTML.Form.input_id(f, field) end)
-    |> assign_new(:value, fn -> Phoenix.HTML.Form.input_value(f, field) end)
+    |> assign_new(:name, fn -> input_name(f, field) end)
+    |> assign_new(:id, fn -> input_id(f, field) end)
+    |> assign_new(:value, fn -> input_value(f, field) end)
     |> assign(:errors, f.errors)
     |> input()
   end
