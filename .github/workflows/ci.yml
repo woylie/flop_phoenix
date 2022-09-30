@@ -41,4 +41,4 @@ jobs:
       - name: Generate docs
         run: mix docs
       - name: Run Tests
-        run: mix coveralls.github --warnings-as-errors
+        run: mix coveralls.github
