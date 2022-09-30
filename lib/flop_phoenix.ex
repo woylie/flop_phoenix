@@ -811,6 +811,7 @@ defmodule Flop.Phoenix do
             type={i.type}
             value={i.value}
             field={i.field}
+            {i.rest}
           />
         </.filter_fields>
 
@@ -823,6 +824,7 @@ defmodule Flop.Phoenix do
       by `Phoenix.HTML.Form.input_type/2`.
     - `value` - The input value.
     - `field` - A %Phoenix.HTML.Form{}/field name tuple (e.g. {f, :name}).
+    - `rest` - Any additional options passed in the field options.
     """
 
   def filter_fields(assigns) do
@@ -841,14 +843,13 @@ defmodule Flop.Phoenix do
     <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
       <.hidden_inputs_for_filter form={ff} />
       <%= render_slot(@inner_block, %{
-        # todo: take id from opts
         id: opts[:id] || Phoenix.HTML.Form.input_id(ff, :value),
         name: Phoenix.HTML.Form.input_name(ff, :value),
         label: input_label(ff, opts[:label]),
         type: type_for(ff, opts[:type]),
         value: Phoenix.HTML.Form.input_value(ff, :value),
-        field: {ff, :value}
-        # todo: extra options (e.g. select options, autocomplete attrs etc.)
+        field: {ff, :value},
+        rest: Keyword.drop(opts, [:id, :label, :type])
         # todo: options slot
       }) %>
     <% end %>

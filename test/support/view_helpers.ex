@@ -55,6 +55,7 @@ defmodule Flop.Phoenix.ViewHelpers do
           type={i.type}
           value={i.value}
           field={i.field}
+          {i.rest}
         />
       </.filter_fields>
     </.form>
