@@ -836,10 +836,9 @@ defmodule Flop.Phoenix do
       |> assign(:fields, inputs_for_fields)
       |> assign(:field_opts, field_opts)
 
-    # todo: simplify for generator
     ~H"""
     <.hidden_inputs_for_filter form={@form} />
-    <%= for {ff, {_field, opts}} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
+    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
       <.hidden_inputs_for_filter form={ff} />
       <%= render_slot(@inner_block, %{
         # todo: take id from opts
@@ -885,12 +884,12 @@ defmodule Flop.Phoenix do
 
   defp match_field_opts(%{dynamic: true, form: form}, fields) do
     Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
-      {field, fields[field] || []}
+      fields[field] || []
     end)
   end
 
   defp match_field_opts(_, fields) do
-    fields
+    Keyword.values(fields)
   end
 
   defp input_label(_form, text) when is_binary(text) do
