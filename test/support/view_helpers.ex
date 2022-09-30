@@ -88,35 +88,6 @@ defmodule Flop.Phoenix.ViewHelpers do
     |> input()
   end
 
-  def input(%{type: "checkbox"} = assigns) do
-    ~H"""
-    <label>
-      <input type="checkbox" id={@id} name={@name} />
-      <%= @label %>
-    </label>
-    """
-  end
-
-  def input(%{type: "select"} = assigns) do
-    ~H"""
-    <label for={@id}><%= @label %></label>
-    <select id={@id} name={@name} {@rest}>
-      <option :for={opt <- @option} {assigns_to_attributes(opt)}>
-        <%= render_slot(opt) %>
-      </option>
-    </select>
-    <.error :for={msg <- @errors} message={msg} />
-    """
-  end
-
-  def input(%{type: "textarea"} = assigns) do
-    ~H"""
-    <label for={@id}><%= @label %></label>
-    <textarea id={@id} name={@name} {@rest}><%= @value %></textarea>
-    <.error :for={msg <- @errors} message={msg} />
-    """
-  end
-
   def input(assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
