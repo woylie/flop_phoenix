@@ -883,26 +883,10 @@ defmodule Flop.Phoenix do
     Keyword.values(fields)
   end
 
-  defp input_label(_form, text) when is_binary(text) do
-    text
-  end
+  defp input_label(_form, text) when is_binary(text), do: text
+  defp input_label(form, nil), do: form |> input_value(:field) |> humanize()
 
-  defp input_label(form, func) when is_function(func, 1) do
-    form |> input_value(:field) |> func.()
-  end
-
-  defp input_label(form, nil) do
-    form |> input_value(:field) |> humanize()
-  end
-
-  defp type_for(_form, type) when is_binary(type) do
-    type
-  end
-
-  defp type_for(form, func) when is_function(func, 1) do
-    form |> input_value(:field) |> func.()
-  end
-
+  defp type_for(_form, type) when is_binary(type), do: type
   defp type_for(form, nil), do: input_type_as_string(form)
 
   defp input_type_as_string(form) do
@@ -910,6 +894,8 @@ defmodule Flop.Phoenix do
     |> input_type(:value)
     |> to_html_input_type()
   end
+
+  # coveralls-ignore-start
 
   defp to_html_input_type(:checkbox), do: "checkbox"
   defp to_html_input_type(:color_input), do: "color"
@@ -933,6 +919,8 @@ defmodule Flop.Phoenix do
   defp to_html_input_type(:time_input), do: "time"
   defp to_html_input_type(:time_select), do: "time"
   defp to_html_input_type(:url_input), do: "url"
+
+  # coveralls-ignore-end
 
   defp is_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
 
