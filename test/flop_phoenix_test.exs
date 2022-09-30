@@ -2542,16 +2542,6 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "value") == ["geo"]
     end
 
-    test "passes the :id option to the filter form", %{
-      fields: fields,
-      meta: meta
-    } do
-      # todo: test for correct IDs of hidden fields (page_size etc.)
-      # todo: ensure there are no duplicate hidden inputs
-      html = render_form(%{fields: fields, meta: meta, id: "flip"})
-      assert [_] = Floki.find(html, "label[for='flip_filters_0_value']")
-    end
-
     test "raises error if the form is not a form for meta", %{meta: meta} do
       assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
         form_to_html(meta, fn f ->

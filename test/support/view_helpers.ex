@@ -46,7 +46,6 @@ defmodule Flop.Phoenix.ViewHelpers do
 
     ~H"""
     <.form :let={f} for={@meta}>
-      <.hidden_inputs_for_filter form={f} />
       <.filter_fields :let={i} form={f} fields={@fields} {@rest}>
         <.input
           id={i.id}

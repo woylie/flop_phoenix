@@ -792,10 +792,6 @@ defmodule Flop.Phoenix do
     `fields` assign is only used for looking up the options in that case.
     """
 
-  attr :id, :string,
-    default: nil,
-    doc: "Overrides the ID for the nested filter inputs."
-
   slot :inner_block,
     doc: """
     The necessary options for rendering a label and an input are passed to the
@@ -840,10 +836,10 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <.hidden_inputs_for_filter form={@form} />
-    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
+    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
       <.hidden_inputs_for_filter form={ff} />
       <%= render_slot(@inner_block, %{
-        id: opts[:id] || Phoenix.HTML.Form.input_id(ff, :value),
+        id: Phoenix.HTML.Form.input_id(ff, :value),
         name: Phoenix.HTML.Form.input_name(ff, :value),
         label: input_label(ff, opts[:label]),
         type: type_for(ff, opts[:type]),
@@ -856,9 +852,9 @@ defmodule Flop.Phoenix do
     """
   end
 
-  defp inputs_for_filters(form, fields, field_opts, id) do
+  defp inputs_for_filters(form, fields, field_opts) do
     form
-    |> inputs_for(:filters, fields: fields, id: id)
+    |> inputs_for(:filters, fields: fields)
     |> Enum.zip(field_opts)
   end
 
@@ -968,6 +964,7 @@ defmodule Flop.Phoenix do
   @doc section: :components
 
   attr :form, Phoenix.HTML.Form, required: true
+  attr :id, :string, default: nil
 
   def hidden_inputs_for_filter(assigns) do
     ~H"""
