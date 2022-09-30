@@ -8,10 +8,110 @@
 
 ## Changed
 
-- Deprecate `Flop.Phoenix.filter_hidden_inputs_for/1`. This function is not used
+- Major refactoring of `Flop.Phoenix.filter_fields/1` in line with changes in
+  the Phoenix libraries. Instead of giving you the rendered `<label>` and
+  `<input>` elements, the component now only passes the necessary arguments to
+  the inner block. You will have to pass these arguments to your own `input`
+  component (or whatever you name it). The field option format has also been
+  updated.
+- Removed `Flop.Phoenix.filter_hidden_inputs_for/1`. This function is not used
   internally anymore. You can either use `Phoenix.HTML.Form.hidden_inputs_for/1`
   (Phoenix.HTML ~> 3.2), or use `Flop.Phoenix.hidden_inputs_for_filter/1`,
   which does the same, but as a Phoenix component.
+
+### How to upgrade
+
+#### Rendering filter inputs and labels
+
+Previously, you would render a filter form like this:
+
+```elixir
+<.form :let={f} for={@meta}>
+  <Flop.Phoenix.filter_fields :let={entry} form={f} fields={[:name, :email]}>
+    <div class="field">
+      <%= entry.label %>
+      <%= entry.input %>
+    </div>
+  </Flop.Phoenix.filter_fields>
+</.form>
+```
+
+In this example, `entry.label` and `entry.input` are complete `<label>` and
+`<input>` elements with all attributes set. You will need to change this to:
+
+```elixir
+<.form :let={f} for={@meta}>
+  <.filter_fields :let={i} form={f} fields={[:name, :email]}>
+    <.input
+      id={i.id}
+      name={i.name}
+      label={i.label}
+      type={i.type}
+      value={i.value}
+      field={i.field}
+      {i.rest}
+    />
+  </.filter_fields>
+</.form>
+```
+
+You will have to define a `input` component in your project. You can take a
+hint from the `input` component that is generated as part of the `Components`
+module by Phoenix 1.7
+(https://github.com/phoenixframework/phoenix/blob/master/priv/templates/phx.gen.live/components.ex).
+
+#### Field options
+
+Remove the `input_opts` and `label_opts` from `fields` and pass them directly to
+your `input` component, or add them directly to the `input` component.
+
+```diff
+<.filter_fields
+  :let={i}
+  form={f}
+  fields={[:name]}
+-  input_opts={[class: "input", phx_debounce: 100]}
+-  label_opts={[class: "label"]}
+>
+  <.input
+     ...
++    class="input"
++    phx-debounce={100}
+  />
+</.filter_fields>
+```
+
+Use strings instead of atoms to set the type, and use the types that your
+`input` component understands.
+
+```diff
+<.filter_fields
+  :let={i}
+  form={f}
+  fields={[
+-    name: [type: :text_input],
++    name: [type: "text"],
+-    age: [type: :number_input],
++    age: [type: "number"],
+-    phone: [type: :telephone_input],
++    phone: [type: "tel"]
+  ]}
+>
+```
+
+If you passed additional input function options in a tuple, take them out of
+the tuple and add them to the keyword list instead.
+
+```diff
+<.filter_fields
+  :let={i}
+  form={f}
+  fields={[
+-    role: [type: {:select, ["author", "editor"], class: "select"}]
++    role: [type: "select", options: ["author", "editor"], class: "select"]
+  ]}
+>
+```
 
 ## [0.15.1] - 2022-09-30
 
