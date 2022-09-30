@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-## Added
+### Added
 
 - New Phoenix component `Flop.Phoenix.hidden_inputs_for_filter/1`.
 
-## Changed
+### Changed
 
 - Major refactoring of `Flop.Phoenix.filter_fields/1` in line with changes in
   the Phoenix libraries. Instead of giving you the rendered `<label>` and
@@ -14,14 +14,27 @@
   the inner block. You will have to pass these arguments to your own `input`
   component (or whatever you name it). The field option format has also been
   updated.
+
+### Removed
+
 - Removed `Flop.Phoenix.filter_hidden_inputs_for/1`. This function is not used
   internally anymore. You can either use `Phoenix.HTML.Form.hidden_inputs_for/1`
   (Phoenix.HTML ~> 3.2), or use `Flop.Phoenix.hidden_inputs_for_filter/1`,
   which does the same, but as a Phoenix component.
+- Removed `Flop.Phoenix.filter_label/1` and `Flop.Phoenix.filter_input/1`. With
+  the changes to `Flop.Phoenix.filter_fields/1` and the move away from the
+  input rendering functions of `Phoenix.HTML.Form`, these functions don't have
+  any value anymore. Read the documentation of
+  `Flop.Phoenix.hidden_inputs_for_filter/1` for an example on how to easily
+  render the fields of individual filters.
+
+### Fixed
+
+- Fixed warnings about tainted variables in live view 0.18.1.
 
 ### How to upgrade
 
-#### Rendering filter inputs and labels
+#### Filter fields component
 
 Previously, you would render a filter form like this:
 
@@ -55,21 +68,22 @@ In this example, `entry.label` and `entry.input` are complete `<label>` and
 </.form>
 ```
 
-You will have to define a `input` component in your project. You can take a
-hint from the `input` component that is generated as part of the `Components`
-module by Phoenix 1.7
-(https://github.com/phoenixframework/phoenix/blob/master/priv/templates/phx.gen.live/components.ex).
+You will have to define an `input` component in your project. You can take a
+hint from the `input` component that is generated as part of the [Components
+module](https://github.com/phoenixframework/phoenix/blob/master/priv/templates/phx.gen.live/components.ex) by Phoenix 1.7.
 
 #### Field options
 
-Remove the `input_opts` and `label_opts` from `fields` and pass them directly to
-your `input` component, or add them directly to the `input` component.
+Remove `input_opts` and `label_opts` and pass them directly to your `input`
+component, or add them directly to the `input` component. If you passed an `id`
+to `filter_fields`, set in on the `form` instead.
 
 ```diff
 <.filter_fields
   :let={i}
   form={f}
   fields={[:name]}
+-  id="some-id"
 -  input_opts={[class: "input", phx_debounce: 100]}
 -  label_opts={[class: "label"]}
 >
@@ -112,6 +126,17 @@ the tuple and add them to the keyword list instead.
   ]}
 >
 ```
+
+The `default` option is not handled for you anymore. You can still set it, but
+it will just be passed on as part of the `rest` options, so your `input`
+component will need to handle it.
+
+#### Filter label and input components
+
+If you used `Flop.Phoenix.filter_label/1` or `Flop.Phoenix.filter_input/1`
+before, follow the example in the documentation of
+`Flop.hidden_inputs_for_filter/1` to render the inputs of individual filters
+without the removed components.
 
 ## [0.15.1] - 2022-09-30
 
