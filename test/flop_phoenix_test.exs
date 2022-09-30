@@ -1873,11 +1873,8 @@ defmodule Flop.PhoenixTest do
   describe "hidden_inputs_for_filter/1" do
     test "generates hidden fields from the given form" do
       form = %{form_for(:form, "/") | hidden: [id: 1]}
-
-      html =
-        (&hidden_inputs_for_filter/1)
-        |> render_component(form: form)
-        |> Floki.parse_fragment!()
+      assigns = %{form: form}
+      html = parse_heex(~H"<.hidden_inputs_for_filter form={@form} />")
 
       assert [input] = Floki.find(html, "input")
       assert Floki.attribute(input, "type") == ["hidden"]
@@ -1888,11 +1885,8 @@ defmodule Flop.PhoenixTest do
 
     test "generates hidden fields for lists from the given form" do
       form = %{form_for(:a, "/") | hidden: [field: ["a", "b", "c"]]}
-
-      html =
-        (&hidden_inputs_for_filter/1)
-        |> render_component(form: form)
-        |> Floki.parse_fragment!()
+      assigns = %{form: form}
+      html = parse_heex(~H"<.hidden_inputs_for_filter form={@form} />")
 
       assert [input_1, input_2, input_3] = Floki.find(html, "input")
 
@@ -1918,8 +1912,8 @@ defmodule Flop.PhoenixTest do
       meta = build(:meta_on_first_page)
 
       fields = [
-        {:email, [label: "E-mail"]},
-        {:phone, [op: :ilike, type: "tel", class: "phone-input"]},
+        {:email, label: "E-mail"},
+        {:phone, op: :ilike, type: "tel", class: "phone-input"},
         :field_without_opts
       ]
 
@@ -1927,17 +1921,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders the hidden inputs", %{fields: fields, meta: meta} do
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            inner_block: []
-          )
-          |> raw()
-        end)
+      html = render_form(%{fields: fields, meta: meta})
 
       assert [input] = Floki.find(html, "input[id='flop_page_size']")
       assert Floki.attribute(input, "type") == ["hidden"]
