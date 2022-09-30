@@ -1913,400 +1913,374 @@ defmodule Flop.PhoenixTest do
     end
   end
 
-  describe "filter_hidden_inputs_for/1" do
-    test "generates hidden fields from the given form" do
-      form = %{form_for(:form, "/") | hidden: [id: 1]}
+  # todo: salvage and move to filter_fields tests
+  # describe "filter_label/1" do
+  #   setup do
+  #     meta =
+  #       build(:meta_on_first_page,
+  #         flop: %Flop{
+  #           filters: [%Filter{field: :name, op: :like, value: "George"}]
+  #         }
+  #       )
 
-      assert filter_hidden_inputs_for(form) == [
-               hidden_input(form, :id, value: 1)
-             ]
-    end
+  #     opts = [fields: [:email]]
 
-    test "generates hidden fields for lists from the given form" do
-      form = %{form_for(:a, "/") | hidden: [field: ["a", "b", "c"]]}
+  #     %{meta: meta, opts: opts}
+  #   end
 
-      assert filter_hidden_inputs_for(form) ==
-               [
-                 hidden_input(form, :field,
-                   name: "a[field][]",
-                   id: "a_field_0",
-                   value: "a"
-                 ),
-                 hidden_input(form, :field,
-                   name: "a[field][]",
-                   id: "a_field_1",
-                   value: "b"
-                 ),
-                 hidden_input(form, :field,
-                   name: "a[field][]",
-                   id: "a_field_2",
-                   value: "c"
-                 )
-               ]
-    end
-  end
+  #   test "renders a label for the filter value field", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_label/1)
+  #           |> render_component(__changed__: %{}, form: fo)
+  #           |> raw()
+  #         end)
+  #       end)
 
-  describe "filter_label/1" do
-    setup do
-      meta =
-        build(:meta_on_first_page,
-          flop: %Flop{
-            filters: [%Filter{field: :name, op: :like, value: "George"}]
-          }
-        )
+  #     assert [label] = Floki.find(html, "label")
+  #     assert Floki.attribute(label, "for") == ["flop_filters_0_value"]
+  #     assert String.trim(Floki.text(label)) == "Email"
+  #   end
 
-      opts = [fields: [:email]]
+  #   test "accepts a text function", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_label/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             texts: fn :email -> "E-mail" end,
+  #             class: "field-label"
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      %{meta: meta, opts: opts}
-    end
+  #     assert [label] = Floki.find(html, "label")
+  #     assert Floki.attribute(label, "class") == ["field-label"]
+  #     assert String.trim(Floki.text(label)) == "E-mail"
+  #   end
 
-    test "renders a label for the filter value field", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_label/1)
-            |> render_component(__changed__: %{}, form: fo)
-            |> raw()
-          end)
-        end)
+  #   test "accepts a mapping list", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_label/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             texts: [email: "E-mail"]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [label] = Floki.find(html, "label")
-      assert Floki.attribute(label, "for") == ["flop_filters_0_value"]
-      assert String.trim(Floki.text(label)) == "Email"
-    end
+  #     assert [label] = Floki.find(html, "label")
+  #     assert String.trim(Floki.text(label)) == "E-mail"
+  #   end
 
-    test "accepts a text function", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_label/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              texts: fn :email -> "E-mail" end,
-              class: "field-label"
-            )
-            |> raw()
-          end)
-        end)
+  #   test "falls back to inferred label if field is not in mappings", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_label/1)
+  #           |> render_component(__changed__: %{}, form: fo, texts: [])
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [label] = Floki.find(html, "label")
-      assert Floki.attribute(label, "class") == ["field-label"]
-      assert String.trim(Floki.text(label)) == "E-mail"
-    end
+  #     assert [label] = Floki.find(html, "label")
+  #     assert String.trim(Floki.text(label)) == "Email"
+  #   end
 
-    test "accepts a mapping list", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_label/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              texts: [email: "E-mail"]
-            )
-            |> raw()
-          end)
-        end)
+  #   test "raises error if the form is not a filter form", %{meta: meta} do
+  #     assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
+  #       form_to_html(meta, fn f ->
+  #         render_component(&filter_label/1, __changed__: %{}, form: f)
+  #       end)
+  #     end
+  #   end
+  # end
 
-      assert [label] = Floki.find(html, "label")
-      assert String.trim(Floki.text(label)) == "E-mail"
-    end
+  # describe "filter_input/1" do
+  #   setup do
+  #     meta =
+  #       build(:meta_on_first_page,
+  #         flop: %Flop{
+  #           filters: [%Filter{field: :name, op: :like, value: "George"}]
+  #         }
+  #       )
 
-    test "falls back to inferred label if field is not in mappings", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_label/1)
-            |> render_component(__changed__: %{}, form: fo, texts: [])
-            |> raw()
-          end)
-        end)
+  #     opts = [fields: [{:email, op: :ilike}], skip_hidden: true]
+  #     %{meta: meta, opts: opts}
+  #   end
 
-      assert [label] = Floki.find(html, "label")
-      assert String.trim(Floki.text(label)) == "Email"
-    end
+  #   test "renders an input for the value field", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             input_opts: [class: "input"]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-    test "raises error if the form is not a filter form", %{meta: meta} do
-      assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
-        form_to_html(meta, fn f ->
-          render_component(&filter_label/1, __changed__: %{}, form: f)
-        end)
-      end
-    end
-  end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "name") == ["filters[0][value]"]
+  #     assert Floki.attribute(input, "class") == ["input"]
+  #   end
 
-  describe "filter_input/1" do
-    setup do
-      meta =
-        build(:meta_on_first_page,
-          flop: %Flop{
-            filters: [%Filter{field: :name, op: :like, value: "George"}]
-          }
-        )
+  #   test "renders hidden inputs", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(__changed__: %{}, form: fo)
+  #           |> raw()
+  #         end)
+  #       end)
 
-      opts = [fields: [{:email, op: :ilike}], skip_hidden: true]
-      %{meta: meta, opts: opts}
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
+  #     assert Floki.attribute(input, "name") == ["filters[0][field]"]
+  #     assert Floki.attribute(input, "type") == ["hidden"]
+  #     assert Floki.attribute(input, "value") == ["email"]
 
-    test "renders an input for the value field", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              input_opts: [class: "input"]
-            )
-            |> raw()
-          end)
-        end)
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
+  #     assert Floki.attribute(input, "name") == ["filters[0][op]"]
+  #     assert Floki.attribute(input, "type") == ["hidden"]
+  #     assert Floki.attribute(input, "value") == ["ilike"]
+  #   end
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "name") == ["filters[0][value]"]
-      assert Floki.attribute(input, "class") == ["input"]
-    end
+  #   test "optionally doesn't render hidden inputs", %{meta: meta, opts: opts} do
+  #   assigns = {meta: meta, opts: opts}
+  #     html =
+  #       parse_heex(
+  #         ~H"""
+  #         <.form for={@meta} />
+  #         """
+  #       )
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(__changed__: %{}, form: fo, skip_hidden: true)
+  #           |> raw()
+  #         end)
+  #       end)
 
-    test "renders hidden inputs", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(__changed__: %{}, form: fo)
-            |> raw()
-          end)
-        end)
+  #     assert [] = Floki.find(html, "input[id='flop_filters_0_field']")
+  #     assert [] = Floki.find(html, "input[id='flop_filters_0_op']")
+  #   end
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "name") == ["filters[0][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
+  #   test "uses input type depending on the schema field type", %{meta: meta} do
+  #     meta = %{meta | schema: __MODULE__.TestSchema}
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
-      assert Floki.attribute(input, "name") == ["filters[0][op]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["ilike"]
-    end
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, [fields: [:email, :age]], fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(__changed__: %{}, form: fo)
+  #           |> raw()
+  #         end)
+  #       end)
 
-    test "optionally doesn't render hidden inputs", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(__changed__: %{}, form: fo, skip_hidden: true)
-            |> raw()
-          end)
-        end)
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "type") == ["text"]
 
-      assert [] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert [] = Floki.find(html, "input[id='flop_filters_0_op']")
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
+  #     assert Floki.attribute(input, "type") == ["number"]
+  #   end
 
-    test "uses input type depending on the schema field type", %{meta: meta} do
-      meta = %{meta | schema: __MODULE__.TestSchema}
+  #   test "determines input types via function", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: fn :email -> :password_input end
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [fields: [:email, :age]], fn fo ->
-            (&filter_input/1)
-            |> render_component(__changed__: %{}, form: fo)
-            |> raw()
-          end)
-        end)
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "type") == ["password"]
+  #   end
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
+  #   test "determines input types via mapping list", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [email: :password_input]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "type") == ["number"]
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "type") == ["password"]
+  #   end
 
-    test "determines input types via function", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: fn :email -> :password_input end
-            )
-            |> raw()
-          end)
-        end)
+  #   test "falls back to default type if field is not in mapping", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(__changed__: %{}, form: fo, types: [])
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["password"]
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "type") == ["text"]
+  #   end
 
-    test "determines input types via mapping list", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [email: :password_input]
-            )
-            |> raw()
-          end)
-        end)
+  #   test "allows to pass additional attributes", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [email: {:text_input, placeholder: "E-mail"}]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["password"]
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "placeholder") == ["E-mail"]
+  #   end
 
-    test "falls back to default type if field is not in mapping", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(__changed__: %{}, form: fo, types: [])
-            |> raw()
-          end)
-        end)
+  #   test "allows passing custom input function", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [
+  #               email: fn form, :value, opts ->
+  #                 password_input(form, :value, opts)
+  #               end
+  #             ]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "type") == ["password"]
+  #   end
 
-    test "allows to pass additional attributes", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [email: {:text_input, placeholder: "E-mail"}]
-            )
-            |> raw()
-          end)
-        end)
+  #   test "allows passing custom input function with additional opts", %{
+  #     meta: meta,
+  #     opts: opts
+  #   } do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [
+  #               email:
+  #                 {fn form, :value, opts ->
+  #                    password_input(form, :value, opts)
+  #                  end, class: "some-class"}
+  #             ]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "placeholder") == ["E-mail"]
-    end
+  #     assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
+  #     assert Floki.attribute(input, "class") == ["some-class"]
+  #   end
 
-    test "allows passing custom input function", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [
-                email: fn form, :value, opts ->
-                  password_input(form, :value, opts)
-                end
-              ]
-            )
-            |> raw()
-          end)
-        end)
+  #   test "renders select inputs", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [email: {:select, ["a", "b", "c"], [class: "select"]}]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["password"]
-    end
+  #     assert [select] = Floki.find(html, "select[id='flop_filters_0_value']")
+  #     assert Floki.attribute(select, "class") == ["select"]
+  #     assert [_, _, _] = Floki.find(select, "option")
+  #   end
 
-    test "allows passing custom input function with additional opts", %{
-      meta: meta,
-      opts: opts
-    } do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [
-                email:
-                  {fn form, :value, opts ->
-                     password_input(form, :value, opts)
-                   end, class: "some-class"}
-              ]
-            )
-            |> raw()
-          end)
-        end)
+  #   test "renders custom inputs with options", %{meta: meta, opts: opts} do
+  #     html =
+  #       form_to_html(meta, fn f ->
+  #         inputs_for(f, :filters, opts, fn fo ->
+  #           (&filter_input/1)
+  #           |> render_component(
+  #             __changed__: %{},
+  #             form: fo,
+  #             types: [
+  #               email:
+  #                 {fn form, :value, options, opts ->
+  #                    multiple_select(form, :value, options, opts)
+  #                  end, ["a", "b", "c"], [class: "select"]}
+  #             ]
+  #           )
+  #           |> raw()
+  #         end)
+  #       end)
 
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "class") == ["some-class"]
-    end
+  #     assert [select] = Floki.find(html, "select[id='flop_filters_0_value']")
+  #     assert Floki.attribute(select, "class") == ["select"]
+  #     assert [_, _, _] = Floki.find(select, "option")
+  #   end
 
-    test "renders select inputs", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [email: {:select, ["a", "b", "c"], [class: "select"]}]
-            )
-            |> raw()
-          end)
-        end)
-
-      assert [select] = Floki.find(html, "select[id='flop_filters_0_value']")
-      assert Floki.attribute(select, "class") == ["select"]
-      assert [_, _, _] = Floki.find(select, "option")
-    end
-
-    test "renders custom inputs with options", %{meta: meta, opts: opts} do
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            (&filter_input/1)
-            |> render_component(
-              __changed__: %{},
-              form: fo,
-              types: [
-                email:
-                  {fn form, :value, options, opts ->
-                     multiple_select(form, :value, options, opts)
-                   end, ["a", "b", "c"], [class: "select"]}
-              ]
-            )
-            |> raw()
-          end)
-        end)
-
-      assert [select] = Floki.find(html, "select[id='flop_filters_0_value']")
-      assert Floki.attribute(select, "class") == ["select"]
-      assert [_, _, _] = Floki.find(select, "option")
-    end
-
-    test "raises error if the form is not a filter form", %{meta: meta} do
-      assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
-        form_to_html(meta, fn f ->
-          render_component(&filter_input/1, __changed__: %{}, form: f)
-        end)
-      end
-    end
-  end
+  #   test "raises error if the form is not a filter form", %{meta: meta} do
+  #     assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
+  #       form_to_html(meta, fn f ->
+  #         render_component(&filter_input/1, __changed__: %{}, form: f)
+  #       end)
+  #     end
+  #   end
+  # end
 
   describe "filter_fields/1" do
     setup do
@@ -2314,7 +2288,7 @@ defmodule Flop.PhoenixTest do
 
       fields = [
         {:email, [label: "E-mail"]},
-        {:phone, [op: :ilike, type: {:telephone_input, class: "phone-input"}]},
+        {:phone, [op: :ilike, type: "tel", class: "phone-input"]},
         :field_without_opts
       ]
 
@@ -2343,30 +2317,10 @@ defmodule Flop.PhoenixTest do
       fields: fields,
       meta: meta
     } do
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            input_opts: [class: "input"],
-            label_opts: [class: "label"],
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.attribute(label, "class") == ["label"]
       assert String.trim(Floki.text(label)) == "E-mail"
       assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
 
@@ -2385,7 +2339,6 @@ defmodule Flop.PhoenixTest do
 
       # value inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "class") == ["input"]
       assert Floki.attribute(input, "type") == ["text"]
       assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
       assert Floki.attribute(input, "class") == ["phone-input"]
@@ -2396,37 +2349,18 @@ defmodule Flop.PhoenixTest do
       meta: meta
     } do
       fields = [
-        {:email, [label: "E-mail", type: {:text_input, class: "text-input"}]},
+        {:email, [label: "E-mail", type: "text", class: "text-input"]},
         {:age,
          [
            label: "Minimum Age",
            op: ">=",
-           type: {:number_input, class: "number-input"}
+           type: "number",
+           class: "number-input"
          ]},
-        {:email,
-         [label: "Second E-mail", type: {:email_input, class: "email-input"}]}
+        {:email, [label: "Second E-mail", type: "email", class: "email-input"]}
       ]
 
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            input_opts: [class: "input"],
-            label_opts: [class: "label"],
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
@@ -2462,35 +2396,11 @@ defmodule Flop.PhoenixTest do
       fields = [
         :email,
         {:age,
-         [
-           label: "Minimum Age",
-           op: ">=",
-           type: {:number_input, class: "number-input"}
-         ]},
-        {:email,
-         [label: "Second E-mail", type: {:email_input, class: "email-input"}]}
+         label: "Minimum Age", op: ">=", type: "number", class: "number-input"},
+        {:email, label: "Second E-mail", type: "email", class: "email-input"}
       ]
 
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            input_opts: [class: "input"],
-            label_opts: [class: "label"],
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
@@ -2534,30 +2444,10 @@ defmodule Flop.PhoenixTest do
 
       {:error, meta} = Flop.validate(invalid_params)
 
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            input_opts: [class: "input"],
-            label_opts: [class: "label"],
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert Floki.attribute(label, "class") == ["label"]
       assert String.trim(Floki.text(label)) == "E-mail"
       assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
 
@@ -2576,10 +2466,8 @@ defmodule Flop.PhoenixTest do
 
       # value inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "class") == ["input"]
       assert Floki.attribute(input, "type") == ["text"]
       assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "class") == ["phone-input"]
       assert Floki.attribute(input, "type") == ["tel"]
     end
 
@@ -2588,26 +2476,7 @@ defmodule Flop.PhoenixTest do
       meta: meta
     } do
       meta = %{meta | flop: %Flop{filters: [%Filter{field: :phone}]}}
-
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            dynamic: true,
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{dynamic: true, fields: fields, meta: meta})
 
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
       assert String.trim(Floki.text(label)) == "Phone"
@@ -2628,34 +2497,12 @@ defmodule Flop.PhoenixTest do
       }
 
       fields = [
-        {:email, [label: "E-mail", type: {:email_input, class: "email-input"}]},
-        {:age,
-         [
-           label: "Age",
-           type: {:number_input, class: "number-input"}
-         ]},
+        {:email, label: "E-mail", type: "email", class: "email-input"},
+        {:age, label: "Age", type: "number", class: "number-input"},
         :name
       ]
 
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            dynamic: true,
-            inner_block: %{
-              inner_block: fn _, e ->
-                [
-                  e.label |> rendered_to_string() |> raw(),
-                  e.input |> rendered_to_string() |> raw()
-                ]
-              end
-            }
-          )
-          |> raw()
-        end)
+      html = render_form(%{dynamic: true, fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
@@ -2699,23 +2546,9 @@ defmodule Flop.PhoenixTest do
       fields: fields,
       meta: meta
     } do
-      html =
-        form_to_html(meta, fn f ->
-          (&filter_fields/1)
-          |> render_component(
-            __changed__: %{},
-            form: f,
-            fields: fields,
-            id: "flip",
-            inner_block: %{
-              inner_block: fn _, e ->
-                [e.label |> rendered_to_string() |> raw()]
-              end
-            }
-          )
-          |> raw()
-        end)
-
+      # todo: test for correct IDs of hidden fields (page_size etc.)
+      # todo: ensure there are no duplicate hidden inputs
+      html = render_form(%{fields: fields, meta: meta, id: "flip"})
       assert [_] = Floki.find(html, "label[for='flip_filters_0_value']")
     end
 
