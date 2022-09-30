@@ -840,7 +840,7 @@ defmodule Flop.Phoenix do
         type: type_for(ff, opts[:type]),
         value: Phoenix.HTML.Form.input_value(ff, :value),
         field: {ff, :value},
-        rest: Keyword.drop(opts, [:label, :type])
+        rest: Keyword.drop(opts, [:label, :op, :type])
       }) %>
     <% end %>
     """
