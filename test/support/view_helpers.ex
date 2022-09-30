@@ -5,6 +5,7 @@ defmodule Flop.Phoenix.ViewHelpers do
 
   import Phoenix.HTML
   import Phoenix.HTML.Form
+  import Phoenix.LiveViewTest
 
   def pagination_opts do
     [pagination_list_attrs: [class: "pagination-links"]]
@@ -18,6 +19,12 @@ defmodule Flop.Phoenix.ViewHelpers do
     meta
     |> form_for("/", opts, function)
     |> safe_to_string()
+    |> Floki.parse_fragment!()
+  end
+
+  def parse_heex(heex) do
+    heex
+    |> rendered_to_string()
     |> Floki.parse_fragment!()
   end
 end

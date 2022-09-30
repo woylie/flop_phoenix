@@ -818,7 +818,7 @@ defmodule Flop.Phoenix do
       |> assign(:field_opts, field_opts)
 
     ~H"""
-    <%= filter_hidden_inputs_for(@form) %>
+    <.hidden_inputs_for_filter form={@form} />
     <%= for {ff, {field, field_opts}} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
       <%= render_slot(@inner_block, %{
         label:
@@ -880,17 +880,13 @@ defmodule Flop.Phoenix do
   ## Example
 
       <.form :let={f} for={@meta}>
-        <%= filter_hidden_inputs_for(f) %>
+        <.hidden_inputs_for_filter form={f} />
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
           <.filter_label form={ff} />
           <.filter_input form={ff} />
         <% end %>
       </.form>
-
-  `Flop.Phoenix.filter_hidden_inputs_for/1` is necessary because
-  `Phoenix.HTML.Form.hidden_inputs_for/1` does not support lists in versions
-  <= 3.1.0.
 
   ## Label text
 
@@ -980,7 +976,7 @@ defmodule Flop.Phoenix do
   ## Example
 
       <.form :let={f} for={@meta}>
-        <%= filter_hidden_inputs_for(f) %>
+        <.hidden_inputs_for_filter form={f} />
 
         <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
           <.filter_label form={ff} />
@@ -1049,7 +1045,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <%= unless @skip_hidden do %>
-      <%= hidden_inputs_for(@form) %>
+      <.hidden_inputs_for_filter form={@form} />
     <% end %>
     <%= render_input(@form, @type, @input_opts) %>
     """
@@ -1105,7 +1101,7 @@ defmodule Flop.Phoenix do
     Example:
 
         <.form :let={f} for={@meta}>
-          <%= filter_hidden_inputs_for(f) %>
+          <.hidden_inputs_for_filter form={f} />
 
           <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
             <.filter_label form={ff} />
@@ -1129,6 +1125,51 @@ defmodule Flop.Phoenix do
             <%= entry.input %>
           </.filter_fields>
         </.form>
+    """
+  end
+
+  @doc """
+  Renders hidden inputs for the given form.
+  """
+  @doc since: "0.16.0"
+  @doc section: :components
+
+  attr :form, Phoenix.HTML.Form, required: true
+
+  def hidden_inputs_for_filter(assigns) do
+    ~H"""
+    <%= for {field, value} <- @form.hidden do %>
+      <.hidden_inputs form={@form} field={field} value={value} />
+    <% end %>
+    """
+  end
+
+  attr :form, Phoenix.HTML.Form, required: true
+  attr :field, :atom, required: true
+  attr :value, :any, required: true
+
+  defp hidden_inputs(%{field: _, value: value} = assigns)
+       when is_list(value) do
+    ~H"""
+    <%= for {v, index} <- Enum.with_index(@value) do %>
+      <input
+        type="hidden"
+        id={input_id(@form, @field) <> "_#{index}"}
+        name={input_name(@form, @field) <> "[]"}
+        value={v}
+      />
+    <% end %>
+    """
+  end
+
+  defp hidden_inputs(assigns) do
+    ~H"""
+    <input
+      type="hidden"
+      id={input_id(@form, @field)}
+      name={input_name(@form, @field)}
+      value={@value}
+    />
     """
   end
 
@@ -1557,6 +1598,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.12.0"
   @doc section: :components
+  @deprecated "use hidden_inputs_for_filter/1 instead"
   @spec filter_hidden_inputs_for(Phoenix.HTML.Form.t()) ::
           list(Phoenix.HTML.safe())
   def filter_hidden_inputs_for(form) do

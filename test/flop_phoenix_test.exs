@@ -1870,6 +1870,49 @@ defmodule Flop.PhoenixTest do
     end
   end
 
+  describe "hidden_inputs_for_filter/1" do
+    test "generates hidden fields from the given form" do
+      form = %{form_for(:form, "/") | hidden: [id: 1]}
+
+      html =
+        (&hidden_inputs_for_filter/1)
+        |> render_component(form: form)
+        |> Floki.parse_fragment!()
+
+      assert [input] = Floki.find(html, "input")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "id") == ["form_id"]
+      assert Floki.attribute(input, "name") == ["form[id]"]
+      assert Floki.attribute(input, "value") == ["1"]
+    end
+
+    test "generates hidden fields for lists from the given form" do
+      form = %{form_for(:a, "/") | hidden: [field: ["a", "b", "c"]]}
+
+      html =
+        (&hidden_inputs_for_filter/1)
+        |> render_component(form: form)
+        |> Floki.parse_fragment!()
+
+      assert [input_1, input_2, input_3] = Floki.find(html, "input")
+
+      assert Floki.attribute(input_1, "type") == ["hidden"]
+      assert Floki.attribute(input_1, "id") == ["a_field_0"]
+      assert Floki.attribute(input_1, "name") == ["a[field][]"]
+      assert Floki.attribute(input_1, "value") == ["a"]
+
+      assert Floki.attribute(input_2, "type") == ["hidden"]
+      assert Floki.attribute(input_2, "id") == ["a_field_1"]
+      assert Floki.attribute(input_2, "name") == ["a[field][]"]
+      assert Floki.attribute(input_2, "value") == ["b"]
+
+      assert Floki.attribute(input_3, "type") == ["hidden"]
+      assert Floki.attribute(input_3, "id") == ["a_field_2"]
+      assert Floki.attribute(input_3, "name") == ["a[field][]"]
+      assert Floki.attribute(input_3, "value") == ["c"]
+    end
+  end
+
   describe "filter_hidden_inputs_for/1" do
     test "generates hidden fields from the given form" do
       form = %{form_for(:form, "/") | hidden: [id: 1]}

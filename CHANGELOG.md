@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## Added
+
+- New Phoenix component `Flop.Phoenix.hidden_inputs_for_filter/1`.
+
+## Changed
+
+- Deprecate `Flop.Phoenix.filter_hidden_inputs_for/1`. This function is not used
+  internally anymore. You can either use `Phoenix.HTML.Form.hidden_inputs_for/1`
+  (Phoenix.HTML ~> 3.2), or use `Flop.Phoenix.hidden_inputs_for_filter/1`,
+  which does the same, but as a Phoenix component.
+
 ## [0.15.1] - 2022-09-30
 
 ### Fixed
