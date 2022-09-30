@@ -1,6 +1,7 @@
 defmodule Flop.Phoenix.FormDataTest do
   use ExUnit.Case
 
+  import Phoenix.Component
   import Phoenix.HTML.Form
   import Flop.Phoenix.Factory
   import Flop.Phoenix.ViewHelpers
@@ -99,15 +100,14 @@ defmodule Flop.Phoenix.FormDataTest do
           flop: %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
         )
 
-      html =
-        form_to_html(meta, fn f ->
-          assert f.hidden == [
-                   order_directions: [:desc, :asc],
-                   order_by: [:name, :age]
-                 ]
+      assigns = %{meta: meta}
 
-          Flop.Phoenix.filter_hidden_inputs_for(f)
-        end)
+      html =
+        parse_heex(~H"""
+        <.form :let={f} for={@meta}>
+          <Flop.Phoenix.hidden_inputs_for_filter form={f} />
+        </.form>
+        """)
 
       assert [input] = Floki.find(html, "input#flop_order_by_0")
       assert Floki.attribute(input, "name") == ["order_by[]"]
