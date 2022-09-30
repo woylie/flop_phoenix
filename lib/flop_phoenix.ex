@@ -120,7 +120,6 @@ defmodule Flop.Phoenix do
 
   import Phoenix.HTML.Form,
     only: [
-      hidden_input: 3,
       humanize: 1,
       input_id: 2,
       input_name: 2,
@@ -1412,40 +1411,5 @@ defmodule Flop.Phoenix do
 
         {filter, Keyword.put(params, :filters, filters)}
     end
-  end
-
-  @doc """
-  Generates hidden inputs for the given form.
-
-  This does the same as `Phoenix.HTML.Form.hidden_inputs_for/1` in versions
-  <= 3.1.0, except that it supports list fields. If you use a later
-  `Phoenix.HTML` version, you don't need this function.
-  """
-  @doc since: "0.12.0"
-  @doc section: :components
-  @deprecated "use hidden_inputs_for_filter/1 instead"
-  @spec filter_hidden_inputs_for(Phoenix.HTML.Form.t()) ::
-          list(Phoenix.HTML.safe())
-  def filter_hidden_inputs_for(form) do
-    Enum.flat_map(form.hidden, fn {k, v} ->
-      filter_hidden_inputs_for(form, k, v)
-    end)
-  end
-
-  defp filter_hidden_inputs_for(form, k, values) when is_list(values) do
-    id = input_id(form, k)
-    name = input_name(form, k)
-
-    for {v, index} <- Enum.with_index(values) do
-      hidden_input(form, k,
-        id: id <> "_" <> Integer.to_string(index),
-        name: name <> "[]",
-        value: v
-      )
-    end
-  end
-
-  defp filter_hidden_inputs_for(form, k, v) do
-    [hidden_input(form, k, value: v)]
   end
 end
