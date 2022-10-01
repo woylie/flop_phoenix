@@ -142,19 +142,31 @@ component:
 
 ```elixir
 <.form :let={f} for={@meta}>
-  <Flop.Phoenix.filter_fields :let={entry} form={f} fields={[:name, :email]}>
-    <%= entry.label %>
-    <%= entry.input %>
-  </Flop.Phoenix.filter_fields>
+  <.filter_fields :let={i} form={f} fields={[:email, :name]}>
+    <.input
+      id={i.id}
+      name={i.name}
+      label={i.label}
+      type={i.type}
+      value={i.value}
+      field={i.field}
+      {i.rest}
+    />
+  </.filter_fields>
 </.form>
 ```
 
-Refer to the `Flop.Phoenix` module documentation for more examples.
+The `filter_fields` component renders all necessary hidden inputs, but it does
+not render the inputs for the filter values on its own. Instead, it passes all
+necessary details to the inner block. This allows you to render the filter
+inputs with your custom input component.
+
+You can pass additional options for each field. Refer to the
+`Flop.Phoenix.filter_fields/1` documentation for details.
 
 ### Custom filter form component
 
-Your filter form probably requires a bit of custom markup. It is recommended to
-define a custom `filter_form` component that wraps
+It is recommended to define a custom `filter_form` component that wraps
 `Flop.Phoenix.filter_fields/1`, so that you can apply the same markup
 throughout your live views.
 
@@ -179,16 +191,18 @@ def filter_form(assigns) do
       phx-change={@change_event}
     >
       <div class="filter-form-inputs">
-        <Flop.Phoenix.filter_fields
-          :let={%{input: input, label: label}}
-          form={f}
-          fields={@fields}
-          input_opts={[phx_debounce: @debounce]}
-        >
-          <div class="field">
-            <span class="visually-hidden"><%= label %></span>
-            <%= input %>
-          </div>
+        <Flop.Phoenix.filter_fields :let={i} form={f} fields={@fields}>
+          <.input
+            id={i.id}
+            name={i.name}
+            label={i.label}
+            type={i.type}
+            value={i.value}
+            field={i.field}
+            hide_labels={true}
+            phx-debounce={@debounce}
+            {i.rest}
+          />
         </Flop.Phoenix.filter_fields>
       </div>
 

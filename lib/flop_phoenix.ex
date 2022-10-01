@@ -117,9 +117,17 @@ defmodule Flop.Phoenix do
   """
 
   use Phoenix.Component
-  use Phoenix.HTML
 
-  alias Flop.Filter
+  import Phoenix.HTML.Form,
+    only: [
+      humanize: 1,
+      input_id: 2,
+      input_name: 2,
+      input_type: 2,
+      input_value: 2,
+      inputs_for: 3
+    ]
+
   alias Flop.Meta
   alias Flop.Phoenix.CursorPagination
   alias Flop.Phoenix.Misc
@@ -683,18 +691,34 @@ defmodule Flop.Phoenix do
   @doc """
   Renders all inputs for a filter form including the hidden inputs.
 
-  If you need more control, you can use `filter_input/1` and `filter_label/1`
-  directly.
-
   ## Example
 
       <.form :let={f} for={@meta}>
-        <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
-          <%= entry.label %>
-          <%= entry.input %>
+        <.filter_fields :let={i} form={f} fields={[:email, :name]}>
+          <.input
+            id={i.id}
+            name={i.name}
+            label={i.label}
+            type={i.type}
+            value={i.value}
+            field={i.field}
+            {i.rest}
+          />
         </.filter_fields>
       </.form>
 
+  This assumes that you have defined an `input` component that renders a form
+  input including the label.
+
+  Most options passed to the inner block should be self-explaining.
+
+  - The `type` is the input type as a string, _not_ the name of the
+    `Phoenix.HTML.Form` input function (e.g. `"text"`, not `:text_input`). The
+    type is derived from the type of the field being filtered on, but it can
+    be overridden in the field options.
+  - The `field` is a `Phoenix.HTML.Form.t` / field name tuple
+    (e.g. `{f, :name}`).
+  - `rest` contains any additional field options passed.
 
   ## Field configuration
 
@@ -709,47 +733,27 @@ defmodule Flop.Phoenix do
         email: [
           label: gettext("Email"),
           op: :ilike_and,
-          type: :email_input
+          type: "email_input"
+        ],
+        age: [
+          label: gettext("Age"),
+          type: "select",
+          prompt: "",
+          options: [
+            {gettext("young"), :young},
+            {gettext("old"), :old)}
+          ]
         ]
       ]}
 
-  Options:
+  Available options:
 
   - `label`
   - `op`
   - `type`
-  - `default`
 
-  The value under the `:type` key matches the format used in `filter_input/1`.
-  Any additional options will be passed to the input function
-  (e.g. HTML classes or a list of options).
-
-  ## Label and input opts
-
-  You can set default attributes for all labels and inputs:
-
-      <.filter_fields
-        :let={e}
-        form={f}
-        fields={[:name]}
-        input_opts={[class: "input", phx_debounce: 100]}
-        label_opts={[class: "label"]}
-      >
-
-  The additional options in the type configuration are merged into the input
-  opts. This means you can set a default class and override it for individual
-  fields.
-
-      <.filter_fields
-        :let={e}
-        form={f}
-        fields={[
-          :name,
-          :email,
-          role: [type: {:select, ["author", "editor"], class: "select"}]
-        ]}
-        input_opts={[class: "input"]}
-      >
+  Any additional options will be passed to the input component (e.g. HTML
+  classes or a list of options).
   """
   @doc since: "0.12.0"
   @doc section: :components
@@ -783,27 +787,35 @@ defmodule Flop.Phoenix do
     `fields` assign is only used for looking up the options in that case.
     """
 
-  attr :id, :string,
-    default: nil,
-    doc: "Overrides the ID for the nested filter inputs."
-
-  attr :input_opts, :list,
-    default: [],
-    doc: "Additional options passed to each input."
-
-  attr :label_opts, :list,
-    default: [],
-    doc: "Additional options passed to each label."
-
   slot :inner_block,
     doc: """
-    The generated labels and inputs are passed to the inner block instead of being
-    automatically rendered. This allows you to customize the markup.
+    The necessary options for rendering a label and an input are passed to the
+    inner block, which allows you to render the fields with your existing
+    components.
 
-        <.filter_fields :let={e} form={f} fields={[:email, :name]}>
-          <div class="field-label"><%= e.label %></div>
-          <div class="field-body"><%= e.input %></div>
+        <.filter_fields :let={i} form={f} fields={[:email, :name]}>
+          <.label for={i.id}><%= i.label %></.label>
+          <.input
+            id={i.id}
+            name={i.name}
+            label={i.label}
+            type={i.type}
+            value={i.value}
+            field={i.field}
+            {i.rest}
+          />
         </.filter_fields>
+
+    The options passed to the inner block are:
+
+    - `id` - The input ID.
+    - `name` - The input name.
+    - `label` - The label text as a string.
+    - `type` - The input type as a string. This is _not_ the value returned
+      by `Phoenix.HTML.Form.input_type/2`.
+    - `value` - The input value.
+    - `field` - A %Phoenix.HTML.Form{}/field name tuple (e.g. {f, :name}).
+    - `rest` - Any additional options passed in the field options.
     """
 
   def filter_fields(assigns) do
@@ -819,20 +831,24 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <.hidden_inputs_for_filter form={@form} />
-    <%= for {ff, {field, field_opts}} <- inputs_for_filters(@form, @fields, @field_opts, @id) do %>
+    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
+      <.hidden_inputs_for_filter form={ff} />
       <%= render_slot(@inner_block, %{
-        label:
-          ~H"<.filter_label form={ff} texts={[{field, field_opts[:label]}]} {@label_opts} />",
-        input:
-          ~H"<.filter_input form={ff} types={[{field, field_opts[:type]}]} input_opts={@input_opts} />"
+        id: Phoenix.HTML.Form.input_id(ff, :value),
+        name: Phoenix.HTML.Form.input_name(ff, :value),
+        label: input_label(ff, opts[:label]),
+        type: type_for(ff, opts[:type]),
+        value: Phoenix.HTML.Form.input_value(ff, :value),
+        field: {ff, :value},
+        rest: Keyword.drop(opts, [:label, :op, :type])
       }) %>
     <% end %>
     """
   end
 
-  defp inputs_for_filters(form, fields, field_opts, id) do
+  defp inputs_for_filters(form, fields, field_opts) do
     form
-    |> inputs_for(:filters, fields: fields, id: id)
+    |> inputs_for(:filters, fields: fields)
     |> Enum.zip(field_opts)
   end
 
@@ -859,257 +875,52 @@ defmodule Flop.Phoenix do
 
   defp match_field_opts(%{dynamic: true, form: form}, fields) do
     Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
-      {field, fields[field] || []}
+      fields[field] || []
     end)
   end
 
   defp match_field_opts(_, fields) do
-    fields
+    Keyword.values(fields)
   end
 
-  @doc """
-  Renders a label for the `:value` field of a filter.
+  defp input_label(_form, text) when is_binary(text), do: text
+  defp input_label(form, nil), do: form |> input_value(:field) |> humanize()
 
-  This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
-  `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
-  the filter form.
+  defp type_for(_form, type) when is_binary(type), do: type
+  defp type_for(form, nil), do: input_type_as_string(form)
 
-  Note that `inputs_for` will not render inputs for fields that are not marked
-  as filterable in the schema, even if passed in the options.
-
-  ## Example
-
-      <.form :let={f} for={@meta}>
-        <.hidden_inputs_for_filter form={f} />
-
-        <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
-          <.filter_label form={ff} />
-          <.filter_input form={ff} />
-        <% end %>
-      </.form>
-
-  ## Label text
-
-  By default, the label text is inferred from the value of the `:field` key of
-  the filter. You can override the default type by passing a keyword list or a
-  function that maps fields to label texts.
-
-      <.filter_label form={ff} text={[
-        email: gettext("Email")
-        phone: gettext("Phone number")
-      ]} />
-
-  Or
-
-      <.filter_label form={ff} text={
-        fn
-          :email -> gettext("Email")
-          :phone -> gettext("Phone number")
-        end
-      } />
-  """
-  @doc since: "0.12.0"
-  @doc section: :components
-  @spec filter_label(map) :: Phoenix.LiveView.Rendered.t()
-
-  attr :form, Phoenix.HTML.Form, required: true
-
-  attr :texts, :any,
-    default: nil,
-    doc: """
-    Either a function or a keyword list for setting the label text depending on
-    the field.
-    """
-
-  attr :rest, :global,
-    doc: "Additional attributes to be added to the `<label>`."
-
-  def filter_label(assigns) do
-    is_filter_form!(assigns.form)
-
-    ~H"""
-    <label for={Phoenix.HTML.Form.input_id(@form, :value)} {@rest}>
-      <%= label_text(@form, @texts) %>
-    </label>
-    """
+  defp input_type_as_string(form) do
+    form
+    |> input_type(:value)
+    |> to_html_input_type()
   end
 
-  defp label_text(form, nil) do
-    form |> input_value(:field) |> humanize()
-  end
+  # coveralls-ignore-start
 
-  defp label_text(form, func) when is_function(func, 1) do
-    form |> input_value(:field) |> func.()
-  end
+  defp to_html_input_type(:checkbox), do: "checkbox"
+  defp to_html_input_type(:color_input), do: "color"
+  defp to_html_input_type(:date_input), do: "date"
+  defp to_html_input_type(:date_select), do: "date"
+  defp to_html_input_type(:datetime_local_input), do: "datetime-local"
+  defp to_html_input_type(:datetime_select), do: "datetime-local"
+  defp to_html_input_type(:email_input), do: "email"
+  defp to_html_input_type(:file_input), do: "file"
+  defp to_html_input_type(:hidden_input), do: "hidden"
+  defp to_html_input_type(:multiple_select), do: "select"
+  defp to_html_input_type(:number_input), do: "number"
+  defp to_html_input_type(:password_input), do: "password"
+  defp to_html_input_type(:radio_button), do: "radio"
+  defp to_html_input_type(:range_input), do: "range"
+  defp to_html_input_type(:search_input), do: "search"
+  defp to_html_input_type(:select), do: "select"
+  defp to_html_input_type(:telephone_input), do: "tel"
+  defp to_html_input_type(:text_input), do: "text"
+  defp to_html_input_type(:textarea), do: "textarea"
+  defp to_html_input_type(:time_input), do: "time"
+  defp to_html_input_type(:time_select), do: "time"
+  defp to_html_input_type(:url_input), do: "url"
 
-  defp label_text(form, mapping) when is_list(mapping) do
-    field = input_value(form, :field)
-    safe_get(mapping, field, label_text(form, nil))
-  end
-
-  defp safe_get(keyword, key, default)
-       when is_list(keyword) and is_atom(key) do
-    Keyword.get(keyword, key) || default
-  end
-
-  defp safe_get(keyword, key, default)
-       when is_list(keyword) and is_binary(key) do
-    value =
-      Enum.find(keyword, fn {current_key, _} ->
-        Atom.to_string(current_key) == key
-      end)
-
-    case value do
-      nil -> default
-      {_, nil} -> default
-      {_, value} -> value
-    end
-  end
-
-  @doc """
-  Renders an input for the `:value` field and hidden inputs of a filter.
-
-  This function must be used within the `Phoenix.HTML.Form.inputs_for/2`,
-  `Phoenix.HTML.Form.inputs_for/3` or `Phoenix.HTML.Form.inputs_for/4` block of
-  the filter form.
-
-  ## Example
-
-      <.form :let={f} for={@meta}>
-        <.hidden_inputs_for_filter form={f} />
-
-        <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
-          <.filter_label form={ff} />
-          <.filter_input form={ff} />
-        <% end %>
-      </.form>
-
-  ## Types
-
-  By default, the input type is inferred from the field type in the Ecto schema.
-  You can override the default type by passing a keyword list or a function that
-  maps fields to types.
-
-      <.filter_input form={ff} types={[
-        email: :email_input,
-        phone: :telephone_input
-      ]} />
-
-  Or
-
-      <.filter_input form={ff} types={
-        fn
-          :email -> :email_input
-          :phone -> :telephone_input
-        end
-      } />
-
-  The type can be given as:
-
-  - An atom referencing the input function from `Phoenix.HTML.Form`:
-    `:telephone_input`
-  - A tuple with an atom and additional options. The given list is merged into
-    the `opts` assign and passed to the input:
-    `{:telephone_input, class: "phone"}`
-  - A tuple with an atom, options for a select input, and additional options:
-    `{:select, ["Option a": "a", "Option B": "b"], class: "select"}`
-  - A 3-arity function taking the form, field and opts. This is useful for
-    custom input functions:
-    `fn form, field, opts -> ... end` or `&my_custom_input/3`
-  - A tuple with a 3-arity function and additional opts:
-    `{&my_custom_input/3, class: "input"}`
-  - A tuple with a 4-arity function, a list of options and additional opts:
-    `{fn form, field, options, opts -> ... end, ["Option a": "a", "Option B": "b"], class: "select"}`
-  """
-  @doc since: "0.12.0"
-  @doc section: :components
-  @spec filter_input(map) :: Phoenix.LiveView.Rendered.t()
-
-  attr :form, Phoenix.HTML.Form, required: true
-
-  attr :skip_hidden, :boolean,
-    default: false,
-    doc: "Disables the rendering of the hidden inputs for the filter."
-
-  attr :types, :any,
-    default: nil,
-    doc: "Either a function or a keyword list that maps fields to input types."
-
-  attr :input_opts, :any,
-    default: [],
-    doc: "Additional options to be passed to the input function."
-
-  def filter_input(assigns) do
-    is_filter_form!(assigns.form)
-    assigns = assign(assigns, :type, type_for(assigns.form, assigns[:types]))
-
-    ~H"""
-    <%= unless @skip_hidden do %>
-      <.hidden_inputs_for_filter form={@form} />
-    <% end %>
-    <%= render_input(@form, @type, @input_opts) %>
-    """
-  end
-
-  defp render_input(form, type, opts) when is_atom(type) do
-    apply(Phoenix.HTML.Form, type, [form, :value, opts])
-  end
-
-  defp render_input(form, {type, input_opts}, opts) when is_atom(type) do
-    opts = Keyword.merge(opts, input_opts)
-    apply(Phoenix.HTML.Form, type, [form, :value, opts])
-  end
-
-  defp render_input(form, {type, options, input_opts}, opts)
-       when is_atom(type) and is_list(options) do
-    opts = Keyword.merge(opts, input_opts)
-    apply(Phoenix.HTML.Form, type, [form, :value, options, opts])
-  end
-
-  defp render_input(form, func, opts) when is_function(func, 3) do
-    func.(form, :value, opts)
-  end
-
-  defp render_input(form, {func, input_opts}, opts) when is_function(func, 3) do
-    opts = Keyword.merge(opts, input_opts)
-    func.(form, :value, opts)
-  end
-
-  defp render_input(form, {func, options, input_opts}, opts)
-       when is_function(func, 4) and is_list(options) do
-    opts = Keyword.merge(opts, input_opts)
-    func.(form, :value, options, opts)
-  end
-
-  defp type_for(form, nil), do: input_type(form, :value)
-
-  defp type_for(form, func) when is_function(func, 1) do
-    form |> input_value(:field) |> func.()
-  end
-
-  defp type_for(form, mapping) when is_list(mapping) do
-    field = input_value(form, :field)
-    safe_get(mapping, field, type_for(form, nil))
-  end
-
-  defp is_filter_form!(%Form{data: %Filter{}, source: %Meta{}}), do: :ok
-
-  defp is_filter_form!(_) do
-    raise ArgumentError, """
-    must be used with a filter form
-
-    Example:
-
-        <.form :let={f} for={@meta}>
-          <.hidden_inputs_for_filter form={f} />
-
-          <%= for ff <- inputs_for(f, :filters, fields: [:email]) do %>
-            <.filter_label form={ff} />
-            <.filter_input form={ff} />
-          <% end %>
-        </.form>
-    """
-  end
+  # coveralls-ignore-end
 
   defp is_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
 
@@ -1130,11 +941,38 @@ defmodule Flop.Phoenix do
 
   @doc """
   Renders hidden inputs for the given form.
+
+  You can use this for convenience if you have a complex form layout that cannot
+  be accomplished with `Flop.Phoenix.filter_fields/1`. Put it as a direct child
+  of the `form` component to render the hidden inputs for pagination and order
+  parameters. Then use `Phoenix.HTML.Form.inputs_for/3` to render a single
+  filter field, and place this component within the `do` block to render the
+  hidden inputs for the filter field and operator.
+
+      <.form :let={f} for={@meta}>
+        <.hidden_inputs_for_filter form={@form} />
+
+        <div class="field-group">
+          <div class="field">
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:name]) do %>
+              <.hidden_inputs_for_filter form={ff} />
+              <.input label="Name" type="text" field={{ff, :value}} />
+            <% end %>
+          </div>
+          <div class="field">
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:email]) do %>
+              <.hidden_inputs_for_filter form={ff} />
+              <.input label="E-mail" type="email" field={{ff, :value}} />
+            <% end %>
+          </div>
+        </div>
+      </.form>
   """
   @doc since: "0.16.0"
   @doc section: :components
 
   attr :form, Phoenix.HTML.Form, required: true
+  attr :id, :string, default: nil
 
   def hidden_inputs_for_filter(assigns) do
     ~H"""
@@ -1587,40 +1425,5 @@ defmodule Flop.Phoenix do
 
         {filter, Keyword.put(params, :filters, filters)}
     end
-  end
-
-  @doc """
-  Generates hidden inputs for the given form.
-
-  This does the same as `Phoenix.HTML.Form.hidden_inputs_for/1` in versions
-  <= 3.1.0, except that it supports list fields. If you use a later
-  `Phoenix.HTML` version, you don't need this function.
-  """
-  @doc since: "0.12.0"
-  @doc section: :components
-  @deprecated "use hidden_inputs_for_filter/1 instead"
-  @spec filter_hidden_inputs_for(Phoenix.HTML.Form.t()) ::
-          list(Phoenix.HTML.safe())
-  def filter_hidden_inputs_for(form) do
-    Enum.flat_map(form.hidden, fn {k, v} ->
-      filter_hidden_inputs_for(form, k, v)
-    end)
-  end
-
-  defp filter_hidden_inputs_for(form, k, values) when is_list(values) do
-    id = input_id(form, k)
-    name = input_name(form, k)
-
-    for {v, index} <- Enum.with_index(values) do
-      hidden_input(form, k,
-        id: id <> "_" <> Integer.to_string(index),
-        name: name <> "[]",
-        value: v
-      )
-    end
-  end
-
-  defp filter_hidden_inputs_for(form, k, v) do
-    [hidden_input(form, k, value: v)]
   end
 end
