@@ -2168,6 +2168,28 @@ defmodule Flop.PhoenixTest do
     end
   end
 
+  defmodule TestBackend do
+    use Flop, default_limit: 41
+  end
+
+  describe "build_path/3" do
+    test "gets the backend option from the meta struct to retrieve defaults" do
+      meta = %Flop.Meta{backend: TestBackend, flop: %Flop{page_size: 40}}
+      assert build_path("/pets", meta) == "/pets?page_size=40"
+
+      meta = %Flop.Meta{backend: TestBackend, flop: %Flop{page_size: 41}}
+      assert build_path("/pets", meta) == "/pets"
+    end
+
+    test "gets the for option from the meta struct to retrieve defaults" do
+      meta = %Flop.Meta{schema: Pet, flop: %Flop{page_size: 21}}
+      assert build_path("/pets", meta) == "/pets?page_size=21"
+
+      meta = %Flop.Meta{schema: Pet, flop: %Flop{page_size: 20}}
+      assert build_path("/pets", meta) == "/pets"
+    end
+  end
+
   defmodule TestSchema do
     use Ecto.Schema
 

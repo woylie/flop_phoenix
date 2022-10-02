@@ -1015,11 +1015,14 @@ defmodule Flop.Phoenix do
   Converts a Flop struct into a keyword list that can be used as a query with
   Phoenix route helper functions.
 
-  Default limits and default order parameters set via the application
-  environment are omitted. You can pass the `:for` option to pick up the
-  default options from a schema module deriving `Flop.Schema`. You can also
-  pass `default_limit` and `default_order` as options directly. The function
-  uses `Flop.get_option/2` internally to retrieve the default options.
+  Default limits and default order parameters are omitted.
+
+  The defaults are determined by calling `Flop.get_option/3`, which means you
+  can pass `default_limit` and `default_order` directly, you can pass the `:for`
+  option to pick up the default options from a schema module deriving
+  `Flop.Schema`, and you can pass the `backend` option, so that Flop can fall
+  back to the your backend options. If the defaults are set at neither of these
+  places, it will fall back to the options set in the application environment.
 
   ## Examples
 
@@ -1101,7 +1104,10 @@ defmodule Flop.Phoenix do
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
-  schema module deriving `Flop.Schema`, you need to pass the `:for` option.
+  schema module deriving `Flop.Schema`, you need to pass the `:for` option. To
+  pick up the default parameters from the backend module, you need to pass the
+  `:backend` option. If you pass a `Flop.Meta` struct as the second argument,
+  these options are retrieved from the struct automatically.
 
   ## Examples
 
@@ -1267,8 +1273,17 @@ defmodule Flop.Phoenix do
         ) :: String.t()
   def build_path(path, meta_or_flop_or_params, opts \\ [])
 
-  def build_path(path, %Meta{flop: flop}, opts),
-    do: build_path(path, flop, opts)
+  def build_path(
+        path,
+        %Meta{backend: backend, flop: flop, schema: schema},
+        opts
+      ) do
+    build_path(
+      path,
+      flop,
+      opts |> Keyword.put(:backend, backend) |> Keyword.put(:for, schema)
+    )
+  end
 
   def build_path(path, %Flop{} = flop, opts) do
     build_path(path, Flop.Phoenix.to_query(flop, opts))
@@ -1305,8 +1320,10 @@ defmodule Flop.Phoenix do
       |> Query.decode()
       |> Map.merge(Map.new(flop_params))
 
+    query = if query != %{}, do: Query.encode(query), else: nil
+
     uri
-    |> Map.put(:query, Query.encode(query))
+    |> Map.put(:query, query)
     |> URI.to_string()
   end
 

@@ -244,7 +244,8 @@ def handle_event("reset-filter", _, %{assigns: assigns} = socket) do
   path =
     Flop.Phoenix.build_path(
       {Routes, :pet_index_path, [socket, :index]},
-      flop
+      flop,
+      backend: assigns.meta.backend
     )
 
   {:noreply, push_patch(socket, to: path)}

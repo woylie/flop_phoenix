@@ -364,7 +364,7 @@ defmodule Flop.Phoenix.Pagination do
   defp build_query_params(meta) do
     meta.flop
     |> ensure_page_based_params()
-    |> Flop.Phoenix.to_query(for: meta.schema)
+    |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
   end
 
   @doc """

@@ -129,7 +129,7 @@ defmodule Flop.Phoenix.CursorPagination do
     params =
       meta
       |> Flop.set_cursor(direction)
-      |> Flop.Phoenix.to_query(for: meta.schema)
+      |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
 
     Flop.Phoenix.build_path(path, params)
   end

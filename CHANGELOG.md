@@ -14,6 +14,7 @@
   the inner block. You will have to pass these arguments to your own `input`
   component (or whatever you name it). The field option format has also been
   updated.
+- Require `flop ~> 0.17.1`.
 
 ### Removed
 
@@ -31,6 +32,10 @@
 ### Fixed
 
 - Fixed warnings about tainted variables in live view 0.18.1.
+- Fixed an issue where default parameters set in the backend module were not
+  removed from the query parameters.
+- Fixed URLs ending with `?` when no query parameters are necessary if the path
+  is passed as a string.
 
 ### How to upgrade
 
