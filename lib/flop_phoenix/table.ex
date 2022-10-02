@@ -202,6 +202,7 @@ defmodule Flop.Phoenix.Table do
               Flop.Phoenix.build_path(
                 @path,
                 Flop.push_order(@meta.flop, @field),
+                backend: @meta.backend,
                 for: @meta.schema
               )
             }>
