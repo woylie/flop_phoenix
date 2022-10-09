@@ -8,12 +8,11 @@
 
 ### Changed
 
-- Major refactoring of `Flop.Phoenix.filter_fields/1` in line with changes in
-  the Phoenix libraries. Instead of giving you the rendered `<label>` and
-  `<input>` elements, the component now only passes the necessary arguments to
-  the inner block. You will have to pass these arguments to your own `input`
-  component (or whatever you name it). The field option format has also been
-  updated.
+- Major refactoring of `Flop.Phoenix.filter_fields/1`. Instead of giving you the
+  rendered `<label>` and `<input>` elements, the component now only passes the
+  necessary arguments to the inner block. You will have to pass these arguments
+  to your own `input` component (or whatever you name it). The field option
+  format has also been updated.
 - Require `flop ~> 0.17.1`.
 
 ### Removed
