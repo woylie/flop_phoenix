@@ -53,7 +53,7 @@ defmodule Flop.Phoenix.ViewHelpers do
           label={i.label}
           type={i.type}
           value={i.value}
-          field={i.field}
+          field={{i.form, i.field}}
           {i.rest}
         />
       </.filter_fields>
