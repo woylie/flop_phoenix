@@ -701,7 +701,7 @@ defmodule Flop.Phoenix do
             label={i.label}
             type={i.type}
             value={i.value}
-            field={i.field}
+            field={{i.form, i.field}}
             {i.rest}
           />
         </.filter_fields>
@@ -801,7 +801,7 @@ defmodule Flop.Phoenix do
             label={i.label}
             type={i.type}
             value={i.value}
-            field={i.field}
+            field={{i.form, i.field}}
             {i.rest}
           />
         </.filter_fields>
@@ -814,7 +814,8 @@ defmodule Flop.Phoenix do
     - `type` - The input type as a string. This is _not_ the value returned
       by `Phoenix.HTML.Form.input_type/2`.
     - `value` - The input value.
-    - `field` - A %Phoenix.HTML.Form{}/field name tuple (e.g. {f, :name}).
+    - `form` - The `%Phoenix.HTML.Form{}` struct.
+    - `field` - The field name as an atom.
     - `rest` - Any additional options passed in the field options.
     """
 
@@ -839,7 +840,8 @@ defmodule Flop.Phoenix do
         label: input_label(ff, opts[:label]),
         type: type_for(ff, opts[:type]),
         value: Phoenix.HTML.Form.input_value(ff, :value),
-        field: {ff, :value},
+        form: ff,
+        field: :value,
         rest: Keyword.drop(opts, [:label, :op, :type])
       }) %>
     <% end %>
@@ -931,9 +933,17 @@ defmodule Flop.Phoenix do
     Example:
 
         <.form :let={f} for={@meta}>
-          <.filter_fields :let={entry} form={f} fields={[:email, :name]}>
-            <%= entry.label %>
-            <%= entry.input %>
+          <.filter_fields :let={i} form={f} fields={[:email, :name]}>
+            <.label for={i.id}><%= i.label %></.label>
+            <.input
+              id={i.id}
+              name={i.name}
+              label={i.label}
+              type={i.type}
+              value={i.value}
+              field={{i.form, i.field}}
+              {i.rest}
+            />
           </.filter_fields>
         </.form>
     """
