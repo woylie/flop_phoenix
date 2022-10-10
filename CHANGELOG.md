@@ -142,6 +142,12 @@ before, follow the example in the documentation of
 `Flop.hidden_inputs_for_filter/1` to render the inputs of individual filters
 without the removed components.
 
+## [0.15.2] - 2022-10-10
+
+### Changed
+
+- Change version requirement for Flop to `>= 0.15.0 and < 0.19.0`.
+
 ## [0.15.1] - 2022-09-30
 
 ### Fixed
