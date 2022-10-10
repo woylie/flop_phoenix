@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.16.0] - 2022-10-10
+
 ### Added
 
 - New Phoenix component `Flop.Phoenix.hidden_inputs_for_filter/1`.
@@ -12,8 +14,11 @@
   rendered `<label>` and `<input>` elements, the component now only passes the
   necessary arguments to the inner block. You will have to pass these arguments
   to your own `input` component (or whatever you name it). The field option
-  format has also been updated.
-- Require `flop ~> 0.17.1`.
+  format has also been updated. These changes were made to fix warnings emitted
+  by live view 0.18.1, and also accompany current changes in Phoenix that thin
+  out `Phoenix.HTML` / `Phoenix.HTML.Form` in favor of Phoenix components for
+  inputs.
+- Require `flop >= 0.17.1 and < 0.19.0`.
 
 ### Removed
 
