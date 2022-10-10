@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.15.2] - 2022-10-10
+
+### Changed
+
+- Change version requirement for Flop to `>= 0.15.0 and < 0.19.0`.
+
 ## [0.15.1] - 2022-09-30
 
 ### Fixed
