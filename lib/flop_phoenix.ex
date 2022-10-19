@@ -238,6 +238,8 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Table.default_opts()[:symbol_desc])}`.
   - `:symbol_unsorted` - The symbol that is used to indicate that the column is
     not sorted. Default: `#{inspect(Table.default_opts()[:symbol_unsorted])}`.
+  - `:tbody_attrs`: Attributes to added to the `<tbody>` tag within the
+    `<table>`. Default: `#{inspect(Table.default_opts()[:tbody_attrs])}`.
   - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
@@ -256,6 +258,7 @@ defmodule Flop.Phoenix do
           | {:symbol_desc, Phoenix.HTML.safe() | binary}
           | {:symbol_unsorted, Phoenix.HTML.safe() | binary}
           | {:table_attrs, keyword}
+          | {:tbody_attrs, keyword}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
           | {:th_wrapper_attrs, keyword}
