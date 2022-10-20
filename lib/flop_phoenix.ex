@@ -238,15 +238,15 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Table.default_opts()[:symbol_desc])}`.
   - `:symbol_unsorted` - The symbol that is used to indicate that the column is
     not sorted. Default: `#{inspect(Table.default_opts()[:symbol_unsorted])}`.
-  - `:tbody_attrs`: Attributes to added to the `<tbody>` tag within the
+  - `:tbody_attrs`: Attributes to be added to the `<tbody>` tag within the
     `<table>`. Default: `#{inspect(Table.default_opts()[:tbody_attrs])}`.
-  - `:tbody_td_attrs`: Attributes to added to each `<td>` tag within the
+  - `:tbody_td_attrs`: Attributes to be added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
-  - `:tbody_tr_attrs`: Attributes to added to each `<tr>` tag within the
+  - `:tbody_tr_attrs`: Attributes to be added to each `<tr>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
-  - `:thead_th_attrs`: Attributes to added to each `<th>` tag within the
+  - `:thead_th_attrs`: Attributes to be added to each `<th>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
-  - `:thead_tr_attrs`: Attributes to added to each `<tr>` tag within the
+  - `:thead_tr_attrs`: Attributes to be added to each `<tr>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_tr_attrs])}`.
   """
   @type table_option ::
