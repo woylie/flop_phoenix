@@ -146,6 +146,43 @@ defmodule Flop.PhoenixTest do
     """
   end
 
+  defp test_table_with_row_click(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", id: 1}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+      row_click={&"/show/#{&1.id}"}
+    >
+      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+      <:action>
+        <.link navigate="/show/pet">Show Pet</.link>
+      </:action>
+    </Flop.Phoenix.table>
+    """
+  end
+
+  defp test_table_with_action(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+      opts={@opts}
+    >
+      <:col :let={pet} label="Name" field={:name} class="name-column">
+        <%= pet.name %>
+      </:col>
+      <:col :let={pet} label="Age" field={:age} class="age-column">
+        <%= pet.age %>
+      </:col>
+      <:action>
+        <.link navigate="/show/pet">Show Pet</.link>
+      </:action>
+    </Flop.Phoenix.table>
+    """
+  end
+
   defp test_table_with_foot(assigns) do
     ~H"""
     <Flop.Phoenix.table
@@ -1403,6 +1440,26 @@ defmodule Flop.PhoenixTest do
       assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
     end
 
+    test "allows to set td class on action" do
+      html =
+        render_table(
+          [
+            opts: [
+              tbody_td_attrs: [class: "tolerance"]
+            ]
+          ],
+          &test_table_with_action/1
+        )
+
+      assert [_, _, _, _, _, _] = Floki.find(html, "td.tolerance")
+    end
+
+    test "adds additional attributes to td within action" do
+      html = render_table([opts: []], &test_table_with_action/1)
+      assert [_, _] = Floki.find(html, "td.name-column")
+      assert [_, _] = Floki.find(html, "td.age-column")
+    end
+
     test "adds additional attributes to td" do
       html = render_table([], &test_table_with_column_attrs/1)
       assert [_, _] = Floki.find(html, "td.name-column")
@@ -1710,6 +1767,59 @@ defmodule Flop.PhoenixTest do
                items: [],
                opts: [no_results_content: content_tag(:div, do: "Nothing!")]
              ) == [{"div", [], ["Nothing!"]}]
+    end
+
+    test "renders row_click" do
+      html = render_table([], &test_table_with_row_click/1)
+
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, rows}
+                ]}
+             ] = html
+
+      assert [_] = Floki.find(rows, "td a")
+    end
+
+    test "does not render row_click" do
+      html = render_table([])
+
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, rows}
+                ]}
+             ] = html
+
+      assert [] = Floki.find(rows, "td a")
+    end
+
+    test "renders table action" do
+      html = render_table([opts: []], &test_table_with_action/1)
+
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, rows}
+                ]}
+             ] = html
+
+      assert [_, _] = Floki.find(rows, "a")
+    end
+
+    test "does not render action if option is not set" do
+      html = render_table([])
+
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [{"thead", _, _}, {"tbody", _, rows}]}
+             ] = html
+
+      assert [] = Floki.find(rows, "a")
     end
 
     test "renders table foot" do
