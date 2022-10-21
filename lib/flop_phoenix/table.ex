@@ -5,6 +5,7 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
+  alias Phoenix.LiveView.JS
 
   require Logger
 
@@ -106,6 +107,8 @@ defmodule Flop.Phoenix.Table do
   attr :col, :any, required: true
   attr :items, :list, required: true
   attr :foot, :any, required: true
+  attr :row_click, :string, required: true
+  attr :action, :any, required: true
 
   def render(assigns) do
     ~H"""
@@ -149,8 +152,24 @@ defmodule Flop.Phoenix.Table do
                     [:col_style, :field, :hide, :label, :show]
                   )
                 }
+                phx-click={@row_click && @row_click.(item)}
               >
                 <%= render_slot(col, item) %>
+              </td>
+            <% end %>
+          <% end %>
+          <%= if(@action != []) do %>
+            <%= for action <- @action do %>
+              <td
+                {@opts[:tbody_td_attrs]}
+                {
+                    assigns_to_attributes(
+                      action,
+                      [:col_style, :field, :hide, :label, :show]
+                    )
+                  }
+              >
+                <%= render_slot(action, item) %>
               </td>
             <% end %>
           <% end %>

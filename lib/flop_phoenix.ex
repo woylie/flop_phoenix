@@ -135,6 +135,7 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Table
   alias Phoenix.HTML.Form
   alias Plug.Conn.Query
+  alias Phoenix.LiveView.JS
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
@@ -602,6 +603,27 @@ defmodule Flop.Phoenix do
     of the module documentation.
     """
 
+  attr :row_click, JS,
+    default: nil,
+    doc: """
+    Set's the `phx-click` function attribute for each row `td`. Expects to be a function called with each row item.
+    This does not apply `phx-click` to the `action` slot.
+
+    For example
+    ```elixir
+    row_click={&JS.navigate(Routes.show_user_path(@socket, user, &1))}
+    ```
+    results in
+    ```html
+    <tr>
+      <td phx-click={"/user/1/show"}>
+        ...
+      </td>
+      <td phx-click={"/user/1/show"}>
+        ...
+    ```
+    """
+
   slot :col,
     required: true,
     doc: """
@@ -640,6 +662,19 @@ defmodule Flop.Phoenix do
       """
   end
 
+  slot(:action,
+    doc: """
+    The slot for showing user actions in the last table column. This field does not recieve `row_click`.
+
+
+    ```elixir
+    <:action :let={user}>
+      <.link navigate={Routes.user_path(@socket, :show, user)}>Show</.link>
+    </:action>
+    ```
+    """
+  )
+
   slot :foot,
     default: nil,
     doc: """
@@ -672,6 +707,8 @@ defmodule Flop.Phoenix do
             opts={@opts}
             path={@path}
             target={@target}
+            row_click={@row_click}
+            action={@action}
           />
         </div>
       <% else %>
@@ -685,6 +722,8 @@ defmodule Flop.Phoenix do
           opts={@opts}
           path={@path}
           target={@target}
+          row_click={@row_click}
+          action={@action}
         />
       <% end %>
     <% end %>
