@@ -1423,6 +1423,18 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(container, "id") == ["a"]
     end
 
+    test "allows to set tbody attributes" do
+      html =
+        render_table(
+          opts: [
+            tbody_attrs: [class: "mango_body"],
+            container: true
+          ]
+        )
+
+      assert [_] = Floki.find(html, "tbody.mango_body")
+    end
+
     test "allows to set tr and td classes" do
       html =
         render_table(

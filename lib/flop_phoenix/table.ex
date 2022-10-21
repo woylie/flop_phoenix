@@ -69,6 +69,7 @@ defmodule Flop.Phoenix.Table do
       symbol_desc: "▾",
       symbol_unsorted: nil,
       table_attrs: [],
+      tbody_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
       th_wrapper_attrs: [],
@@ -139,7 +140,7 @@ defmodule Flop.Phoenix.Table do
           <% end %>
         </tr>
       </thead>
-      <tbody>
+      <tbody {@opts[:tbody_attrs]}>
         <tr :for={item <- @items} {@opts[:tbody_tr_attrs]}>
           <%= for col <- @col do %>
             <%= if show_column?(col) do %>
