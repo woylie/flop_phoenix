@@ -134,8 +134,8 @@ defmodule Flop.Phoenix do
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
   alias Phoenix.HTML.Form
-  alias Plug.Conn.Query
   alias Phoenix.LiveView.JS
+  alias Plug.Conn.Query
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
