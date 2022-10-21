@@ -5,7 +5,6 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
-  alias Phoenix.LiveView.JS
 
   require Logger
 
