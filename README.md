@@ -198,7 +198,7 @@ def filter_form(assigns) do
             label={i.label}
             type={i.type}
             value={i.value}
-            field={i.field}
+            field={{i.form, i.field}}
             hide_labels={true}
             phx-debounce={@debounce}
             {i.rest}
