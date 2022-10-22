@@ -5,6 +5,7 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
+  alias Phoenix.LiveView.JS
 
   require Logger
 
@@ -106,7 +107,7 @@ defmodule Flop.Phoenix.Table do
   attr :col, :any, required: true
   attr :items, :list, required: true
   attr :foot, :any, required: true
-  attr :row_click, :string, required: true
+  attr :row_click, JS, default: nil
   attr :action, :any, required: true
 
   def render(assigns) do
