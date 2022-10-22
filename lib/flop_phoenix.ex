@@ -663,7 +663,7 @@ defmodule Flop.Phoenix do
       """
   end
 
-  slot(:action,
+  slot :action,
     doc: """
     The slot for showing user actions in the last table column. These columns
     do not receive the `row_click` attribute.
@@ -674,8 +674,29 @@ defmodule Flop.Phoenix do
       <.link navigate={Routes.user_path(@socket, :show, user)}>Show</.link>
     </:action>
     ```
-    """
-  )
+    """ do
+    attr :label, :string, doc: "The content for the header column."
+
+    attr :show, :boolean,
+      doc: "Boolean value to conditionally show the column. Defaults to `true`."
+
+    attr :hide, :boolean,
+      doc:
+        "Boolean value to conditionally hide the column. Defaults to `false`."
+
+    attr :col_style, :string,
+      doc: """
+      If set, a `<colgroup>` element is rendered and the value of the
+      `col_style` assign is set as `style` attribute for the `<col>` element of
+      the respective column. You can set the `width`, `background` and `border`
+      of a column this way.
+      """
+
+    attr :rest, :global,
+      doc: """
+      Any additional attributes to pass to the `<td>`.
+      """
+  end
 
   slot :foot,
     default: nil,
