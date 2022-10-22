@@ -606,21 +606,22 @@ defmodule Flop.Phoenix do
   attr :row_click, JS,
     default: nil,
     doc: """
-    Set's the `phx-click` function attribute for each row `td`. Expects to be a function called with each row item.
-    This does not apply `phx-click` to the `action` slot.
+    Sets the `phx-click` function attribute for each row `td`. Expects to be a
+    function that receives a row item as an argument. This does not apply add
+    the `phx-click` attribute to the `action` slot.
 
-    For example
+    For example:
+
     ```elixir
     row_click={&JS.navigate(Routes.show_user_path(@socket, user, &1))}
     ```
-    results in
+    Results in:
+
     ```html
     <tr>
-      <td phx-click={"/user/1/show"}>
-        ...
-      </td>
-      <td phx-click={"/user/1/show"}>
-        ...
+      <td phx-click={"/user/1/show"}>...</td>
+      <td phx-click={"/user/1/show"}>...</td>
+    </tr>
     ```
     """
 
@@ -664,7 +665,8 @@ defmodule Flop.Phoenix do
 
   slot(:action,
     doc: """
-    The slot for showing user actions in the last table column. This field does not recieve `row_click`.
+    The slot for showing user actions in the last table column. These columns
+    do not receive the `row_click` attribute.
 
 
     ```elixir
