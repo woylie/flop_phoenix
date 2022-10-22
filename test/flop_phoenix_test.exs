@@ -10,6 +10,7 @@ defmodule Flop.PhoenixTest do
 
   alias Flop.Filter
   alias Flop.Phoenix.Pet
+  alias Phoenix.LiveView.JS
   alias Plug.Conn.Query
 
   doctest Flop.Phoenix, import: true
@@ -146,17 +147,17 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_row_click(assigns) do
+  defp test_table_with_row_click_and_action(assigns) do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
       items={[%{name: "George", id: 1}]}
       meta={%Flop.Meta{flop: %Flop{}}}
-      row_click={&"/show/#{&1.id}"}
+      row_click={&JS.navigate("/show/#{&1.id}")}
     >
       <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:action>
-        <.link navigate="/show/pet">Show Pet</.link>
+      <:action :let={pet}>
+        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
       </:action>
     </Flop.Phoenix.table>
     """
@@ -176,8 +177,8 @@ defmodule Flop.PhoenixTest do
       <:col :let={pet} label="Age" field={:age} class="age-column">
         <%= pet.age %>
       </:col>
-      <:action>
-        <.link navigate="/show/pet">Show Pet</.link>
+      <:action :let={pet}>
+        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
       </:action>
     </Flop.Phoenix.table>
     """
@@ -1782,7 +1783,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders row_click" do
-      html = render_table([], &test_table_with_row_click/1)
+      html = render_table([], &test_table_with_row_click_and_action/1)
 
       assert [
                {"table", [{"class", "sortable-table"}],
@@ -1792,10 +1793,14 @@ defmodule Flop.PhoenixTest do
                 ]}
              ] = html
 
-      assert [_] = Floki.find(rows, "td a")
+      # two columns in total, second one is for action
+      assert [_, _] = Floki.find(rows, "td")
+
+      # only one column should have phx-click attribute
+      assert [_] = Floki.find(rows, "td[phx-click]")
     end
 
-    test "does not render row_click" do
+    test "does not render row_click if not set" do
       html = render_table([])
 
       assert [
@@ -1806,7 +1811,7 @@ defmodule Flop.PhoenixTest do
                 ]}
              ] = html
 
-      assert [] = Floki.find(rows, "td a")
+      assert [] = Floki.find(rows, "td[phx-click]")
     end
 
     test "renders table action" do
@@ -1820,10 +1825,11 @@ defmodule Flop.PhoenixTest do
                 ]}
              ] = html
 
-      assert [_, _] = Floki.find(rows, "a")
+      assert [_] = Floki.find(rows, "a[href='/show/pet/Mary']")
+      assert [_] = Floki.find(rows, "a[href='/show/pet/George']")
     end
 
-    test "does not render action if option is not set" do
+    test "does not render action column if option is not set" do
       html = render_table([])
 
       assert [
@@ -1832,6 +1838,9 @@ defmodule Flop.PhoenixTest do
              ] = html
 
       assert [] = Floki.find(rows, "a")
+
+      # test table has five column
+      assert [_, _, _, _, _] = Floki.find(rows, "td")
     end
 
     test "renders table foot" do
