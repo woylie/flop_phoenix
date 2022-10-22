@@ -157,20 +157,18 @@ defmodule Flop.Phoenix.Table do
               </td>
             <% end %>
           <% end %>
-          <%= if(@action != []) do %>
-            <%= for action <- @action do %>
-              <td
-                {@opts[:tbody_td_attrs]}
-                {
-                    assigns_to_attributes(
-                      action,
-                      [:col_style, :field, :hide, :label, :show]
-                    )
-                  }
-              >
-                <%= render_slot(action, item) %>
-              </td>
-            <% end %>
+          <%= for action <- @action do %>
+            <td
+              {@opts[:tbody_td_attrs]}
+              {
+                assigns_to_attributes(
+                  action,
+                  [:col_style, :field, :hide, :label, :show]
+                )
+              }
+            >
+              <%= render_slot(action, item) %>
+            </td>
           <% end %>
         </tr>
       </tbody>
