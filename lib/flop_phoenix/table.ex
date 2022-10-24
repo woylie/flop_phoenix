@@ -116,10 +116,13 @@ defmodule Flop.Phoenix.Table do
       <%= if @caption do %>
         <caption><%= @caption %></caption>
       <% end %>
-      <%= if Enum.any?(@col, & &1[:col_style]) do %>
+      <%= if Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style]) do %>
         <colgroup>
           <%= for col <- @col do %>
             <col :if={show_column?(col)} style={col[:col_style]} />
+          <% end %>
+          <%= for action <- @action do %>
+            <col :if={show_column?(action)} style={action[:col_style]} />
           <% end %>
         </colgroup>
       <% end %>
@@ -135,6 +138,19 @@ defmodule Flop.Phoenix.Table do
                 opts={@opts}
                 path={@path}
                 target={@target}
+              />
+            <% end %>
+          <% end %>
+          <%= for action <- @action do %>
+            <%= if show_column?(action) do %>
+              <.header_column
+                event={@event}
+                field={nil}
+                label={action[:label]}
+                meta={@meta}
+                opts={@opts}
+                path={nil}
+                target={@event}
               />
             <% end %>
           <% end %>

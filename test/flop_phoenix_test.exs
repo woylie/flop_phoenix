@@ -147,6 +147,52 @@ defmodule Flop.PhoenixTest do
     """
   end
 
+  defp test_table_with_action(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:hide_action, fn -> false end)
+      |> assign_new(:show_action, fn -> true end)
+      |> assign_new(:opts, fn -> [] end)
+
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+      opts={@opts}
+    >
+      <:col :let={pet} label="Name" field={:name} class="name-column">
+        <%= pet.name %>
+      </:col>
+      <:col :let={pet} label="Age" field={:age} class="age-column">
+        <%= pet.age %>
+      </:col>
+      <:action :let={pet} hide={@hide_action} show={@show_action} label="Buttons">
+        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+      </:action>
+    </Flop.Phoenix.table>
+    """
+  end
+
+  defp test_table_with_action_and_with_widths(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={[%{name: "George", id: 1}]}
+      meta={%Flop.Meta{flop: %Flop{}}}
+    >
+      <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
+        <%= pet.name %>
+      </:col>
+      <:action :let={pet} col_style="width: 40%;">
+        <.link navigate={"/show/pet/#{pet.name}"}>
+          Show Pet
+        </.link>
+      </:action>
+    </Flop.Phoenix.table>
+    """
+  end
+
   defp test_table_with_row_click_and_action(assigns) do
     ~H"""
     <Flop.Phoenix.table
@@ -163,22 +209,18 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_action(assigns) do
+  defp test_table_with_action_header(assigns) do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
-      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
+      items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
-      opts={@opts}
     >
-      <:col :let={pet} label="Name" field={:name} class="name-column">
+      <:col :let={pet}>
         <%= pet.name %>
       </:col>
-      <:col :let={pet} label="Age" field={:age} class="age-column">
-        <%= pet.age %>
-      </:col>
-      <:action :let={pet}>
-        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+      <:action :let={pet} label={{:safe, "<span>Hello</span>"}}>
+        <%= pet.name %>
       </:action>
     </Flop.Phoenix.table>
     """
@@ -1483,6 +1525,12 @@ defmodule Flop.PhoenixTest do
       assert [{"p", [], ["No results."]}] = render_table(items: [])
     end
 
+    test "displays headers for action col" do
+      html = render_table([], &test_table_with_action/1)
+      assert [th] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert Floki.children(th, include_text: false) == []
+    end
+
     test "displays headers without sorting function" do
       html = render_table()
       assert [th] = Floki.find(html, "th:fl-contains('Age')")
@@ -1509,6 +1557,49 @@ defmodule Flop.PhoenixTest do
       html = render_table(hide_age: true, show_age: false)
       assert [] = Floki.find(html, "th:fl-contains('Age')")
       assert [] = Floki.find(html, "td:fl-contains('8')")
+    end
+
+    test "conditionally hides an action column" do
+      html = render_table([], &test_table_with_action/1)
+
+      assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert [_, _] = Floki.find(html, "a:fl-contains('Show Pet')")
+
+      html =
+        render_table(
+          [hide_action: false, show_action: true],
+          &test_table_with_action/1
+        )
+
+      assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert [_, _] = Floki.find(html, "a:fl-contains('Show Pet')")
+
+      html =
+        render_table(
+          [hide_action: true, show_action: true],
+          &test_table_with_action/1
+        )
+
+      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
+
+      html =
+        render_table(
+          [hide_action: true, show_action: false],
+          &test_table_with_action/1
+        )
+
+      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
+
+      html =
+        render_table(
+          [hide_action: false, show_action: false],
+          &test_table_with_action/1
+        )
+
+      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
     end
 
     test "displays headers with sorting function" do
@@ -1558,6 +1649,12 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(a, "href") == [
                "/pets?order_by[]=name&order_directions[]=asc"
              ]
+    end
+
+    test "displays headers with safe HTML values in action col" do
+      html = render_table([], &test_table_with_action_header/1)
+      assert [span] = Floki.find(html, "th span")
+      assert Floki.text(span) == "Hello"
     end
 
     test "displays headers with safe HTML values" do
@@ -1879,6 +1976,31 @@ defmodule Flop.PhoenixTest do
                   {"tbody", _, _}
                 ]}
              ] = render_table([], &test_table/1)
+    end
+
+    test "renders colgroup on action col" do
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"colgroup", _,
+                   [
+                     {"col", [{"style", "width: 60%;"}], _},
+                     {"col", [{"style", "width: 40%;"}], _}
+                   ]},
+                  {"thead", _, _},
+                  {"tbody", _, _}
+                ]}
+             ] = render_table([], &test_table_with_action_and_with_widths/1)
+    end
+
+    test "does not render colgroup on action col if no style attribute is set" do
+      assert [
+               {"table", [{"class", "sortable-table"}],
+                [
+                  {"thead", _, _},
+                  {"tbody", _, _}
+                ]}
+             ] = render_table([], &test_table_with_action/1)
     end
 
     test "renders caption" do
