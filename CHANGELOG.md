@@ -5,6 +5,7 @@
 ### Added
 
 - New option `tbody_attrs` for table component.
+- New attribute `row_click` and slot `action` for table component.
 
 ## [0.16.0] - 2022-10-10
 
