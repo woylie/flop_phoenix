@@ -656,11 +656,6 @@ defmodule Flop.Phoenix do
       the respective column. You can set the `width`, `background` and `border`
       of a column this way.
       """
-
-    attr :rest, :global,
-      doc: """
-      Any additional attributes to pass to the `<td>`.
-      """
   end
 
   slot :action,
