@@ -170,10 +170,7 @@ defmodule Flop.Phoenix.Table do
             <% end %>
           <% end %>
           <%= for action <- @action do %>
-            <td
-              {@opts[:tbody_td_attrs]}
-              {Map.get(action, :attrs, [])}
-            >
+            <td {@opts[:tbody_td_attrs]} {Map.get(action, :attrs, [])}>
               <%= render_slot(action, item) %>
             </td>
           <% end %>
