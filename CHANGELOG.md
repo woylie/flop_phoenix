@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.17.0] - 2022-10-27
+
 ### Added
 
 - New option `tbody_attrs` for table component.
