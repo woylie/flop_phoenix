@@ -656,6 +656,11 @@ defmodule Flop.Phoenix do
       the respective column. You can set the `width`, `background` and `border`
       of a column this way.
       """
+
+    attr :attrs, :list,
+      doc: """
+      Any additional attributes to pass to the `<td>`.
+      """
   end
 
   slot :action,
@@ -685,6 +690,11 @@ defmodule Flop.Phoenix do
       `col_style` assign is set as `style` attribute for the `<col>` element of
       the respective column. You can set the `width`, `background` and `border`
       of a column this way.
+      """
+
+    attr :attrs, :list,
+      doc: """
+      Any additional attributes to pass to the `<td>`.
       """
   end
 

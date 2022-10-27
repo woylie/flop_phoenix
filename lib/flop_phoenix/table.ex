@@ -162,12 +162,7 @@ defmodule Flop.Phoenix.Table do
             <%= if show_column?(col) do %>
               <td
                 {@opts[:tbody_td_attrs]}
-                {
-                  assigns_to_attributes(
-                    col,
-                    [:col_style, :field, :hide, :label, :show]
-                  )
-                }
+                {Map.get(col, :attrs, [])}
                 phx-click={@row_click && @row_click.(item)}
               >
                 <%= render_slot(col, item) %>
@@ -177,12 +172,7 @@ defmodule Flop.Phoenix.Table do
           <%= for action <- @action do %>
             <td
               {@opts[:tbody_td_attrs]}
-              {
-                assigns_to_attributes(
-                  action,
-                  [:col_style, :field, :hide, :label, :show]
-                )
-              }
+              {Map.get(action, :attrs, [])}
             >
               <%= render_slot(action, item) %>
             </td>

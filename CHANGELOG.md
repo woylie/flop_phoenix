@@ -7,6 +7,18 @@
 - New option `tbody_attrs` for table component.
 - New attribute `row_click` and slot `action` for table component.
 
+### Changed
+
+- To pass additional attributes to a column, you will now have to use the
+  `attrs` attribute. This was necessary because defining a `global` attribute on a slot causes a compile-time error in `phoenix_live_view` 0.18.3.
+
+```diff
+<Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
+-  <:col :let={p} class="my-class"><%= p.id %></:col>
++  <:col :let={p} attrs={[class="my-class"]}><%= p.id %></:col>
+</Flop.Phoenix.table>
+```
+
 ## [0.16.0] - 2022-10-10
 
 ### Added

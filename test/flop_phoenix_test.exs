@@ -137,10 +137,10 @@ defmodule Flop.PhoenixTest do
       items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
-      <:col :let={pet} label="Name" field={:name} class="name-column">
+      <:col :let={pet} label="Name" field={:name} attrs={[class: "name-column"]}>
         <%= pet.name %>
       </:col>
-      <:col :let={pet} label="Age" field={:age} class="age-column">
+      <:col :let={pet} label="Age" field={:age} attrs={[class: "age-column"]}>
         <%= pet.age %>
       </:col>
     </Flop.Phoenix.table>
@@ -161,10 +161,10 @@ defmodule Flop.PhoenixTest do
       meta={%Flop.Meta{flop: %Flop{}}}
       opts={@opts}
     >
-      <:col :let={pet} label="Name" field={:name} class="name-column">
+      <:col :let={pet} label="Name" field={:name} attrs={[class: "name-column"]}>
         <%= pet.name %>
       </:col>
-      <:col :let={pet} label="Age" field={:age} class="age-column">
+      <:col :let={pet} label="Age" field={:age} attrs={[class: "age-column"]}>
         <%= pet.age %>
       </:col>
       <:action :let={pet} hide={@hide_action} show={@show_action} label="Buttons">
