@@ -62,6 +62,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     {id, opts} = Keyword.pop(opts, :id)
     {default, opts} = Keyword.pop(opts, :default, [])
     {fields, opts} = Keyword.pop(opts, :fields)
+    {offset, opts} = Keyword.pop(opts, :index, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
     name = if form.name, do: form.name <> "[filters]", else: "filters"
@@ -79,7 +80,8 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       |> filters_for(fields, default, filter_errors)
       |> reject_unfilterable(meta.schema)
 
-    for {{filter, errors}, index} <- Enum.with_index(filters_with_errors) do
+    for {{filter, errors}, index} <-
+          Enum.with_index(filters_with_errors, offset) do
       index_string = Integer.to_string(index)
 
       hidden =

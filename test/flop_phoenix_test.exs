@@ -2410,6 +2410,29 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "value") == ["geo"]
     end
 
+    test "renders the labels and filter when given a index", %{
+      fields: fields,
+      meta: meta
+    } do
+      html =
+        form_to_html(meta, fn f ->
+          inputs_for(f, :filters, [fields: fields, index: 5], fn fo ->
+            render_component(&hidden_inputs_for_filter/1,
+              __changed__: %{},
+              form: fo
+            )
+          end)
+        end)
+
+      # hidden fields
+      assert [_] = Floki.find(html, "input[id='flop_filters_5_field']")
+      assert [_] = Floki.find(html, "input[id='flop_filters_6_field']")
+      assert [_] = Floki.find(html, "input[id='flop_filters_7_field']")
+
+      # op input
+      assert [_] = Floki.find(html, "input[id='flop_filters_6_op']")
+    end
+
     test "raises error if the form is not a form for meta", %{meta: meta} do
       assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
         form_to_html(meta, fn f ->
