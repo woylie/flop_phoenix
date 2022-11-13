@@ -23,7 +23,6 @@ erl_crash.dump
 flop_phoenix-*.tar
 
 # Ignore dialyzer PLT
-/priv/plts/*.plt
-/priv/plts/*.plt.hash
+.plts
 
 .elixir_ls
