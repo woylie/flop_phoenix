@@ -2410,13 +2410,13 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "value") == ["geo"]
     end
 
-    test "renders the labels and filter when given a index", %{
+    test "renders filters when given a offset", %{
       fields: fields,
       meta: meta
     } do
       html =
         form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [fields: fields, index: 5], fn fo ->
+          inputs_for(f, :filters, [fields: fields, offset: 5], fn fo ->
             render_component(&hidden_inputs_for_filter/1,
               __changed__: %{},
               form: fo

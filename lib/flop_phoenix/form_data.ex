@@ -62,7 +62,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     {id, opts} = Keyword.pop(opts, :id)
     {default, opts} = Keyword.pop(opts, :default, [])
     {fields, opts} = Keyword.pop(opts, :fields)
-    {offset, opts} = Keyword.pop(opts, :index, 0)
+    {offset, opts} = Keyword.pop(opts, :offset, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
     name = if form.name, do: form.name <> "[filters]", else: "filters"
