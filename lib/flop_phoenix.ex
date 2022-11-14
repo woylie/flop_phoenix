@@ -1052,7 +1052,6 @@ defmodule Flop.Phoenix do
   @doc section: :components
 
   attr :form, Phoenix.HTML.Form, required: true
-  attr :id, :string, default: nil
 
   def hidden_inputs_for_filter(assigns) do
     ~H"""
