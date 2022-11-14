@@ -1025,21 +1025,22 @@ defmodule Flop.Phoenix do
   hidden inputs for the filter field and operator.
 
   Since the filters are represented as an array in the params, make sure to
-  add a `index` parameter so that the `Flop.Meta` can be properly mapped back to
-  your input fields.
+  add the `offset` option so that the `Flop.Meta` can be properly mapped back to
+  your input fields. For every call to `inputs_for` always add the length of all
+  previous calls to `inputs_for` as offset.
 
       <.form :let={f} for={@meta}>
         <.hidden_inputs_for_filter form={@form} />
 
         <div class="field-group">
           <div class="field">
-            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:name], index: 0) do %>
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:name]) do %>
               <.hidden_inputs_for_filter form={ff} />
               <.input label="Name" type="text" field={{ff, :value}} />
             <% end %>
           </div>
           <div class="field">
-            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [{:email, op: :ilike}], index: 1) do %>
+            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [{:email, op: :ilike}], offset: 1) do %>
               <.hidden_inputs_for_filter form={ff} />
               <.input label="E-mail" type="email" field={{ff, :value}} />
             <% end %>
