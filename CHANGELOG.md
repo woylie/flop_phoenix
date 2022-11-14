@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Allow passing an `offset` when generating filter inputs with `Phoenix.HTML.Form.inputs_for/3`.
+
 ## [0.17.0] - 2022-10-27
 
 ### Added
