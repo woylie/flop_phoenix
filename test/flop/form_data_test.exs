@@ -1,13 +1,13 @@
 defmodule Flop.Phoenix.FormDataTest do
   use ExUnit.Case
 
+  import Flop.Phoenix.Factory
+  import Flop.Phoenix.TestHelpers
   import Phoenix.Component
   import Phoenix.HTML.Form
-  import Flop.Phoenix.Factory
-  import Flop.Phoenix.ViewHelpers
 
   alias Flop.Filter
-  alias Flop.Phoenix.Pet
+  alias MyApp.Pet
   alias Phoenix.HTML.Form
 
   describe "form_for/3" do

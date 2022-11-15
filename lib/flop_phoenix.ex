@@ -17,7 +17,7 @@ defmodule Flop.Phoenix do
   The functions have to return the options as a keyword list. The overrides
   are deep-merged into the default options.
 
-      defmodule MyAppWeb.ViewHelpers do
+      defmodule MyAppWeb.CoreComponents do
         import Phoenix.HTML
 
         def pagination_opts do
@@ -59,8 +59,8 @@ defmodule Flop.Phoenix do
 
   ```elixir
   config :flop_phoenix,
-    pagination: [opts: {MyApp.ViewHelpers, :pagination_opts}],
-    table: [opts: {MyApp.ViewHelpers, :table_opts}]
+    pagination: [opts: {MyApp.CoreComponents, :pagination_opts}],
+    table: [opts: {MyApp.CoreComponents, :table_opts}]
   ```
 
   ## Hiding default parameters
@@ -372,7 +372,12 @@ defmodule Flop.Phoenix do
   @doc """
   Renders a cursor pagination element.
 
-  ## Example
+  ## Examples
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={~p"/pets"}
+      />
 
       <Flop.Phoenix.cursor_pagination
         meta={@meta}
@@ -527,11 +532,7 @@ defmodule Flop.Phoenix do
   ## Example
 
   ```elixir
-  <Flop.Phoenix.table
-    items={@pets}
-    meta={@meta}
-    path={{Routes, :pet_path, [@socket, :index]}}
-  >
+  <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
     <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
     <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
   </Flop.Phoenix.table>
@@ -613,7 +614,7 @@ defmodule Flop.Phoenix do
     For example:
 
     ```elixir
-    row_click={&JS.navigate(Routes.show_user_path(@socket, user, &1))}
+    row_click={&JS.navigate(~p"/users/\#{&1}")}
     ```
     Results in:
 
@@ -671,7 +672,7 @@ defmodule Flop.Phoenix do
 
     ```elixir
     <:action :let={user}>
-      <.link navigate={Routes.user_path(@socket, :show, user)}>Show</.link>
+      <.link navigate={~p"/users/\#{user}"}>Show</.link>
     </:action>
     ```
     """ do
@@ -1177,8 +1178,7 @@ defmodule Flop.Phoenix do
 
   - an MFA tuple (module, function name as atom, arguments)
   - a 2-tuple (function, arguments)
-  - a URL string (e.g. `"/some/path"`; this option has been added so that you
-    can use Phoenix verified routes with the library)
+  - a URL string, usually produced with a verified route (e.g. `~p"/some/path"`)
   - a function that takes the Flop parameters as a keyword list as an argument
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
@@ -1189,6 +1189,22 @@ defmodule Flop.Phoenix do
   these options are retrieved from the struct automatically.
 
   ## Examples
+
+  ### With a verified route
+
+  The examples below use plain URL strings without the p-sigil, so that the
+  doc tests work, but in your application, you can use verified routes or
+  anything else that produces a URL.
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets", flop)
+      "/pets?page=2&page_size=10"
+
+  The Flop query parameters will be merged into existing query parameters.
+
+      iex> flop = %Flop{page: 2, page_size: 10}
+      iex> build_path("/pets?species=dogs", flop)
+      "/pets?page=2&page_size=10&species=dogs"
 
   ### With an MFA tuple
 
@@ -1258,23 +1274,6 @@ defmodule Flop.Phoenix do
       ...>   flop
       ...> )
       "https://pets.flop/pets?category=small&user_id=123&order_directions[]=desc&order_by=name"
-
-  ### With a URI string or verified route
-
-  You can also use this function with a verified route. Note that this example
-  uses a plain string which isn't verified, because we need the doctest to work,
-  and `flop_phoenix` does not depend on Phoenix 1.7. In a real application with
-  Phoenix 1.7, you would use the `p` sigil instead (`~p"/pets"`).
-
-      iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets", flop)
-      "/pets?page=2&page_size=10"
-
-  The Flop query parameters will be merged into existing query parameters.
-
-      iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets?species=dogs", flop)
-      "/pets?page=2&page_size=10&species=dogs"
 
   ### Set page as path parameter
 

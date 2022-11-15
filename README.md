@@ -37,26 +37,9 @@ defmodule MyApp.Pets do
 end
 ```
 
-In your controller, pass the data and the Flop meta struct to your template.
+### LiveView
 
-```elixir
-defmodule MyAppWeb.PetController do
-  use MyAppWeb, :controller
-
-  alias MyApp.Pets
-
-  action_fallback MyAppWeb.FallbackController
-
-  def index(conn, params) do
-    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
-      render(conn, "index.html", meta: meta, pets: pets)
-    end
-  end
-end
-```
-
-You can fetch the data similarly in the `handle_params/3` function of a
-`LiveView` or the `update/2` function of a `LiveComponent`.
+Fetch the data and assign it along with the meta data to the socket.
 
 ```elixir
 defmodule MyAppWeb.PetLive.Index do
@@ -71,7 +54,32 @@ defmodule MyAppWeb.PetLive.Index do
         {:noreply, assign(socket, %{pets: pets, meta: meta})}
 
       _ ->
-        {:noreply, push_navigate(socket, to: Routes.pet_index_path(socket, :index))}
+        {:noreply, push_navigate(socket, to: ~p"/pets")}
+    end
+  end
+end
+```
+
+If you don't want the `Flop.Phoenix` components to reflect the pagination,
+sorting and filtering parameters in the URL, you can fetch and assign the data
+in the `c:Phoenix.LiveView.handle_event/3` callback instead. In that case, you
+need to pass the event name as an attribute to the components.
+
+### Controller
+
+For dead views, pass the data and the Flop meta struct to your template in your controller.
+
+```elixir
+defmodule MyAppWeb.PetController do
+  use MyAppWeb, :controller
+
+  alias MyApp.Pets
+
+  action_fallback MyAppWeb.FallbackController
+
+  def index(conn, params) do
+    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
+      render(conn, :index, meta: meta, pets: pets)
     end
   end
 end
@@ -84,51 +92,25 @@ In your template, add a sortable table and pagination links.
 ```elixir
 <h1>Pets</h1>
 
-<Flop.Phoenix.table
-  items={@pets}
-  meta={@meta}
-  path={{Routes, :pet_path, [@socket, :index]}}
->
+<Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
   <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
   <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
 </Flop.Phoenix.table>
 
-<Flop.Phoenix.pagination
-  meta={@meta}
-  path={{Routes, :pet_path, [@socket, :index]}}
-/>
+<Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} />
 ```
 
-`path` should reference the path helper function that builds a path to
-the current page. Add any additional path and query parameters to the argument
-list.
-
-```elixir
-<Flop.Phoenix.pagination
-  meta={@meta}
-  path={{Routes, :pet_path, [@conn, :index, @owner, [hide_menu: true]]}}
-/>
-```
-
-Alternatively, you can pass a URI string, which allows you to use the
-verified routes introduced in Phoenix 1.7.
-
-```elixir
-<Flop.Phoenix.pagination
-  meta={@meta}
-  path={~p"/pets"}
-/>
-```
-
-You can also use a custom path builder function, in case you need to set some
-parameters in the path instead of the query. For more examples, have a look at
-the documentation of `Flop.Phoenix.build_path/3`. The `path` assign can use any
-format that is accepted by `Flop.Phoenix.build_path/3`.
+The `path` attribute points to the current path. `Flop.Phoenix` will add the pagination, filtering and sorting parameters to that path. You can use verified
+routes, route helpers, or custom path builder functions. The different formats
+are explained in the documentation of `Flop.Phoenix.build_path/3`.
 
 If you pass the `for` option when making the query with Flop, Flop Phoenix can
 determine which table columns are sortable. It also hides the `order` and
 `page_size` parameters if they match the default values defined with
 `Flop.Schema`.
+
+Alternatively, you can pass an event name instead of a path. Refer to the
+component documentation for details.
 
 See `Flop.Phoenix.cursor_pagination/1` for instructions to set up cursor-based
 pagination.
@@ -207,7 +189,7 @@ def filter_form(assigns) do
       </div>
 
       <div class="filter-form-reset">
-        <a href="#" class="button" phx_target={@target} phx_click={@reset_event}>
+        <a href="#" class="button" phx-target={@target} phx-click={@reset_event}>
           reset
         </a>
       </div>
@@ -233,21 +215,13 @@ You will need to handle the `update-filter` and `reset-filter` events with the
 ```elixir
 @impl true
 def handle_event("update-filter", %{"filter" => params}, socket) do
-  {:noreply,
-   push_patch(socket, to: Routes.pet_index_path(socket, :index, params))}
+  {:noreply, push_patch(socket, to: ~p"/pets?#{params}")}
 end
 
 @impl true
 def handle_event("reset-filter", _, %{assigns: assigns} = socket) do
   flop = assigns.meta.flop |> Flop.set_page(1) |> Flop.reset_filters()
-
-  path =
-    Flop.Phoenix.build_path(
-      {Routes, :pet_index_path, [socket, :index]},
-      flop,
-      backend: assigns.meta.backend
-    )
-
+  path = Flop.Phoenix.build_path(~p"/pets", flop, backend: assigns.meta.backend)
   {:noreply, push_patch(socket, to: path)}
 end
 ```

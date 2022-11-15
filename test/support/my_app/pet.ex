@@ -1,4 +1,4 @@
-defmodule Flop.Phoenix.Pet do
+defmodule MyApp.Pet do
   @moduledoc """
   Defines an Ecto schema for testing.
   """
