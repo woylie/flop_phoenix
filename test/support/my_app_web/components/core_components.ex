@@ -1,4 +1,4 @@
-defmodule Flop.Phoenix.ViewHelpers do
+defmodule MyAppWeb.CoreComponents do
   @moduledoc """
   Defines opts provider functions reference in the config for tests.
   """
@@ -6,36 +6,7 @@ defmodule Flop.Phoenix.ViewHelpers do
   use Phoenix.Component
 
   import Flop.Phoenix
-  import Phoenix.HTML
   import Phoenix.HTML.Form
-  import Phoenix.LiveViewTest
-
-  def pagination_opts do
-    [pagination_list_attrs: [class: "pagination-links"]]
-  end
-
-  def table_opts do
-    [table_attrs: [class: "sortable-table"]]
-  end
-
-  def form_to_html(meta, opts \\ [], function) do
-    meta
-    |> form_for("/", opts, function)
-    |> safe_to_string()
-    |> Floki.parse_fragment!()
-  end
-
-  def parse_heex(heex) do
-    heex
-    |> rendered_to_string()
-    |> Floki.parse_fragment!()
-  end
-
-  def render_form(assigns) do
-    rest = assigns_to_attributes(assigns, [:meta, :fields])
-    assigns = Map.put(assigns, :rest, rest)
-    parse_heex(~H"<.filter_form meta={@meta} fields={@fields} {@rest} />")
-  end
 
   attr :meta, Flop.Meta, required: true
   attr :fields, :list, required: true
@@ -104,5 +75,13 @@ defmodule Flop.Phoenix.ViewHelpers do
     ~H"""
     <p class="error"><%= @message %></p>
     """
+  end
+
+  def pagination_opts do
+    [pagination_list_attrs: [class: "pagination-links"]]
+  end
+
+  def table_opts do
+    [table_attrs: [class: "sortable-table"]]
   end
 end

@@ -5,11 +5,11 @@ defmodule Flop.PhoenixTest do
 
   import Flop.Phoenix
   import Flop.Phoenix.Factory
-  import Flop.Phoenix.ViewHelpers
+  import Flop.Phoenix.TestHelpers
   import Phoenix.LiveViewTest
 
   alias Flop.Filter
-  alias Flop.Phoenix.Pet
+  alias MyApp.Pet
   alias Phoenix.LiveView.JS
   alias Plug.Conn.Query
 
