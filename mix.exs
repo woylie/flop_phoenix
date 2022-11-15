@@ -58,7 +58,6 @@ defmodule FlopPhoenix.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:phoenix, "~> 1.7.0-rc.0", override: true},
       {:phoenix_live_view, "~> 0.18.0"},
-      {:plug, "~> 1.10"},
       {:stream_data, "~> 0.5", only: [:dev, :test]}
     ]
   end
