@@ -13,8 +13,8 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  tests:
+    runs-on: ubuntu-20.04
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
@@ -53,25 +53,26 @@ jobs:
       - name: Run Tests
         run: mix coveralls.github
 
-  lint:
+  matrix-results:
+    if: ${{ always() }}
     runs-on: ubuntu-latest
-    name: Lint
+    name: Tests
+    needs:
+      - tests
+    steps:
+      - run: |
+          result="${{ needs.tests.result }}"
+          if [[ $result == "success" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
+
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    services:
-      postgres:
-        image: postgres:12-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - uses: actions/checkout@v3
