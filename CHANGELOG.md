@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.17.2] - 2023-01-15
+
+### Changed
+
+- Support Flop 0.19.
+
 ## [0.17.1] - 2022-11-15
 
 ### Added
