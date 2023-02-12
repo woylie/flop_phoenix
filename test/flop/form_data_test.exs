@@ -8,70 +8,52 @@ defmodule Flop.Phoenix.FormDataTest do
 
   alias Flop.Filter
   alias MyApp.Pet
-  alias Phoenix.HTML.Form
 
-  describe "form_for/3" do
+  describe "to_form/2" do
     test "with meta struct" do
       meta = build(:meta_on_first_page, errors: [limit: [{"whatever", nil}]])
-
-      html =
-        form_to_html(meta, fn f ->
-          assert f.data == meta.flop
-          assert f.errors == meta.errors
-          assert f.params == %{}
-          assert f.source == meta
-          ""
-        end)
-
-      assert [{"form", [{"action", "/"}, {"method", "post"}], _}] = html
+      form = to_form(meta)
+      assert form.source == meta
+      assert form.id == "flop"
+      assert form.name == nil
+      assert form.data == meta.flop
+      assert form.hidden == [page_size: meta.flop.page_size]
+      assert form.params == %{}
+      assert form.errors == meta.errors
+      assert form.index == nil
+      assert form.action == nil
     end
 
     test "with :as" do
-      form_to_html(build(:meta_on_first_page), [as: :flop], fn f ->
-        assert f.name == "flop"
-        assert f.id == "flop"
-        ""
-      end)
+      meta = build(:meta_on_first_page)
+      form = to_form(meta, as: :flop)
+      assert form.name == "flop"
+      assert form.id == "flop"
     end
 
     test "with :id" do
       meta = build(:meta_on_first_page)
-      opts = [id: "flip", as: :flop]
-
-      html =
-        form_to_html(meta, opts, fn f ->
-          assert f.name == "flop"
-          assert f.id == "flip"
-          ""
-        end)
-
-      assert [
-               {"form", [{"action", "/"}, {"id", "flip"}, {"method", "post"}],
-                _}
-             ] = html
+      form = to_form(meta, id: "flip", as: :flop)
+      assert form.name == "flop"
+      assert form.id == "flip"
     end
 
     test "with hidden inputs" do
       meta = build(:meta_on_first_page)
-
-      html =
-        form_to_html(meta, fn f ->
-          assert f.hidden == [page_size: meta.flop.page_size]
-          hidden_inputs_for(f)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_page_size")
-      assert Floki.attribute(input, "name") == ["page_size"]
-      assert Floki.attribute(input, "value") == ["#{meta.flop.page_size}"]
+      form = to_form(meta)
+      assert form.hidden == [page_size: meta.flop.page_size]
 
       meta = build(:meta_on_first_page, flop: %Flop{limit: 15, page_size: nil})
-      %Form{hidden: [limit: 15]} = form_for(meta, "/")
+      form = to_form(meta)
+      assert form.hidden == [limit: 15]
 
       meta = build(:meta_on_first_page, flop: %Flop{first: 20})
-      %Form{hidden: [first: 20]} = form_for(meta, "/")
+      form = to_form(meta)
+      assert form.hidden == [first: 20]
 
       meta = build(:meta_on_first_page, flop: %Flop{last: 25})
-      %Form{hidden: [last: 25]} = form_for(meta, "/")
+      form = to_form(meta)
+      assert form.hidden == [last: 25]
     end
 
     test "omits hidden inputs if the value matches default" do
@@ -88,10 +70,8 @@ defmodule Flop.Phoenix.FormDataTest do
           schema: Pet
         )
 
-      form_to_html(meta, fn f ->
-        assert f.hidden == []
-        ""
-      end)
+      form = to_form(meta)
+      assert form.hidden == []
     end
 
     test "with hidden inputs for order" do
@@ -100,40 +80,18 @@ defmodule Flop.Phoenix.FormDataTest do
           flop: %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
         )
 
-      assigns = %{meta: meta}
+      form = to_form(meta)
 
-      html =
-        parse_heex(~H"""
-        <.form :let={f} for={@meta}>
-          <Flop.Phoenix.hidden_inputs_for_filter form={f} />
-        </.form>
-        """)
-
-      assert [input] = Floki.find(html, "input#flop_order_by_0")
-      assert Floki.attribute(input, "name") == ["order_by[]"]
-      assert Floki.attribute(input, "value") == ["name"]
-
-      assert [input] = Floki.find(html, "input#flop_order_by_1")
-      assert Floki.attribute(input, "name") == ["order_by[]"]
-      assert Floki.attribute(input, "value") == ["age"]
-
-      assert [input] = Floki.find(html, "input#flop_order_directions_0")
-      assert Floki.attribute(input, "name") == ["order_directions[]"]
-      assert Floki.attribute(input, "value") == ["desc"]
-
-      assert [input] = Floki.find(html, "input#flop_order_directions_1")
-      assert Floki.attribute(input, "name") == ["order_directions[]"]
-      assert Floki.attribute(input, "value") == ["asc"]
+      assert form.hidden == [
+               order_directions: [:desc, :asc],
+               order_by: [:name, :age]
+             ]
     end
 
     test "with additional hidden inputs" do
       meta = build(:meta_on_first_page)
-      opts = [hidden: [something: "else"]]
-      html = form_to_html(meta, opts, fn f -> hidden_inputs_for(f) end)
-      assert [_] = Floki.find(html, "input#flop_page_size")
-      assert [input] = Floki.find(html, "input#flop_something")
-      assert Floki.attribute(input, "name") == ["something"]
-      assert Floki.attribute(input, "value") == ["else"]
+      form = to_form(meta, hidden: [something: "else"])
+      assert form.hidden == [page_size: 10, something: "else"]
     end
   end
 
