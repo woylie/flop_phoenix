@@ -2216,56 +2216,88 @@ defmodule Flop.PhoenixTest do
     test "renders multiple inputs for the same field", %{
       meta: meta
     } do
+      filters = [
+        %Flop.Filter{field: :age, op: :>=, value: "8"},
+        %Flop.Filter{field: :email, op: :==, value: "some@email"},
+        %Flop.Filter{field: :age, op: :<=, value: "14"}
+      ]
+
+      params = %{
+        "filters" => [
+          %{"field" => "age", "op" => ">=", "value" => "8"},
+          %{"field" => "email", "op" => "==", "value" => "some@email"},
+          %{"field" => "age", "op" => "<=", "value" => "14"}
+        ]
+      }
+
+      meta = %{meta | flop: %{meta.flop | filters: filters}, params: params}
+
       fields = [
-        {:email, [label: "E-mail", type: "text", class: "text-input"]},
         {:age,
-         [
-           label: "Minimum Age",
-           op: ">=",
-           type: "number",
-           class: "number-input"
-         ]},
-        {:email, [label: "Second E-mail", type: "email", class: "email-input"]}
+         label: "Minimum Age", op: :>=, type: "number", class: "number-input"},
+        {:email, label: "E-mail", type: "email", class: "email-input"},
+        {:age,
+         label: "Maximum Age", op: :<=, type: "number", class: "number-input"}
       ]
 
       html = render_form(%{fields: fields, meta: meta})
 
       # labels
       assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "E-mail"
-      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
       assert String.trim(Floki.text(label)) == "Minimum Age"
+      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
+      assert String.trim(Floki.text(label)) == "E-mail"
       assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert String.trim(Floki.text(label)) == "Second E-mail"
+      assert String.trim(Floki.text(label)) == "Maximum Age"
 
       # field inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
       assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
+      assert Floki.attribute(input, "value") == ["age"]
       assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
       assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
+      assert Floki.attribute(input, "value") == ["email"]
       assert [input] = Floki.find(html, "input[id='flop_filters_2_field']")
       assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
+      assert Floki.attribute(input, "value") == ["age"]
 
       # value inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
       assert Floki.attribute(input, "type") == ["number"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
+      assert Floki.attribute(input, "value") == ["8"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
       assert Floki.attribute(input, "type") == ["email"]
+      assert Floki.attribute(input, "value") == ["some@email"]
+      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
+      assert Floki.attribute(input, "type") == ["number"]
+      assert Floki.attribute(input, "value") == ["14"]
     end
 
     test "renders multiple inputs for the same field with omitted opts", %{
       meta: meta
     } do
+      filters = [
+        %Flop.Filter{field: :email, op: :==, value: "first@email"},
+        %Flop.Filter{field: :age, op: :>=, value: "8"},
+        %Flop.Filter{field: :email, op: :!=, value: "second@email"}
+      ]
+
+      params = %{
+        "filters" => [
+          %{"field" => "email", "value" => "first@email"},
+          %{"field" => "age", "op" => ">=", "value" => "8"},
+          %{"field" => "email", "op" => "!=", "value" => "second@email"}
+        ]
+      }
+
+      meta = %{meta | flop: %{meta.flop | filters: filters}, params: params}
+
       fields = [
         :email,
         {:age,
-         label: "Minimum Age", op: ">=", type: "number", class: "number-input"},
-        {:email, label: "Second E-mail", type: "email", class: "email-input"}
+         label: "Minimum Age", op: :>=, type: "number", class: "number-input"},
+        {:email,
+         label: "Second E-mail", op: :!=, type: "email", class: "email-input"}
       ]
 
       html = render_form(%{fields: fields, meta: meta})
@@ -2292,10 +2324,13 @@ defmodule Flop.PhoenixTest do
       # value inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
       assert Floki.attribute(input, "type") == ["text"]
+      assert Floki.attribute(input, "value") == ["first@email"]
       assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
       assert Floki.attribute(input, "type") == ["number"]
+      assert Floki.attribute(input, "value") == ["8"]
       assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
       assert Floki.attribute(input, "type") == ["email"]
+      assert Floki.attribute(input, "value") == ["second@email"]
     end
 
     @tag capture_log: true
