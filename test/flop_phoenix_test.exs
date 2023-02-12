@@ -2261,6 +2261,14 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "type") == ["hidden"]
       assert Floki.attribute(input, "value") == ["age"]
 
+      # op inputs
+      assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == [">="]
+      assert [input] = Floki.find(html, "input[id='flop_filters_2_op']")
+      assert Floki.attribute(input, "type") == ["hidden"]
+      assert Floki.attribute(input, "value") == ["<="]
+
       # value inputs
       assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
       assert Floki.attribute(input, "type") == ["number"]
