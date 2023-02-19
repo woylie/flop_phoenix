@@ -1,0 +1,5 @@
+.elixir_ls
+_build
+cover
+deps
+doc
