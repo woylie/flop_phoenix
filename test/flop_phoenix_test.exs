@@ -10,6 +10,7 @@ defmodule Flop.PhoenixTest do
 
   alias Flop.Filter
   alias MyApp.Pet
+  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Plug.Conn.Query
 
@@ -2125,9 +2126,12 @@ defmodule Flop.PhoenixTest do
 
   describe "hidden_inputs_for_filter/1" do
     test "generates hidden fields from the given form" do
-      form = %{form_for(:form, "/") | hidden: [id: 1]}
-      assigns = %{form: form}
-      html = parse_heex(~H"<.hidden_inputs_for_filter form={@form} />")
+      form = %{Phoenix.Component.to_form(%{}, as: :form) | hidden: [id: 1]}
+
+      html =
+        (&Flop.Phoenix.hidden_inputs_for_filter/1)
+        |> render_component(form: form)
+        |> Floki.parse_fragment!()
 
       assert [input] = Floki.find(html, "input")
       assert Floki.attribute(input, "type") == ["hidden"]
@@ -2137,9 +2141,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "generates hidden fields for lists from the given form" do
-      form = %{form_for(:a, "/") | hidden: [field: ["a", "b", "c"]]}
-      assigns = %{form: form}
-      html = parse_heex(~H"<.hidden_inputs_for_filter form={@form} />")
+      form = %{
+        Phoenix.Component.to_form(%{}, as: :a)
+        | hidden: [field: ["a", "b", "c"]]
+      }
+
+      html =
+        (&Flop.Phoenix.hidden_inputs_for_filter/1)
+        |> render_component(form: form)
+        |> Floki.parse_fragment!()
 
       assert [input_1, input_2, input_3] = Floki.find(html, "input")
 
@@ -2458,14 +2468,14 @@ defmodule Flop.PhoenixTest do
       meta: meta
     } do
       html =
-        form_to_html(meta, fn f ->
+        meta
+        |> Form.form_for("/", fn f ->
           inputs_for(f, :filters, [fields: fields, offset: 5], fn fo ->
-            render_component(&hidden_inputs_for_filter/1,
-              __changed__: %{},
-              form: fo
-            )
+            render_component(&hidden_inputs_for_filter/1, form: fo)
           end)
         end)
+        |> safe_to_string()
+        |> Floki.parse_fragment!()
 
       # hidden fields
       assert [_] = Floki.find(html, "input[id='flop_filters_5_field']")
@@ -2476,13 +2486,9 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "input[id='flop_filters_6_op']")
     end
 
-    test "raises error if the form is not a form for meta", %{meta: meta} do
+    test "raises error if the form is not a form for meta" do
       assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [fields: [:email]], fn fo ->
-            render_component(&filter_fields/1, __changed__: %{}, form: fo)
-          end)
-        end)
+        render_component(&filter_fields/1, form: to_form(%{}))
       end
     end
   end
