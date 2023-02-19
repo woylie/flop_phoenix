@@ -11,6 +11,7 @@
 - `Phoenix.HTML.FormData.input_type/2` now considers the Ecto type for join,
   custom and compound fields.
 - Remove support for `path_helper` assigns, previously deprecated in 0.15.
+- Deprecate `Flop.Phoenix.pop_filter/2`.
 
 ### How to upgrade
 
