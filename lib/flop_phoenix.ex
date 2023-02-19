@@ -759,31 +759,33 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-      <.form :let={f} for={@meta}>
-        <.filter_fields :let={i} form={f} fields={[:email, :name]}>
-          <.input
-            id={i.id}
-            name={i.name}
-            label={i.label}
-            type={i.type}
-            value={i.value}
-            field={{i.form, i.field}}
-            {i.rest}
-          />
-        </.filter_fields>
-      </.form>
+      def filter_form(%{meta: meta} = assigns) do
+        assigns = assign(assigns, :form, Phoenix.Component.to_form(meta))
+
+        ~H\"""
+        <.form for={@form}>
+          <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
+            <.input
+              field={i.field}
+              label={i.label}
+              type={i.type}
+              {i.rest}
+            />
+          </.filter_fields>
+        </.form>
+        \"""
+      end
 
   This assumes that you have defined an `input` component that renders a form
   input including the label.
 
-  Most options passed to the inner block should be self-explaining.
+  These options are passed to the inner block via `:let`:
 
+  - The `field` is a `Phoenix.HTML.FormField.t` struct.
   - The `type` is the input type as a string, _not_ the name of the
     `Phoenix.HTML.Form` input function (e.g. `"text"`, not `:text_input`). The
     type is derived from the type of the field being filtered on, but it can
     be overridden in the field options.
-  - The `field` is a `Phoenix.HTML.Form.t` / field name tuple
-    (e.g. `{f, :name}`).
   - `rest` contains any additional field options passed.
 
   ## Field configuration
@@ -799,7 +801,7 @@ defmodule Flop.Phoenix do
         email: [
           label: gettext("Email"),
           op: :ilike_and,
-          type: "email_input"
+          type: "email"
         ],
         age: [
           label: gettext("Age"),
@@ -814,9 +816,10 @@ defmodule Flop.Phoenix do
 
   Available options:
 
-  - `label`
-  - `op`
-  - `type`
+  - `label` - Defaults to the humanized field name.
+  - `op` - Defaults to `:==`.
+  - `type` - Defaults to an input type depending on the Ecto type of the filter
+    field.
 
   Any additional options will be passed to the input component (e.g. HTML
   classes or a list of options).
@@ -859,29 +862,21 @@ defmodule Flop.Phoenix do
     inner block, which allows you to render the fields with your existing
     components.
 
-        <.filter_fields :let={i} form={f} fields={[:email, :name]}>
-          <.label for={i.id}><%= i.label %></.label>
+        <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
           <.input
-            id={i.id}
-            name={i.name}
+            field={i.field}
             label={i.label}
             type={i.type}
-            value={i.value}
-            field={{i.form, i.field}}
             {i.rest}
           />
         </.filter_fields>
 
     The options passed to the inner block are:
 
-    - `id` - The input ID.
-    - `name` - The input name.
-    - `label` - The label text as a string.
+    - `field` - A `Phoenix.HTML.FormField` struct.
     - `type` - The input type as a string. This is _not_ the value returned
       by `Phoenix.HTML.Form.input_type/2`.
-    - `value` - The input value.
-    - `form` - The `%Phoenix.HTML.Form{}` struct.
-    - `field` - The field name as an atom.
+    - `label` - The label text as a string.
     - `rest` - Any additional options passed in the field options.
     """
 
@@ -901,13 +896,9 @@ defmodule Flop.Phoenix do
     <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
       <.hidden_inputs_for_filter form={ff} />
       <%= render_slot(@inner_block, %{
-        id: Phoenix.HTML.Form.input_id(ff, :value),
-        name: Phoenix.HTML.Form.input_name(ff, :value),
+        field: ff[:value],
         label: input_label(ff, opts[:label]),
         type: type_for(ff, opts[:type]),
-        value: Phoenix.HTML.Form.input_value(ff, :value),
-        form: ff,
-        field: :value,
         rest: Keyword.drop(opts, [:label, :op, :type])
       }) %>
     <% end %>
@@ -998,20 +989,22 @@ defmodule Flop.Phoenix do
 
     Example:
 
-        <.form :let={f} for={@meta}>
-          <.filter_fields :let={i} form={f} fields={[:email, :name]}>
-            <.label for={i.id}><%= i.label %></.label>
-            <.input
-              id={i.id}
-              name={i.name}
-              label={i.label}
-              type={i.type}
-              value={i.value}
-              field={{i.form, i.field}}
-              {i.rest}
-            />
-          </.filter_fields>
-        </.form>
+        def filter_form(%{meta: meta} = assigns) do
+          assigns = assign(assigns, :form, Phoenix.Component.to_form(meta))
+
+          ~H\"""
+          <.form for={@form}>
+            <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
+              <.input
+                field={i.field}
+                label={i.label}
+                type={i.type}
+                {i.rest}
+              />
+            </.filter_fields>
+          </.form>
+          \"""
+        end
     """
   end
 
