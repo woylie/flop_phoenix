@@ -327,8 +327,6 @@ defmodule Flop.Phoenix do
     want the parameters to appear in the URL.
     """
 
-  attr :path_helper, :any, default: nil, doc: "Deprecated. Use `:path` instead."
-
   attr :event, :string,
     default: nil,
     doc: """
@@ -459,10 +457,6 @@ defmodule Flop.Phoenix do
     want the parameters to appear in the URL.
     """
 
-  attr :path_helper, :any,
-    default: nil,
-    doc: "Deprecated. Use `:path` instead."
-
   attr :event, :string,
     default: nil,
     doc: """
@@ -570,12 +564,6 @@ defmodule Flop.Phoenix do
     LiveView, the parameters will have to be handled in the `handle_params/3`
     callback of the LiveView module. Alternatively, set `:event`, if you don't
     want the parameters to appear in the URL.
-    """
-
-  attr :path_helper, :any,
-    default: nil,
-    doc: """
-    Deprecated. Use `:path` instead.
     """
 
   attr :event, :string,

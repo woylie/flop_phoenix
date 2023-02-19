@@ -86,7 +86,7 @@ defmodule Flop.Phoenix.Table do
     assigns =
       assigns
       |> assign(:opts, merge_opts(assigns[:opts] || []))
-      |> assign(:path, assigns[:path] || assigns[:path_helper])
+      |> assign(:path, assigns[:path])
 
     Misc.validate_path_or_event!(assigns, @path_event_error_msg)
     assigns
