@@ -6,27 +6,18 @@ defmodule MyAppWeb.CoreComponents do
   use Phoenix.Component
 
   import Flop.Phoenix
-  import Phoenix.HTML.Form
 
   attr :meta, Flop.Meta, required: true
   attr :fields, :list, required: true
+  attr :rest, :global
 
-  def filter_form(assigns) do
-    rest = assigns_to_attributes(assigns, [:meta, :fields])
-    assigns = assign(assigns, :rest, rest)
+  def filter_form(%{meta: meta} = assigns) do
+    assigns = assign(assigns, :form, to_form(meta))
 
     ~H"""
-    <.form :let={f} for={@meta}>
-      <.filter_fields :let={i} form={f} fields={@fields} {@rest}>
-        <.input
-          id={i.id}
-          name={i.name}
-          label={i.label}
-          type={i.type}
-          value={i.value}
-          field={{i.form, i.field}}
-          {i.rest}
-        />
+    <.form for={@form}>
+      <.filter_fields :let={i} form={@form} fields={@fields} {@rest}>
+        <.input field={i.field} label={i.label} type={i.type} {i.rest} />
       </.filter_fields>
     </.form>
     """
@@ -35,35 +26,54 @@ defmodule MyAppWeb.CoreComponents do
   @doc """
   Input component derived from Phoenix.
   """
-  attr :id, :any
+  attr :id, :any, default: nil
   attr :name, :any
   attr :label, :string, default: nil
-  attr :type, :string, default: "text"
   attr :value, :any
-  attr :field, :any, doc: "e.g. {f, :email}"
-  attr :errors, :list
-  attr :rest, :global
+
+  attr :type, :string,
+    default: "text",
+    values: ~w(checkbox color date datetime-local email file hidden month number
+      password range radio search select tel text textarea time url week)
+
+  attr :field, Phoenix.HTML.FormField
+
+  attr :errors, :list, default: []
+  attr :checked, :boolean
+  attr :prompt, :string, default: nil
+
+  attr :options, :list
+
+  attr :multiple, :boolean, default: false
+
+  attr :rest, :global,
+    include: ~w(autocomplete cols disabled form max maxlength min minlength
+           pattern placeholder readonly required rows size step)
+
   slot :inner_block
 
-  slot :option, doc: "select input options" do
-    attr :value, :any
-  end
-
-  def input(%{field: {f, field}} = assigns) do
+  def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
-    |> assign(field: nil)
-    |> assign_new(:name, fn -> input_name(f, field) end)
-    |> assign_new(:id, fn -> input_id(f, field) end)
-    |> assign_new(:value, fn -> input_value(f, field) end)
-    |> assign(:errors, f.errors)
+    |> assign(field: nil, id: assigns.id || field.id)
+    |> assign(:errors, field.errors)
+    |> assign_new(:name, fn ->
+      if assigns.multiple, do: field.name <> "[]", else: field.name
+    end)
+    |> assign_new(:value, fn -> field.value end)
     |> input()
   end
 
-  def input(assigns) do
+  def input(%{field: nil} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
       <label for={@id}><%= @label %></label>
-      <input type={@type} name={@name} id={@id} value={@value} {@rest} />
+      <input
+        type={@type}
+        name={@name}
+        id={@id || @name}
+        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        {@rest}
+      />
       <.error :for={msg <- @errors} message={msg} />
     </div>
     """

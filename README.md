@@ -123,19 +123,26 @@ easiest way to render a filter form is to use the `Flop.Phoenix.filter_fields/1`
 component:
 
 ```elixir
-<.form :let={f} for={@meta}>
-  <.filter_fields :let={i} form={f} fields={[:email, :name]}>
-    <.input
-      id={i.id}
-      name={i.name}
-      label={i.label}
-      type={i.type}
-      value={i.value}
-      field={{i.form, i.field}}
-      {i.rest}
-    />
-  </.filter_fields>
-</.form>
+def filter_form(%{meta: meta} = assigns) do
+  assigns = assign(assigns, :form, Phoenix.Component.to_form(meta))
+
+  ~H"""
+  <.form for={@form}>
+    <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
+      <.input
+        field={i.field}
+        label={i.label}
+        type={i.type}
+        {i.rest}
+      />
+    </.filter_fields>
+
+    <a href="#" class="button" phx-target={@target} phx-click={@reset_event}>
+      reset
+    </a>
+  </.form>
+  """
+end
 ```
 
 The `filter_fields` component renders all necessary hidden inputs, but it does
@@ -145,59 +152,6 @@ inputs with your custom input component.
 
 You can pass additional options for each field. Refer to the
 `Flop.Phoenix.filter_fields/1` documentation for details.
-
-### Custom filter form component
-
-It is recommended to define a custom `filter_form` component that wraps
-`Flop.Phoenix.filter_fields/1`, so that you can apply the same markup
-throughout your live views.
-
-```elixir
-attr :meta, Flop.Meta, required: true
-attr :fields, :list, required: true
-attr :id, :string, default: nil
-attr :change_event, :string, default: "update-filter"
-attr :reset_event, :string, default: "reset-filter"
-attr :target, :string, default: nil
-attr :debounce, :integer, default: 100
-
-def filter_form(assigns) do
-  ~H"""
-  <div class="filter-form">
-    <.form
-      :let={f}
-      for={@meta}
-      as={:filter}
-      id={@id}
-      phx-target={@target}
-      phx-change={@change_event}
-    >
-      <div class="filter-form-inputs">
-        <Flop.Phoenix.filter_fields :let={i} form={f} fields={@fields}>
-          <.input
-            id={i.id}
-            name={i.name}
-            label={i.label}
-            type={i.type}
-            value={i.value}
-            field={{i.form, i.field}}
-            hide_labels={true}
-            phx-debounce={@debounce}
-            {i.rest}
-          />
-        </Flop.Phoenix.filter_fields>
-      </div>
-
-      <div class="filter-form-reset">
-        <a href="#" class="button" phx-target={@target} phx-click={@reset_event}>
-          reset
-        </a>
-      </div>
-    </.form>
-  </div>
-  """
-end
-```
 
 Now you can render a filter form like this:
 
