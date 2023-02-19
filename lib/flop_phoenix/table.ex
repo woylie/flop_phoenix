@@ -2,9 +2,9 @@ defmodule Flop.Phoenix.Table do
   @moduledoc false
 
   use Phoenix.Component
-  use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
+  alias Phoenix.HTML
   alias Phoenix.LiveView.JS
 
   require Logger
@@ -63,7 +63,7 @@ defmodule Flop.Phoenix.Table do
     [
       container: false,
       container_attrs: [class: "table-container"],
-      no_results_content: content_tag(:p, do: "No results."),
+      no_results_content: HTML.Tag.content_tag(:p, do: "No results."),
       symbol_asc: "▴",
       symbol_attrs: [class: "order-direction"],
       symbol_desc: "▾",
@@ -268,9 +268,9 @@ defmodule Flop.Phoenix.Table do
 
   defp sort_link(assigns) do
     ~H"""
-    <%= link sort_link_attrs(@field, @event, @target) do %>
+    <.link {sort_link_attrs(@field, @event, @target)}>
       <%= @label %>
-    <% end %>
+    </.link>
     """
   end
 

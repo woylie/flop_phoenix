@@ -2,7 +2,6 @@ defmodule Flop.Phoenix.CursorPagination do
   @moduledoc false
 
   use Phoenix.Component
-  use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
 
@@ -105,9 +104,9 @@ defmodule Flop.Phoenix.CursorPagination do
     ~H"""
     <%= if show_link?(@meta, @direction) do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @target, @direction) do %>
+        <.link {add_phx_attrs(@attrs, @event, @target, @direction)}>
           <%= @content %>
-        <% end %>
+        </.link>
       <% else %>
         <.link patch={pagination_path(@direction, @path, @meta)} {@attrs}>
           <%= @content %>
