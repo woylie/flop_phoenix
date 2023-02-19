@@ -355,15 +355,14 @@ defmodule Flop.Phoenix do
     assigns = Pagination.init_assigns(assigns)
 
     ~H"""
-    <%= if @meta.total_pages > 1 do %>
-      <Pagination.render
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
-        target={@target}
-      />
-    <% end %>
+    <Pagination.render
+      :if={@meta.total_pages > 1}
+      event={@event}
+      meta={@meta}
+      opts={@opts}
+      page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
+      target={@target}
+    />
     """
   end
 
@@ -493,30 +492,28 @@ defmodule Flop.Phoenix do
     assigns = CursorPagination.init_assigns(assigns)
 
     ~H"""
-    <%= unless @meta.errors != [] do %>
-      <nav {@opts[:wrapper_attrs]}>
-        <CursorPagination.render_link
-          attrs={@opts[:previous_link_attrs]}
-          content={@opts[:previous_link_content]}
-          direction={if @reverse, do: :next, else: :previous}
-          event={@event}
-          meta={@meta}
-          path={@path}
-          opts={@opts}
-          target={@target}
-        />
-        <CursorPagination.render_link
-          attrs={@opts[:next_link_attrs]}
-          content={@opts[:next_link_content]}
-          direction={if @reverse, do: :previous, else: :next}
-          event={@event}
-          meta={@meta}
-          path={@path}
-          opts={@opts}
-          target={@target}
-        />
-      </nav>
-    <% end %>
+    <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
+      <CursorPagination.render_link
+        attrs={@opts[:previous_link_attrs]}
+        content={@opts[:previous_link_content]}
+        direction={if @reverse, do: :next, else: :previous}
+        event={@event}
+        meta={@meta}
+        path={@path}
+        opts={@opts}
+        target={@target}
+      />
+      <CursorPagination.render_link
+        attrs={@opts[:next_link_attrs]}
+        content={@opts[:next_link_content]}
+        direction={if @reverse, do: :previous, else: :next}
+        event={@event}
+        meta={@meta}
+        path={@path}
+        opts={@opts}
+        target={@target}
+      />
+    </nav>
     """
   end
 
@@ -1050,14 +1047,13 @@ defmodule Flop.Phoenix do
   defp hidden_inputs(%{field: _, value: value} = assigns)
        when is_list(value) do
     ~H"""
-    <%= for {v, index} <- Enum.with_index(@value) do %>
-      <input
-        type="hidden"
-        id={input_id(@form, @field) <> "_#{index}"}
-        name={input_name(@form, @field) <> "[]"}
-        value={v}
-      />
-    <% end %>
+    <input
+      :for={{v, index} <- Enum.with_index(@value)}
+      type="hidden"
+      id={input_id(@form, @field) <> "_#{index}"}
+      name={input_name(@form, @field) <> "[]"}
+      value={v}
+    />
     """
   end
 

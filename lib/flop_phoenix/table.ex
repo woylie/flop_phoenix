@@ -113,72 +113,67 @@ defmodule Flop.Phoenix.Table do
   def render(assigns) do
     ~H"""
     <table {@opts[:table_attrs]}>
-      <%= if @caption do %>
-        <caption><%= @caption %></caption>
-      <% end %>
-      <%= if Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style]) do %>
-        <colgroup>
-          <%= for col <- @col do %>
-            <col :if={show_column?(col)} style={col[:col_style]} />
-          <% end %>
-          <%= for action <- @action do %>
-            <col :if={show_column?(action)} style={action[:col_style]} />
-          <% end %>
-        </colgroup>
-      <% end %>
+      <caption :if={@caption}><%= @caption %></caption>
+      <colgroup :if={
+        Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style])
+      }>
+        <%= for col <- @col do %>
+          <col :if={show_column?(col)} style={col[:col_style]} />
+        <% end %>
+        <%= for action <- @action do %>
+          <col :if={show_column?(action)} style={action[:col_style]} />
+        <% end %>
+      </colgroup>
       <thead>
         <tr {@opts[:thead_tr_attrs]}>
           <%= for col <- @col do %>
-            <%= if show_column?(col) do %>
-              <.header_column
-                event={@event}
-                field={col[:field]}
-                label={col[:label]}
-                meta={@meta}
-                opts={@opts}
-                path={@path}
-                target={@target}
-              />
-            <% end %>
+            <.header_column
+              :if={show_column?(col)}
+              event={@event}
+              field={col[:field]}
+              label={col[:label]}
+              meta={@meta}
+              opts={@opts}
+              path={@path}
+              target={@target}
+            />
           <% end %>
           <%= for action <- @action do %>
-            <%= if show_column?(action) do %>
-              <.header_column
-                event={@event}
-                field={nil}
-                label={action[:label]}
-                meta={@meta}
-                opts={@opts}
-                path={nil}
-                target={@event}
-              />
-            <% end %>
+            <.header_column
+              :if={show_column?(action)}
+              event={@event}
+              field={nil}
+              label={action[:label]}
+              meta={@meta}
+              opts={@opts}
+              path={nil}
+              target={@event}
+            />
           <% end %>
         </tr>
       </thead>
       <tbody {@opts[:tbody_attrs]}>
         <tr :for={item <- @items} {@opts[:tbody_tr_attrs]}>
           <%= for col <- @col do %>
-            <%= if show_column?(col) do %>
-              <td
-                {@opts[:tbody_td_attrs]}
-                {Map.get(col, :attrs, [])}
-                phx-click={@row_click && @row_click.(item)}
-              >
-                <%= render_slot(col, item) %>
-              </td>
-            <% end %>
-          <% end %>
-          <%= for action <- @action do %>
-            <td {@opts[:tbody_td_attrs]} {Map.get(action, :attrs, [])}>
-              <%= render_slot(action, item) %>
+            <td
+              :if={show_column?(col)}
+              {@opts[:tbody_td_attrs]}
+              {Map.get(col, :attrs, [])}
+              phx-click={@row_click && @row_click.(item)}
+            >
+              <%= render_slot(col, item) %>
             </td>
           <% end %>
+          <td
+            :for={action <- @action}
+            {@opts[:tbody_td_attrs]}
+            {Map.get(action, :attrs, [])}
+          >
+            <%= render_slot(action, item) %>
+          </td>
         </tr>
       </tbody>
-      <%= if @foot && @foot != [] do %>
-        <tfoot><%= render_slot(@foot) %></tfoot>
-      <% end %>
+      <tfoot :if={@foot != []}><%= render_slot(@foot) %></tfoot>
     </table>
     """
   end

@@ -112,35 +112,33 @@ defmodule Flop.Phoenix.Pagination do
 
   def render(assigns) do
     ~H"""
-    <%= unless @meta.errors != [] do %>
-      <nav {@opts[:wrapper_attrs]}>
-        <.previous_link
-          attrs={@opts[:previous_link_attrs]}
-          content={@opts[:previous_link_content]}
-          event={@event}
-          meta={@meta}
-          page_link_helper={@page_link_helper}
-          opts={@opts}
-          target={@target}
-        />
-        <.next_link
-          attrs={@opts[:next_link_attrs]}
-          content={@opts[:next_link_content]}
-          event={@event}
-          meta={@meta}
-          page_link_helper={@page_link_helper}
-          opts={@opts}
-          target={@target}
-        />
-        <.page_links
-          event={@event}
-          meta={@meta}
-          page_link_helper={@page_link_helper}
-          opts={@opts}
-          target={@target}
-        />
-      </nav>
-    <% end %>
+    <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
+      <.previous_link
+        attrs={@opts[:previous_link_attrs]}
+        content={@opts[:previous_link_content]}
+        event={@event}
+        meta={@meta}
+        page_link_helper={@page_link_helper}
+        opts={@opts}
+        target={@target}
+      />
+      <.next_link
+        attrs={@opts[:next_link_attrs]}
+        content={@opts[:next_link_content]}
+        event={@event}
+        meta={@meta}
+        page_link_helper={@page_link_helper}
+        opts={@opts}
+        target={@target}
+      />
+      <.page_links
+        event={@event}
+        meta={@meta}
+        page_link_helper={@page_link_helper}
+        opts={@opts}
+        target={@target}
+      />
+    </nav>
     """
   end
 
@@ -215,22 +213,21 @@ defmodule Flop.Phoenix.Pagination do
       )
 
     ~H"""
-    <%= unless @opts[:page_links] == :hide do %>
-      <.render_page_links
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        range={
-          get_page_link_range(
-            @meta.current_page,
-            @max_pages,
-            @meta.total_pages
-          )
-        }
-        target={@target}
-      />
-    <% end %>
+    <.render_page_links
+      :if={@opts[:page_links] != :hide}
+      event={@event}
+      meta={@meta}
+      page_link_helper={@page_link_helper}
+      opts={@opts}
+      range={
+        get_page_link_range(
+          @meta.current_page,
+          @max_pages,
+          @meta.total_pages
+        )
+      }
+      target={@target}
+    />
     """
   end
 
@@ -246,52 +243,47 @@ defmodule Flop.Phoenix.Pagination do
 
     ~H"""
     <ul {@opts[:pagination_list_attrs]}>
-      <%= if @first > 1 do %>
-        <.page_link_tag
-          event={@event}
-          meta={@meta}
-          opts={@opts}
-          page={1}
-          page_link_helper={@page_link_helper}
-          target={@target}
-        />
-      <% end %>
+      <.page_link_tag
+        :if={@first > 1}
+        event={@event}
+        meta={@meta}
+        opts={@opts}
+        page={1}
+        page_link_helper={@page_link_helper}
+        target={@target}
+      />
 
-      <%= if @first > 2 do %>
-        <.pagination_ellipsis
-          attrs={@opts[:ellipsis_attrs]}
-          content={@opts[:ellipsis_content]}
-        />
-      <% end %>
+      <.pagination_ellipsis
+        :if={@first > 2}
+        attrs={@opts[:ellipsis_attrs]}
+        content={@opts[:ellipsis_content]}
+      />
 
-      <%= for page <- @range do %>
-        <.page_link_tag
-          event={@event}
-          meta={@meta}
-          opts={@opts}
-          page={page}
-          page_link_helper={@page_link_helper}
-          target={@target}
-        />
-      <% end %>
+      <.page_link_tag
+        :for={page <- @range}
+        event={@event}
+        meta={@meta}
+        opts={@opts}
+        page={page}
+        page_link_helper={@page_link_helper}
+        target={@target}
+      />
 
-      <%= if @last < @meta.total_pages - 1 do %>
-        <.pagination_ellipsis
-          attrs={@opts[:ellipsis_attrs]}
-          content={@opts[:ellipsis_content]}
-        />
-      <% end %>
+      <.pagination_ellipsis
+        :if={@last < @meta.total_pages - 1}
+        attrs={@opts[:ellipsis_attrs]}
+        content={@opts[:ellipsis_content]}
+      />
 
-      <%= if @last < @meta.total_pages do %>
-        <.page_link_tag
-          event={@event}
-          meta={@meta}
-          opts={@opts}
-          page={@meta.total_pages}
-          page_link_helper={@page_link_helper}
-          target={@target}
-        />
-      <% end %>
+      <.page_link_tag
+        :if={@last < @meta.total_pages}
+        event={@event}
+        meta={@meta}
+        opts={@opts}
+        page={@meta.total_pages}
+        page_link_helper={@page_link_helper}
+        target={@target}
+      />
     </ul>
     """
   end
