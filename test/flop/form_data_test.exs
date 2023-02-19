@@ -538,7 +538,7 @@ defmodule Flop.Phoenix.FormDataTest do
       assert input_type(filter_form, :value) == :text_input
     end
 
-    test "returns input type depending on schema field type" do
+    test "returns input type depending on schema/flop field type" do
       mapping = [
         integer: :number_input,
         float: :text_input,
@@ -551,7 +551,11 @@ defmodule Flop.Phoenix.FormDataTest do
         naive_datetime: :datetime_select,
         naive_datetime_usec: :datetime_select,
         utc_datetime: :datetime_select,
-        utc_datetime_usec: :datetime_select
+        utc_datetime_usec: :datetime_select,
+        compound: :text_input,
+        join_default: :text_input,
+        join_integer: :number_input,
+        custom_date: :date_select
       ]
 
       filters = mapping |> Keyword.keys() |> Enum.map(&%Filter{field: &1})
@@ -590,9 +594,24 @@ defmodule Flop.Phoenix.FormDataTest do
         :naive_datetime,
         :naive_datetime_usec,
         :utc_datetime,
-        :utc_datetime_usec
+        :utc_datetime_usec,
+        :compound,
+        :join_default,
+        :join_integer,
+        :custom_date
       ],
-      sortable: []
+      sortable: [],
+      compound_fields: [compound: [:string, :string2]],
+      join_fields: [
+        join_default: [binding: :pets, field: :species],
+        join_integer: [binding: :pets, field: :species, ecto_type: :integer]
+      ],
+      custom_fields: [
+        custom_date: [
+          filter: {CustomFilters, :date_filter, []},
+          ecto_type: :date
+        ]
+      ]
     }
 
     schema "test_schema" do
@@ -600,6 +619,7 @@ defmodule Flop.Phoenix.FormDataTest do
       field(:float, :float)
       field(:boolean, :boolean)
       field(:string, :string)
+      field(:string2, :string)
       field(:decimal_field, :decimal)
       field(:date, :date)
       field(:time, :time)
