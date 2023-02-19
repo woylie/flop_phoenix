@@ -203,7 +203,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         :value
       )
       when not is_nil(schema) do
-    :type |> schema.__schema__(field) |> input_type_for_ecto_type()
+    schema |> ecto_type(field) |> input_type_for_ecto_type()
   end
 
   def input_type(_meta, _form, _field), do: :text_input
@@ -271,6 +271,16 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     case map do
       %{^string_key => value} -> value
       %{} -> Map.get(map, key, default)
+    end
+  end
+
+  defp ecto_type(module, field) do
+    case module |> struct() |> Flop.Schema.field_type(field) do
+      {:normal, _} -> module.__schema__(:type, field)
+      {:join, %{ecto_type: type}} -> type
+      {:custom, %{ecto_type: type}} -> type
+      {:compound, _} -> :string
+      _ -> :string
     end
   end
 end

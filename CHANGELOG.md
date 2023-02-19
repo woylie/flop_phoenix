@@ -6,6 +6,8 @@
 
 - Support `:as` option for filter inputs with `Phoenix.HTML.FormData/4`
   (`inputs_for`).
+- `Phoenix.HTML.FormData.input_type/2` now considers the Ecto type for join,
+  custom and compound fields.
 
 ## [0.17.2] - 2023-01-15
 
