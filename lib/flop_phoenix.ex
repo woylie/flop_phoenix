@@ -124,8 +124,7 @@ defmodule Flop.Phoenix do
       input_id: 2,
       input_name: 2,
       input_type: 2,
-      input_value: 2,
-      inputs_for: 3
+      input_value: 2
     ]
 
   alias Flop.Meta
@@ -891,8 +890,8 @@ defmodule Flop.Phoenix do
   end
 
   defp inputs_for_filters(form, fields, field_opts) do
-    form
-    |> inputs_for(:filters, fields: fields)
+    form.source
+    |> form.impl.to_form(form, :filters, fields: fields)
     |> Enum.zip(field_opts)
   end
 
@@ -1034,9 +1033,12 @@ defmodule Flop.Phoenix do
 
   def hidden_inputs_for_filter(assigns) do
     ~H"""
-    <%= for {field, value} <- @form.hidden do %>
-      <.hidden_inputs form={@form} field={field} value={value} />
-    <% end %>
+    <.hidden_inputs
+      :for={{field, value} <- @form.hidden}
+      form={@form}
+      field={field}
+      value={value}
+    />
     """
   end
 
@@ -1044,8 +1046,7 @@ defmodule Flop.Phoenix do
   attr :field, :atom, required: true
   attr :value, :any, required: true
 
-  defp hidden_inputs(%{field: _, value: value} = assigns)
-       when is_list(value) do
+  defp hidden_inputs(%{value: value} = assigns) when is_list(value) do
     ~H"""
     <input
       :for={{v, index} <- Enum.with_index(@value)}
