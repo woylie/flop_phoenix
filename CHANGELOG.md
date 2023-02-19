@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Support `:as` option for filter inputs with `Phoenix.HTML.FormData/4`
+  (`inputs_for`).
+
 ## [0.17.2] - 2023-01-15
 
 ### Changed

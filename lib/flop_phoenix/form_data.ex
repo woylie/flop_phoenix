@@ -60,13 +60,14 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     no_unsupported_options!(opts)
 
     {id, opts} = Keyword.pop(opts, :id)
+    {name, opts} = Keyword.pop(opts, :as)
     {default, opts} = Keyword.pop(opts, :default, [])
     {fields, opts} = Keyword.pop(opts, :fields)
     {offset, opts} = Keyword.pop(opts, :offset, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
-    name = if form.name, do: form.name <> "[filters]", else: "filters"
-    id = if id = id || form.id, do: to_string(id <> "_filters"), else: "filters"
+    name = if name = name || form.name, do: name <> "[filters]", else: "filters"
+    id = if id = id || form.id, do: id <> "_filters", else: "filters"
 
     filters =
       if form.errors == [],
@@ -84,16 +85,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
           Enum.with_index(filters_with_errors, offset) do
       index_string = Integer.to_string(index)
 
-      hidden =
-        if skip_hidden_op,
-          do: [field: value(filter, :field)],
-          else:
-            Misc.maybe_put(
-              [field: value(filter, :field)],
-              :op,
-              value(filter, :op),
-              :==
-            )
+      hidden = get_hidden(filter, skip_hidden_op)
 
       {data, params} =
         case filter do
@@ -135,6 +127,14 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     fields
     |> Enum.reduce([], &filter_reducer(&1, &2, filters_with_errors))
     |> Enum.reverse()
+  end
+
+  defp get_hidden(filter, false = _skip_hidden_op) do
+    Misc.maybe_put([field: value(filter, :field)], :op, value(filter, :op), :==)
+  end
+
+  defp get_hidden(filter, true = _skip_hidden_op) do
+    [field: value(filter, :field)]
   end
 
   defp zip_errors(filters, []), do: Enum.map(filters, &{&1, []})
