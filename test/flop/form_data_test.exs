@@ -2,17 +2,16 @@ defmodule Flop.Phoenix.FormDataTest do
   use ExUnit.Case
 
   import Flop.Phoenix.Factory
-  import Flop.Phoenix.TestHelpers
-  import Phoenix.Component
   import Phoenix.HTML.Form
 
   alias Flop.Filter
   alias MyApp.Pet
+  alias Phoenix.HTML.FormData
 
   describe "to_form/2" do
     test "with meta struct" do
       meta = build(:meta_on_first_page, errors: [limit: [{"whatever", nil}]])
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.source == meta
       assert form.id == "flop"
       assert form.name == nil
@@ -26,33 +25,33 @@ defmodule Flop.Phoenix.FormDataTest do
 
     test "with :as" do
       meta = build(:meta_on_first_page)
-      form = to_form(meta, as: :flop)
+      form = FormData.to_form(meta, as: :flop)
       assert form.name == "flop"
       assert form.id == "flop"
     end
 
     test "with :id" do
       meta = build(:meta_on_first_page)
-      form = to_form(meta, id: "flip", as: :flop)
+      form = FormData.to_form(meta, id: "flip", as: :flop)
       assert form.name == "flop"
       assert form.id == "flip"
     end
 
     test "with hidden inputs" do
       meta = build(:meta_on_first_page)
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.hidden == [page_size: meta.flop.page_size]
 
       meta = build(:meta_on_first_page, flop: %Flop{limit: 15, page_size: nil})
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.hidden == [limit: 15]
 
       meta = build(:meta_on_first_page, flop: %Flop{first: 20})
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.hidden == [first: 20]
 
       meta = build(:meta_on_first_page, flop: %Flop{last: 25})
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.hidden == [last: 25]
     end
 
@@ -70,7 +69,7 @@ defmodule Flop.Phoenix.FormDataTest do
           schema: Pet
         )
 
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
       assert form.hidden == []
     end
 
@@ -80,7 +79,7 @@ defmodule Flop.Phoenix.FormDataTest do
           flop: %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
         )
 
-      form = to_form(meta)
+      form = FormData.to_form(meta, [])
 
       assert form.hidden == [
                order_directions: [:desc, :asc],
@@ -90,7 +89,7 @@ defmodule Flop.Phoenix.FormDataTest do
 
     test "with additional hidden inputs" do
       meta = build(:meta_on_first_page)
-      form = to_form(meta, hidden: [something: "else"])
+      form = FormData.to_form(meta, hidden: [something: "else"])
       assert form.hidden == [page_size: 10, something: "else"]
     end
   end
@@ -105,32 +104,18 @@ defmodule Flop.Phoenix.FormDataTest do
           }
         )
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, fn fo ->
-            assert fo.data == filter
-            assert fo.hidden == [op: :like, field: :name]
-            assert fo.id == "flop_filters_0"
-            assert fo.index == 0
-            assert fo.name == "filters[0]"
-            text_input(fo, :value)
-          end)
-        end)
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "name") == ["filters[0][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["name"]
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_op")
-      assert Floki.attribute(input, "name") == ["filters[0][op]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["like"]
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "name") == ["filters[0][value]"]
-      assert Floki.attribute(input, "type") == ["text"]
-      assert Floki.attribute(input, "value") == ["George"]
+      assert filter_form.source == meta
+      assert filter_form.id == "flop_filters_0"
+      assert filter_form.name == "filters[0]"
+      assert filter_form.data == filter
+      assert filter_form.hidden == [op: :like, field: :name]
+      assert filter_form.params == %{}
+      assert filter_form.errors == []
+      assert filter_form.index == 0
+      assert filter_form.action == nil
     end
 
     @tag capture_log: true
@@ -146,64 +131,50 @@ defmodule Flop.Phoenix.FormDataTest do
 
       {:error, meta} = Flop.validate(invalid_params)
 
-      html =
-        form_to_html(meta, fn f ->
-          assert f.data == %Flop{}
+      form = FormData.to_form(meta, [])
 
-          assert f.params == %{
-                   "filters" => [
-                     %{"field" => :name, "op" => :like, "value" => "George"},
-                     %{"field" => "age", "op" => "<>", "value" => "8"},
-                     %{"field" => :species, "value" => "dog"}
-                   ],
-                   "page" => 0
-                 }
+      assert [filter_form_1, filter_form_2, filter_form_3] =
+               FormData.to_form(meta, form, :filters, [])
 
-          assert [{"must be greater than %{number}", _}] =
-                   Keyword.get(f.errors, :page)
+      assert form.data == meta.flop
 
-          inputs_for(f, :filters, fn fo ->
-            case fo.id do
-              "flop_filters_0" ->
-                assert fo.data == %Filter{}
+      assert form.params == %{
+               "filters" => [
+                 %{"field" => :name, "op" => :like, "value" => "George"},
+                 %{"field" => "age", "op" => "<>", "value" => "8"},
+                 %{"field" => :species, "value" => "dog"}
+               ],
+               "page" => 0
+             }
 
-                assert fo.params == %{
-                         "field" => :name,
-                         "op" => :like,
-                         "value" => "George"
-                       }
+      assert Keyword.get(form.errors, :page) == [
+               {"must be greater than %{number}",
+                [validation: :number, kind: :greater_than, number: 0]}
+             ]
 
-                assert fo.errors == []
+      assert [[], filter_errors_2, []] = Keyword.get(form.errors, :filters)
+      assert [op: [{"is invalid", _}]] = filter_errors_2
 
-              "flop_filters_1" ->
-                assert fo.data == %Filter{}
+      assert filter_form_1.errors == []
+      assert filter_form_2.errors == filter_errors_2
+      assert filter_form_3.errors == []
 
-                assert fo.params == %{
-                         "field" => "age",
-                         "op" => "<>",
-                         "value" => "8"
-                       }
+      assert filter_form_1.params == %{
+               "field" => :name,
+               "op" => :like,
+               "value" => "George"
+             }
 
-                assert [op: [{"is invalid", _}]] = fo.errors
+      assert filter_form_2.params == %{
+               "field" => "age",
+               "op" => "<>",
+               "value" => "8"
+             }
 
-              "flop_filters_2" ->
-                assert fo.data == %Filter{}
-
-                assert fo.params == %{
-                         "field" => :species,
-                         "value" => "dog"
-                       }
-
-                assert fo.errors == []
-            end
-
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [_] = Floki.find(html, "input#flop_filters_0_value")
-      assert [_] = Floki.find(html, "input#flop_filters_1_value")
-      assert [_] = Floki.find(html, "input#flop_filters_2_value")
+      assert filter_form_3.params == %{
+               "field" => :species,
+               "value" => "dog"
+             }
     end
 
     test "with filters and without errors" do
@@ -220,76 +191,54 @@ defmodule Flop.Phoenix.FormDataTest do
       {:ok, flop} = Flop.validate(valid_params)
       meta = build(:meta_on_first_page, flop: flop)
 
-      html =
-        form_to_html(meta, fn f ->
-          assert f.errors == []
+      form = FormData.to_form(meta, [])
 
-          inputs_for(f, :filters, fn fo ->
-            assert fo.errors == []
-            text_input(fo, :value)
-          end)
-        end)
+      assert [filter_form_1, filter_form_2, filter_form_3] =
+               FormData.to_form(meta, form, :filters, [])
 
-      assert [_] = Floki.find(html, "input#flop_filters_0_value")
-      assert [_] = Floki.find(html, "input#flop_filters_1_value")
-      assert [_] = Floki.find(html, "input#flop_filters_2_value")
+      assert form.errors == []
+      assert filter_form_1.errors == []
+      assert filter_form_2.errors == []
+      assert filter_form_3.errors == []
     end
 
-    test "with filters and :default option" do
+    test "with :default option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
+      default_filter = %Filter{field: :name, op: :!=}
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(
-            f,
-            :filters,
-            [default: [%Filter{field: :name, op: :!=}]],
-            fn fo ->
-              assert fo.data == %Filter{field: :name, op: :!=, value: nil}
-              assert fo.hidden == [op: :!=, field: :name]
-              assert fo.id == "flop_filters_0"
-              assert fo.index == 0
-              assert fo.name == "filters[0]"
-              text_input(fo, :value)
-            end
-          )
-        end)
+      form = FormData.to_form(meta, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "name") == ["filters[0][field]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["name"]
+      assert [filter_form] =
+               FormData.to_form(meta, form, :filters, default: [default_filter])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_op")
-      assert Floki.attribute(input, "name") == ["filters[0][op]"]
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["!="]
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "name") == ["filters[0][value]"]
-      assert Floki.attribute(input, "type") == ["text"]
-      assert Floki.attribute(input, "value") == []
+      assert filter_form.data == default_filter
+      assert filter_form.data == %Filter{field: :name, op: :!=, value: nil}
+      assert filter_form.hidden == [op: :!=, field: :name]
+      assert filter_form.id == "flop_filters_0"
+      assert filter_form.index == 0
+      assert filter_form.name == "filters[0]"
     end
 
     test "with :fields option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
-
       opts = [fields: [:name, :age]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
+      form = FormData.to_form(meta, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["name"]
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
 
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["age"]
+      assert filter_form_1.data == %Flop.Filter{
+               field: :name,
+               op: :==,
+               value: nil
+             }
 
-      assert [] = Floki.find(html, "input#flop_filters_2_field")
+      assert filter_form_2.data == %Flop.Filter{
+               field: :age,
+               op: :==,
+               value: nil
+             }
     end
 
     test "with :fields option and existing filters" do
@@ -307,24 +256,25 @@ defmodule Flop.Phoenix.FormDataTest do
 
       opts = [fields: [:name, :age]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
+      form = FormData.to_form(meta, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["name"]
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "value") == ["George"]
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
 
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input#flop_filters_1_value")
-      assert Floki.attribute(input, "value") == []
+      # matching should be done via name and operator; the only matching filter
+      # in meta.flop is the name filter
 
-      assert [] = Floki.find(html, "input#flop_filters_2_field")
+      assert filter_form_1.data == %Flop.Filter{
+               field: "name",
+               op: :==,
+               value: "George"
+             }
+
+      assert filter_form_2.data == %Flop.Filter{
+               field: :age,
+               op: :==,
+               value: nil
+             }
     end
 
     @tag capture_log: true
@@ -343,34 +293,23 @@ defmodule Flop.Phoenix.FormDataTest do
 
       opts = [fields: [{:age, op: :>}, :name]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            case fo.id do
-              "flop_filters_0" ->
-                assert fo.data == %Filter{}
-                assert fo.params == %{"field" => :age, "op" => :>, "value" => 8}
-                assert fo.errors == []
+      form = FormData.to_form(meta, [])
 
-              "flop_filters_1" ->
-                assert fo.data == %Filter{}
-                assert fo.params == %{"field" => :name, "value" => "Peter"}
-                assert fo.errors == []
-            end
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
 
-            text_input(fo, :value)
-          end)
-        end)
+      assert filter_form_1.params == %{
+               "field" => :age,
+               "op" => :>,
+               "value" => 8
+             }
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "value") == ["8"]
+      assert filter_form_2.params == %{"field" => :name, "value" => "Peter"}
 
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["name"]
-      assert [input] = Floki.find(html, "input#flop_filters_1_value")
-      assert Floki.attribute(input, "value") == ["Peter"]
+      # none of the errors in the meta struct belong to the fields passed in the
+      # options
+      assert filter_form_1.errors == []
+      assert filter_form_2.errors == []
     end
 
     @tag capture_log: true
@@ -386,58 +325,28 @@ defmodule Flop.Phoenix.FormDataTest do
       {:error, meta} = Flop.validate(invalid_params, for: Pet)
       opts = [fields: [age: [label: "Age"], name: [op: :ilike_and]]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            case fo.id do
-              "flop_filters_0" ->
-                assert fo.data == %Filter{}
-                assert fo.params == %{"field" => "age", "value" => ""}
-                assert fo.errors == []
+      form = FormData.to_form(meta, [])
 
-              "flop_filters_1" ->
-                assert fo.data == %Filter{}
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
 
-                assert fo.params == %{
-                         "field" => "name",
-                         "value" => "",
-                         "op" => "ilike_and"
-                       }
+      assert filter_form_1.params == %{"field" => "age", "value" => ""}
 
-                assert fo.errors == []
-            end
-
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "value") == [""]
-
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["name"]
-      assert [input] = Floki.find(html, "input#flop_filters_1_value")
-      assert Floki.attribute(input, "value") == [""]
+      assert filter_form_2.params == %{
+               "field" => "name",
+               "value" => "",
+               "op" => "ilike_and"
+             }
     end
 
     test "with :fields and :op option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
       opts = [fields: [:name, {:age, op: :>}]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            hidden_inputs_for(fo)
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input#flop_filters_1_op")
-      assert Floki.attribute(input, "value") == [">"]
+      form = FormData.to_form(meta, [])
+      assert [_, filter_form_2] = FormData.to_form(meta, form, :filters, opts)
+      assert filter_form_2.data == %Flop.Filter{field: :age, op: :>, value: nil}
+      assert filter_form_2.hidden == [op: :>, field: :age]
     end
 
     test "with :fields and :default option" do
@@ -448,25 +357,21 @@ defmodule Flop.Phoenix.FormDataTest do
 
       opts = [fields: [{:name, default: "George"}, {:age, op: :>=, default: 8}]]
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
+      form = FormData.to_form(meta, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["name"]
-      assert [input] = Floki.find(html, "input#flop_filters_0_value")
-      assert Floki.attribute(input, "value") == ["George"]
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
 
-      assert [input] = Floki.find(html, "input#flop_filters_1_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input#flop_filters_1_value")
-      assert Floki.attribute(input, "value") == ["10"]
+      assert filter_form_1.data == %Flop.Filter{
+               field: :name,
+               op: :==,
+               value: "George"
+             }
+
+      assert filter_form_2.data == %Flop.Filter{field: :age, op: :>=, value: 10}
     end
 
-    test "with filters and :id option" do
+    test "with filters and :id option on parent form" do
       meta =
         build(:meta_on_first_page,
           flop: %Flop{
@@ -474,27 +379,12 @@ defmodule Flop.Phoenix.FormDataTest do
           }
         )
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [id: "f1ltah"], fn fo ->
-            assert fo.id == "f1ltah_filters_0"
-            assert fo.index == 0
-            assert fo.name == "filters[0]"
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_field")
-      assert Floki.attribute(input, "name") == ["filters[0][field]"]
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_op")
-      assert Floki.attribute(input, "name") == ["filters[0][op]"]
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_value")
-      assert Floki.attribute(input, "name") == ["filters[0][value]"]
+      form = FormData.to_form(meta, id: "f1ltah")
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+      assert filter_form.id == "f1ltah_filters_0"
     end
 
-    test "with filters and :name option on outer form" do
+    test "with filters and :id option on filter form" do
       meta =
         build(:meta_on_first_page,
           flop: %Flop{
@@ -502,26 +392,12 @@ defmodule Flop.Phoenix.FormDataTest do
           }
         )
 
-      html =
-        form_to_html(meta, [as: "f1ltah"], fn f ->
-          inputs_for(f, :filters, fn fo ->
-            assert fo.id == "f1ltah_filters_0"
-            assert fo.name == "f1ltah[filters][0]"
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_field")
-      assert Floki.attribute(input, "name") == ["f1ltah[filters][0][field]"]
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_op")
-      assert Floki.attribute(input, "name") == ["f1ltah[filters][0][op]"]
-
-      assert [input] = Floki.find(html, "input#f1ltah_filters_0_value")
-      assert Floki.attribute(input, "name") == ["f1ltah[filters][0][value]"]
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, id: "fla")
+      assert filter_form.id == "fla_filters_0"
     end
 
-    test "with filters and without hidden input for :op" do
+    test "with filters and :as option on parent form" do
       meta =
         build(:meta_on_first_page,
           flop: %Flop{
@@ -529,18 +405,26 @@ defmodule Flop.Phoenix.FormDataTest do
           }
         )
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [skip_hidden_op: true], fn fo ->
-            assert fo.hidden == [field: :name]
-            [text_input(fo, :op), text_input(fo, :value)]
-          end)
-        end)
+      form = FormData.to_form(meta, as: "flip")
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
 
-      assert [input] = Floki.find(html, "input#flop_filters_0_op")
-      assert Floki.attribute(input, "name") == ["filters[0][op]"]
-      assert Floki.attribute(input, "type") == ["text"]
-      assert Floki.attribute(input, "value") == ["like"]
+      assert filter_form.id == "flip_filters_0"
+      assert filter_form.name == "flip[filters][0]"
+    end
+
+    test "with filters and skip_hidden_op option" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{
+            filters: [%Filter{field: :name, op: :like, value: "George"}]
+          }
+        )
+
+      opts = [skip_hidden_op: true]
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, opts)
+
+      assert filter_form.hidden == [field: :name]
     end
 
     test "omits hidden input for default :op (:==)" do
@@ -551,15 +435,10 @@ defmodule Flop.Phoenix.FormDataTest do
           }
         )
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, [], fn fo ->
-            assert fo.hidden == [{:field, :name}]
-            ""
-          end)
-        end)
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
 
-      assert [] = Floki.find(html, "input#flop_filters_0_op")
+      assert filter_form.hidden == [field: :name]
     end
 
     test "omits fields that are not filterable" do
@@ -567,7 +446,7 @@ defmodule Flop.Phoenix.FormDataTest do
         build(:meta_on_first_page,
           flop: %Flop{
             filters: [
-              %Filter{field: :age, op: :>=, value: 10},
+              %Filter{field: :age, op: :==, value: 10},
               %Filter{field: :species, op: :==, value: "dog"}
             ]
           },
@@ -575,44 +454,31 @@ defmodule Flop.Phoenix.FormDataTest do
         )
 
       opts = [fields: [:species, :age, :specialty]]
-
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [] = Floki.find(html, "input#flop_filters_1_field")
-      assert [] = Floki.find(html, "input#flop_filters_2_field")
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, opts)
+      assert filter_form.data == %Flop.Filter{field: :age, op: :==, value: 10}
     end
 
-    @tag capture_log: true
+    @tag :capture_log
     test "omits fields that are not filterable with string params" do
       params = %{
         "page" => 0,
         "filters" => [
-          %{"field" => :age, "op" => :>=, "value" => 10},
+          %{"field" => :age, "op" => :==, "value" => 10},
           %{"field" => :species, "op" => :==, "value" => "dog"}
         ]
       }
 
       {:error, meta} = Flop.validate(params, for: Pet)
       opts = [fields: [:species, :age, :specialty]]
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, opts)
 
-      html =
-        form_to_html(meta, fn f ->
-          inputs_for(f, :filters, opts, fn fo ->
-            text_input(fo, :value)
-          end)
-        end)
-
-      assert [input] = Floki.find(html, "input#flop_filters_0_field")
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [] = Floki.find(html, "input#flop_filters_1_field")
-      assert [] = Floki.find(html, "input#flop_filters_2_field")
+      assert filter_form.params == %{
+               "field" => :age,
+               "op" => :==,
+               "value" => 10
+             }
     end
 
     test "raises error with unsupported options" do
@@ -622,9 +488,8 @@ defmodule Flop.Phoenix.FormDataTest do
         msg = ":#{opt} is not supported on inputs_for with Flop.Meta."
 
         assert_raise ArgumentError, msg, fn ->
-          form_to_html(meta, fn f ->
-            inputs_for(f, :filters, [{opt, :whatever}], fn _ -> "" end)
-          end)
+          form = FormData.to_form(meta, [])
+          FormData.to_form(meta, form, :filters, [{opt, :some_value}])
         end
       end
     end
@@ -637,27 +502,26 @@ defmodule Flop.Phoenix.FormDataTest do
           "inputs_for with Flop.Meta, got: :something."
 
       assert_raise ArgumentError, msg, fn ->
-        form_to_html(meta, fn f ->
-          inputs_for(f, :something, fn _ -> "" end)
-        end)
+        form = FormData.to_form(meta, [])
+        FormData.to_form(meta, form, :something, [])
       end
     end
   end
 
   describe "input_type/2" do
     test "returns input type depending on field" do
-      form_to_html(build(:meta_on_first_page), fn f ->
-        assert input_type(f, :after) == :text_input
-        assert input_type(f, :before) == :text_input
-        assert input_type(f, :first) == :number_input
-        assert input_type(f, :last) == :number_input
-        assert input_type(f, :limit) == :number_input
-        assert input_type(f, :offset) == :number_input
-        assert input_type(f, :page) == :number_input
-        assert input_type(f, :page_size) == :number_input
-        assert input_type(f, :anything_else) == :text_input
-        ""
-      end)
+      meta = build(:meta_on_first_page)
+      form = FormData.to_form(meta, [])
+
+      assert input_type(form, :after) == :text_input
+      assert input_type(form, :before) == :text_input
+      assert input_type(form, :first) == :number_input
+      assert input_type(form, :last) == :number_input
+      assert input_type(form, :limit) == :number_input
+      assert input_type(form, :offset) == :number_input
+      assert input_type(form, :page) == :number_input
+      assert input_type(form, :page_size) == :number_input
+      assert input_type(form, :anything_else) == :text_input
     end
 
     test "returns text_input for filter fields if no schema is passed" do
@@ -666,14 +530,12 @@ defmodule Flop.Phoenix.FormDataTest do
           flop: %Flop{filters: [%Filter{field: :name, op: :>=, value: "a"}]}
         )
 
-      form_to_html(meta, fn f ->
-        inputs_for(f, :filters, fn fo ->
-          assert input_type(fo, :field) == :text_input
-          assert input_type(fo, :op) == :text_input
-          assert input_type(fo, :value) == :text_input
-          ""
-        end)
-      end)
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+
+      assert input_type(filter_form, :field) == :text_input
+      assert input_type(filter_form, :op) == :text_input
+      assert input_type(filter_form, :value) == :text_input
     end
 
     test "returns input type depending on schema field type" do
@@ -700,16 +562,14 @@ defmodule Flop.Phoenix.FormDataTest do
           schema: __MODULE__.TestSchema
         )
 
-      form_to_html(meta, fn f ->
-        inputs_for(f, :filters, fn fo ->
-          field = input_value(fo, :field)
-          expected = Keyword.fetch!(mapping, field)
-          assert input_type(fo, :field) == :text_input
-          assert input_type(fo, :op) == :text_input
-          assert input_type(fo, :value) == expected
-          ""
-        end)
-      end)
+      form = FormData.to_form(meta, [])
+      filter_forms = FormData.to_form(meta, form, :filters, [])
+
+      for filter_form <- filter_forms do
+        field = input_value(filter_form, :field)
+        expected = Keyword.fetch!(mapping, field)
+        assert input_type(filter_form, :value) == expected
+      end
     end
   end
 
@@ -753,30 +613,30 @@ defmodule Flop.Phoenix.FormDataTest do
 
   describe "input_validations/3" do
     test "returns validations depending on field" do
-      form_to_html(build(:meta_on_first_page), fn f ->
-        assert input_validations(f, :first) == [min: 1]
-        assert input_validations(f, :last) == [min: 1]
-        assert input_validations(f, :limit) == [min: 1]
-        assert input_validations(f, :page_size) == [min: 1]
+      meta = build(:meta_on_first_page)
+      form = FormData.to_form(meta, [])
 
-        assert input_validations(f, :after) == [maxlength: 100]
-        assert input_validations(f, :before) == [maxlength: 100]
-        assert input_validations(f, :offset) == [min: 0]
-        assert input_validations(f, :page) == [min: 1]
+      assert input_validations(form, :first) == [min: 1]
+      assert input_validations(form, :last) == [min: 1]
+      assert input_validations(form, :limit) == [min: 1]
+      assert input_validations(form, :page_size) == [min: 1]
 
-        assert input_validations(f, :anything_else) == []
-        ""
-      end)
+      assert input_validations(form, :after) == [maxlength: 100]
+      assert input_validations(form, :before) == [maxlength: 100]
+      assert input_validations(form, :offset) == [min: 0]
+      assert input_validations(form, :page) == [min: 1]
+
+      assert input_validations(form, :anything_else) == []
     end
 
     test "applies :max_limit if schema is set" do
-      form_to_html(build(:meta_on_first_page, schema: Pet), fn f ->
-        assert input_validations(f, :first) == [min: 1, max: 200]
-        assert input_validations(f, :last) == [min: 1, max: 200]
-        assert input_validations(f, :limit) == [min: 1, max: 200]
-        assert input_validations(f, :page_size) == [min: 1, max: 200]
-        ""
-      end)
+      meta = build(:meta_on_first_page, schema: Pet)
+      form = FormData.to_form(meta, [])
+
+      assert input_validations(form, :first) == [min: 1, max: 200]
+      assert input_validations(form, :last) == [min: 1, max: 200]
+      assert input_validations(form, :limit) == [min: 1, max: 200]
+      assert input_validations(form, :page_size) == [min: 1, max: 200]
     end
 
     test "adds maxlength to all filter text input fields" do
@@ -789,24 +649,21 @@ defmodule Flop.Phoenix.FormDataTest do
           schema: __MODULE__.TestSchema
         )
 
-      form_to_html(meta, fn f ->
-        inputs_for(f, :filters, fn fo ->
-          assert input_validations(fo, :value) == [maxlength: 100]
-          ""
-        end)
-      end)
+      form = FormData.to_form(meta, [])
+
+      for filter_form <- FormData.to_form(meta, form, :filters, []) do
+        assert input_validations(filter_form, :value) == [maxlength: 100]
+      end
     end
   end
 
   describe "input_value/2" do
     test "returns value from flop struct" do
       meta = build(:meta_on_first_page)
+      form = FormData.to_form(meta, [])
 
-      form_to_html(meta, fn f ->
-        assert input_value(f, :page_size) == meta.flop.page_size
-        assert input_value(f, :page) == meta.flop.page
-        ""
-      end)
+      assert input_value(form, :page_size) == meta.flop.page_size
+      assert input_value(form, :page) == meta.flop.page
     end
 
     test "returns value from filter struct" do
@@ -815,25 +672,21 @@ defmodule Flop.Phoenix.FormDataTest do
           flop: %Flop{filters: [%Filter{field: :age, op: :>=, value: 8}]}
         )
 
-      form_to_html(meta, fn f ->
-        inputs_for(f, :filters, fn fo ->
-          assert input_value(fo, :field) == :age
-          assert input_value(fo, :op) == :>=
-          assert input_value(fo, :value) == 8
-          ""
-        end)
-      end)
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+
+      assert input_value(filter_form, :field) == :age
+      assert input_value(filter_form, :op) == :>=
+      assert input_value(filter_form, :value) == 8
     end
 
     test "raises error for string field" do
       meta = build(:meta_on_first_page)
+      form = FormData.to_form(meta, [])
       msg = ~s(expected field to be an atom, got: "page_size")
 
       assert_raise ArgumentError, msg, fn ->
-        form_to_html(meta, fn f ->
-          assert input_value(f, "page_size")
-          ""
-        end)
+        input_value(form, "page_size")
       end
     end
   end
