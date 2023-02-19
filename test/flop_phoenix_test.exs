@@ -19,18 +19,12 @@ defmodule Flop.PhoenixTest do
   @route_helper_opts [%{}, :pets]
 
   defp render_pagination(assigns) do
-    assigns = Keyword.put(assigns, :__changed__, nil)
-
     assigns =
-      if assigns[:path] || assigns[:path_helper] do
-        assigns
-      else
-        Keyword.put_new(
-          assigns,
-          :path,
-          {__MODULE__, :route_helper, @route_helper_opts}
-        )
-      end
+      Keyword.put_new(
+        assigns,
+        :path,
+        {__MODULE__, :route_helper, @route_helper_opts}
+      )
 
     (&pagination/1)
     |> render_component(assigns)
@@ -38,18 +32,12 @@ defmodule Flop.PhoenixTest do
   end
 
   defp render_cursor_pagination(assigns) do
-    assigns = Keyword.put(assigns, :__changed__, nil)
-
     assigns =
-      if assigns[:path] || assigns[:path_helper] do
-        assigns
-      else
-        Keyword.put_new(
-          assigns,
-          :path,
-          {__MODULE__, :route_helper, @route_helper_opts}
-        )
-      end
+      Keyword.put_new(
+        assigns,
+        :path,
+        {__MODULE__, :route_helper, @route_helper_opts}
+      )
 
     (&cursor_pagination/1)
     |> render_component(assigns)
@@ -78,19 +66,9 @@ defmodule Flop.PhoenixTest do
       |> assign_new(:target, fn -> nil end)
       |> assign_new(:hide_age, fn -> false end)
       |> assign_new(:show_age, fn -> true end)
-
-    assigns =
-      if assigns[:path] || assigns[:path_helper] do
-        assigns
-        |> assign_new(:path, fn -> nil end)
-        |> assign_new(:path_helper, fn -> nil end)
-      else
-        assigns
-        |> assign_new(:path, fn ->
-          {__MODULE__, :route_helper, @route_helper_opts}
-        end)
-        |> assign_new(:path_helper, fn -> nil end)
-      end
+      |> assign_new(:path, fn ->
+        {__MODULE__, :route_helper, @route_helper_opts}
+      end)
 
     ~H"""
     <Flop.Phoenix.table
@@ -100,7 +78,6 @@ defmodule Flop.PhoenixTest do
       meta={@meta}
       opts={@opts}
       path={@path}
-      path_helper={@path_helper}
       target={@target}
     >
       <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
@@ -329,18 +306,6 @@ defmodule Flop.PhoenixTest do
       html =
         render_pagination(
           path: {&route_helper/3, @route_helper_opts},
-          meta: build(:meta_on_second_page)
-        )
-
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-    end
-
-    test "supports a function/args tuple as path_helper" do
-      html =
-        render_pagination(
-          path_helper: {&route_helper/3, @route_helper_opts},
           meta: build(:meta_on_second_page)
         )
 
@@ -1149,20 +1114,6 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
     end
 
-    test "supports a function/args tuple as path_helper" do
-      html =
-        render_cursor_pagination(
-          path_helper: {&route_helper/3, @route_helper_opts},
-          meta: build(:meta_with_cursors)
-        )
-
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
-      assert Floki.attribute(link, "href") == [
-               "/pets?last=10&before=B"
-             ]
-    end
-
     test "supports a function as path" do
       html =
         render_cursor_pagination(
@@ -1624,17 +1575,7 @@ defmodule Flop.PhoenixTest do
              ]
     end
 
-    test "supports a function/args tuple as path_helper" do
-      html = render_table(path_helper: {&route_helper/3, @route_helper_opts})
-
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-
-      assert Floki.attribute(a, "href") == [
-               "/pets?order_directions[]=asc&order_by[]=name"
-             ]
-    end
-
-    test "supports a function/ as path" do
+    test "supports a function as path" do
       html = render_table(path: &path_func/1)
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
@@ -1710,7 +1651,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders links with click handler" do
-      html = render_table(event: "sort", path: nil, path_helper: nil)
+      html = render_table(event: "sort", path: nil)
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -1724,8 +1665,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to header links" do
-      html =
-        render_table(event: "sort", path: nil, path_helper: nil, target: "here")
+      html = render_table(event: "sort", path: nil, target: "here")
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -2024,8 +1964,8 @@ defmodule Flop.PhoenixTest do
              ] = html
     end
 
-    test "does not require path_helper when passing event" do
-      html = render_table(event: "sort-table", path: nil, path_helper: nil)
+    test "does not require path when passing event" do
+      html = render_table(event: "sort-table", path: nil)
 
       assert [link] = Floki.find(html, "a:fl-contains('Name')")
       assert Floki.attribute(link, "phx-click") == ["sort-table"]
