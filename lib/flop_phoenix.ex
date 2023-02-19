@@ -1463,6 +1463,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.15.0"
   @doc section: :miscellaneous
+  @deprecated "Will be removed in a future version unless someone complains"
   @spec pop_filter(Flop.t(), atom) :: {any, Flop.t()}
   @spec pop_filter(keyword, atom) :: {any, keyword}
   def pop_filter(%Flop{} = flop, field) do
