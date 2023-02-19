@@ -2,7 +2,6 @@ defmodule Flop.Phoenix.Pagination do
   @moduledoc false
 
   use Phoenix.Component
-  use Phoenix.HTML
 
   alias Flop.Phoenix.Misc
 
@@ -62,7 +61,7 @@ defmodule Flop.Phoenix.Pagination do
       ],
       disabled_class: "disabled",
       ellipsis_attrs: [class: "pagination-ellipsis"],
-      ellipsis_content: raw("&hellip;"),
+      ellipsis_content: Phoenix.HTML.raw("&hellip;"),
       next_link_attrs: [
         aria: [label: "Go to next page"],
         class: "pagination-next"
@@ -154,9 +153,9 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_previous_page? do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @target, @meta.previous_page) do %>
+        <.link {add_phx_attrs(@attrs, @event, @target, @meta.previous_page)}>
           <%= @content %>
-        <% end %>
+        </.link>
       <% else %>
         <.link patch={@page_link_helper.(@meta.previous_page)} {@attrs}>
           <%= @content %>
@@ -182,9 +181,9 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_next_page? do %>
       <%= if @event do %>
-        <%= link add_phx_attrs(@attrs, @event, @target, @meta.next_page) do %>
+        <.link {add_phx_attrs(@attrs, @event, @target, @meta.next_page)}>
           <%= @content %>
-        <% end %>
+        </.link>
       <% else %>
         <.link patch={@page_link_helper.(@meta.next_page)} {@attrs}>
           <%= @content %>
@@ -301,7 +300,7 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @event do %>
       <li>
-        <%= link(@page, add_phx_attrs(@attrs, @event, @target, @page)) %>
+        <.link {add_phx_attrs(@attrs, @event, @target, @page)}><%= @page %></.link>
       </li>
     <% else %>
       <li>
