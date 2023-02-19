@@ -4,11 +4,58 @@
 
 ### Changed
 
+- The `filter_fields` component now passes the `Phoenix.HTML.FormField` struct
+  introduced in `Phoenix.HTML` 3.3.0 to the inner block.
 - Support `:as` option for filter inputs with `Phoenix.HTML.FormData/4`
   (`inputs_for`).
 - `Phoenix.HTML.FormData.input_type/2` now considers the Ecto type for join,
   custom and compound fields.
 - Remove support for `path_helper` assigns, previously deprecated in 0.15.
+
+### How to upgrade
+
+If your `input` component already knows how to handle the
+`Phoenix.HTML.FormField` struct, you can update the inner block for
+`filter_fields` like this:
+
+```diff
+<.filter_fields :let={i} form={f} fields={[:email, :name]}>
+  <.input
+-    field={{i.form, i.field}}
++    field={i.field}
+    type={i.type}
+    label={i.label}
+-    id={i.id}
+-    name={i.name}
+-    value={i.value}
+    {i.rest}
+  />
+</.filter_fields>
+```
+
+If your `input` component still expects the individual assigns, you can update
+the inner block like this:
+
+```diff
+<.filter_fields :let={i} form={f} fields={[:email, :name]}>
+  <.input
+-    field={{i.form, i.field}}
++    field={{i.field.form, i.field.field}}
+    type={i.type}
+    label={i.label}
+-    id={i.id}
+-    name={i.name}
+-    value={i.value}
++    id={i.field.id}
++    name={i.field.name}
++    value={i.field.value}
+    {i.rest}
+  />
+</.filter_fields>
+```
+
+For an upgrade example for the `path_helper` assign, see the changelog entry for
+version 0.15.0.
 
 ## [0.17.2] - 2023-01-15
 
