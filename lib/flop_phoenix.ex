@@ -1289,7 +1289,7 @@ defmodule Flop.Phoenix do
   ### Set filter value as path parameter
 
   If you need to set a filter value as a path parameter, you can use
-  `Flop.Phoenix.pop_filter/2` to manipulate the parameters (again, replace the
+  `Flop.Filter.pop/3` to manipulate the parameters (again, replace the
   plain strings with verified routes and remove the `encode` line in Phoenix
   1.7).
 
@@ -1303,7 +1303,7 @@ defmodule Flop.Phoenix do
       iex> build_path(
       ...>   fn params ->
       ...>     {page, params} = Keyword.pop(params, :page)
-      ...>     {category, params} = pop_filter(params, :category)
+      ...>     {category, params} = Flop.Filter.pop(params, :category)
       ...>     query = Plug.Conn.Query.encode(params)
       ...>
       ...>     case {page, category} do
@@ -1463,7 +1463,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.15.0"
   @doc section: :miscellaneous
-  @deprecated "Will be removed in a future version unless someone complains"
+  @deprecated "use Flop.Filter.pop/3 instead"
   @spec pop_filter(Flop.t(), atom) :: {any, Flop.t()}
   @spec pop_filter(keyword, atom) :: {any, keyword}
   def pop_filter(%Flop{} = flop, field) do
