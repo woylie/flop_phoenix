@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## [0.18.0] - 2023-02-25
+
 ### Changed
 
+- Added dependency on `Phoenix.HTML` `~> 3.3.0`.
 - The `filter_fields` component now passes the `Phoenix.HTML.FormField` struct
   introduced in `Phoenix.HTML` 3.3.0 to the inner block.
 - Support `:as` option for filter inputs with `Phoenix.HTML.FormData/4`
