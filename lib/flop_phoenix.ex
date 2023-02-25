@@ -539,6 +539,14 @@ defmodule Flop.Phoenix do
   @doc section: :components
   @spec table(map) :: Phoenix.LiveView.Rendered.t()
 
+  attr :id, :string,
+    doc: """
+    ID used on the table body. If not set, an ID is chosen based on the schema
+    module derived from the `Flop.Meta` struct.
+
+    The ID is necessary in case the table is fed with a LiveView stream.
+    """
+
   attr :items, :list,
     required: true,
     doc: """
@@ -588,26 +596,31 @@ defmodule Flop.Phoenix do
     of the module documentation.
     """
 
+  attr :row_id, :any,
+    default: nil,
+    doc: """
+    Overrides the default function that retrieves the row ID from a stream item.
+    """
+
   attr :row_click, JS,
     default: nil,
     doc: """
     Sets the `phx-click` function attribute for each row `td`. Expects to be a
-    function that receives a row item as an argument. This does not apply add
-    the `phx-click` attribute to the `action` slot.
+    function that receives a row item as an argument. This does not add the
+    `phx-click` attribute to the `action` slot.
 
-    For example:
+    Example:
 
     ```elixir
     row_click={&JS.navigate(~p"/users/\#{&1}")}
     ```
-    Results in:
+    """
 
-    ```html
-    <tr>
-      <td phx-click={"/user/1/show"}>...</td>
-      <td phx-click={"/user/1/show"}>...</td>
-    </tr>
-    ```
+  attr :row_item, :any,
+    default: &Function.identity/1,
+    doc: """
+    This function is called on the row item before it is passed to the :col
+    and :action slots.
     """
 
   slot :col,
@@ -710,12 +723,15 @@ defmodule Flop.Phoenix do
             col={@col}
             foot={@foot}
             event={@event}
+            id={@id}
             items={@items}
             meta={@meta}
             opts={@opts}
             path={@path}
             target={@target}
+            row_id={@row_id}
             row_click={@row_click}
+            row_item={@row_item}
             action={@action}
           />
         </div>
@@ -725,12 +741,15 @@ defmodule Flop.Phoenix do
           col={@col}
           foot={@foot}
           event={@event}
+          id={@id}
           items={@items}
           meta={@meta}
           opts={@opts}
           path={@path}
           target={@target}
+          row_id={@row_id}
           row_click={@row_click}
+          row_item={@row_item}
           action={@action}
         />
       <% end %>
