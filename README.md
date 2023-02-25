@@ -181,7 +181,7 @@ You will need to handle the `update-filter` and `reset-filter` events with the
 
 ```elixir
 @impl true
-def handle_event("update-filter", %{"filter" => params}, socket) do
+def handle_event("update-filter", params, socket) do
   {:noreply, push_patch(socket, to: ~p"/pets?#{params}")}
 end
 
