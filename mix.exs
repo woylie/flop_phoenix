@@ -74,7 +74,8 @@ defmodule FlopPhoenix.MixProject do
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
-        "Changelog" => @source_url <> "/blob/main/CHANGELOG.md"
+        "Changelog" => @source_url <> "/blob/main/CHANGELOG.md",
+        "Sponsor" => "https://github.com/sponsors/woylie"
       },
       files: ~w(lib .formatter.exs mix.exs README* LICENSE*)
     ]
