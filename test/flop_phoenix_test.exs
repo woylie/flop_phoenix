@@ -12,6 +12,7 @@ defmodule Flop.PhoenixTest do
   alias MyApp.Pet
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.LiveStream
   alias Plug.Conn.Query
 
   doctest Flop.Phoenix, import: true
@@ -45,35 +46,37 @@ defmodule Flop.PhoenixTest do
   end
 
   defp render_table(assigns \\ [], component \\ &test_table/1) do
-    assigns = Keyword.put(assigns, :__changed__, nil)
+    assigns =
+      assigns
+      |> Keyword.put(:__changed__, nil)
+      |> Keyword.put_new(:id, "some-table")
 
     component
     |> render_component(assigns)
     |> Floki.parse_fragment!()
   end
 
-  defp test_table(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:caption, fn -> nil end)
-      |> assign_new(:for, fn -> nil end)
-      |> assign_new(:event, fn -> nil end)
-      |> assign_new(:items, fn ->
-        [%{name: "George", email: "george@george.pet", age: 8, species: "dog"}]
-      end)
-      |> assign_new(:meta, fn -> %Flop.Meta{flop: %Flop{}} end)
-      |> assign_new(:opts, fn -> [] end)
-      |> assign_new(:target, fn -> nil end)
-      |> assign_new(:hide_age, fn -> false end)
-      |> assign_new(:show_age, fn -> true end)
-      |> assign_new(:path, fn ->
-        {__MODULE__, :route_helper, @route_helper_opts}
-      end)
+  attr :caption, :string, default: nil
+  attr :event, :string, default: nil
+  attr :id, :string, default: nil
+  attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
+  attr :opts, :list, default: []
+  attr :target, :string, default: nil
+  attr :hide_age, :boolean, default: false
+  attr :show_age, :boolean, default: true
+  attr :path, :any, default: {__MODULE__, :route_helper, @route_helper_opts}
 
+  attr :items, :list,
+    default: [
+      %{name: "George", email: "george@george.pet", age: 8, species: "dog"}
+    ]
+
+  defp test_table(assigns) do
     ~H"""
     <Flop.Phoenix.table
       caption={@caption}
       event={@event}
+      id={@id}
       items={@items}
       meta={@meta}
       opts={@opts}
@@ -95,6 +98,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George", age: 8}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
@@ -112,6 +116,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
@@ -135,6 +140,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="some-table"
       items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
       meta={%Flop.Meta{flop: %Flop{}}}
       opts={@opts}
@@ -156,6 +162,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George", id: 1}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
@@ -175,6 +182,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George", id: 1}]}
       meta={%Flop.Meta{flop: %Flop{}}}
       row_click={&JS.navigate("/show/#{&1.id}")}
@@ -191,6 +199,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
@@ -208,6 +217,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       event="sort"
+      id="user-table"
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
     >
@@ -224,6 +234,7 @@ defmodule Flop.PhoenixTest do
   defp test_table_with_html_header(assigns) do
     ~H"""
     <Flop.Phoenix.table
+      id="user-table"
       event="sort"
       items={[%{name: "George"}]}
       meta={%Flop.Meta{flop: %Flop{}}}
@@ -1430,6 +1441,136 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "tbody.mango_body")
     end
 
+    test "allows to set id on tbody" do
+      html = render_table(id: "some-id")
+      assert [_] = Floki.find(html, "tbody#some-id")
+    end
+
+    test "sets default ID based on schema module" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        event: "sort-table",
+        items: ["George"]
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [_] = Floki.find(html, "tbody#pet_table")
+    end
+
+    test "sets default ID without schema module" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}},
+        event: "sort-table",
+        items: ["George"]
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [_] = Floki.find(html, "tbody#paginated_table")
+    end
+
+    test "does not set row ID if items are not a stream" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        event: "sort-table",
+        items: ["George"]
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [tr] = Floki.find(html, "tbody tr")
+      assert Floki.attribute(tr, "id") == []
+    end
+
+    test "allows to set row ID function" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        event: "sort-table",
+        items: [%Pet{id: 1, name: "George"}, %Pet{id: 2, name: "Mary"}],
+        row_id: &"pets-#{&1.name}"
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} row_id={@row_id} event="sort">
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
+      assert Floki.attribute(tr_1, "id") == ["pets-George"]
+      assert Floki.attribute(tr_2, "id") == ["pets-Mary"]
+    end
+
+    test "uses default row ID function if items are a stream" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        stream: LiveStream.new(:pets, [%Pet{id: 1}, %Pet{id: 2}], [])
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@stream} meta={@meta} event="sort">
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
+      assert Floki.attribute(tr_1, "id") == ["pets-1"]
+      assert Floki.attribute(tr_2, "id") == ["pets-2"]
+    end
+
+    test "allows to override default row item function" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%Pet{name: "George"}],
+        row_item: fn item -> Map.update!(item, :name, &String.upcase/1) end
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          row_item={@row_item}
+          event="sort"
+        >
+          <:col :let={p}><%= p.name %></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [td] = Floki.find(html, "tbody td")
+      assert Floki.text(td) =~ "GEORGE"
+    end
+
     test "allows to set tr and td classes" do
       html =
         render_table(
@@ -2429,6 +2570,20 @@ defmodule Flop.PhoenixTest do
     test "raises error if the form is not a form for meta" do
       assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
         render_component(&filter_fields/1, form: to_form(%{}))
+      end
+    end
+
+    test "raises error if fields are invalid" do
+      assigns = %{
+        form: to_form(%Flop.Meta{}),
+        fields: ["name"]
+      }
+
+      assert_raise RuntimeError, ~r/Invalid filter field config/, fn ->
+        rendered_to_string(~H"""
+        <Flop.Phoenix.filter_fields fields={@fields} form={@form}>
+        </Flop.Phoenix.filter_fields>
+        """)
       end
     end
   end

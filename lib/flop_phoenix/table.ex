@@ -82,14 +82,22 @@ defmodule Flop.Phoenix.Table do
   Deep merges the given options into the default options.
   """
   @spec init_assigns(map) :: map
-  def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-      |> assign(:path, assigns[:path])
-
+  def init_assigns(%{meta: meta} = assigns) do
+    assigns = assign(assigns, :opts, merge_opts(assigns[:opts] || []))
     Misc.validate_path_or_event!(assigns, @path_event_error_msg)
-    assigns
+
+    assign_new(assigns, :id, fn ->
+      case meta.schema do
+        nil ->
+          "paginated_table"
+
+        module ->
+          module_name =
+            module |> Module.split() |> List.last() |> Macro.underscore()
+
+          module_name <> "_table"
+      end
+    end)
   end
 
   defp merge_opts(opts) do
@@ -98,6 +106,7 @@ defmodule Flop.Phoenix.Table do
     |> Misc.deep_merge(opts)
   end
 
+  attr :id, :string, required: true
   attr :meta, Flop.Meta, required: true
   attr :path, :any, required: true
   attr :event, :string, required: true
@@ -107,10 +116,17 @@ defmodule Flop.Phoenix.Table do
   attr :col, :any, required: true
   attr :items, :list, required: true
   attr :foot, :any, required: true
+  attr :row_id, :any, default: nil
   attr :row_click, JS, default: nil
+  attr :row_item, :any, required: true
   attr :action, :any, required: true
 
   def render(assigns) do
+    assigns =
+      with %{items: %Phoenix.LiveView.LiveStream{}} <- assigns do
+        assign(assigns, row_id: assigns.row_id || fn {id, _item} -> id end)
+      end
+
     ~H"""
     <table {@opts[:table_attrs]}>
       <caption :if={@caption}><%= @caption %></caption>
@@ -152,8 +168,16 @@ defmodule Flop.Phoenix.Table do
           <% end %>
         </tr>
       </thead>
-      <tbody {@opts[:tbody_attrs]}>
-        <tr :for={item <- @items} {@opts[:tbody_tr_attrs]}>
+      <tbody
+        id={@id}
+        phx-update={match?(%Phoenix.LiveView.LiveStream{}, @items) && "stream"}
+        {@opts[:tbody_attrs]}
+      >
+        <tr
+          :for={item <- @items}
+          id={@row_id && @row_id.(item)}
+          {@opts[:tbody_tr_attrs]}
+        >
           <%= for col <- @col do %>
             <td
               :if={show_column?(col)}
@@ -161,7 +185,7 @@ defmodule Flop.Phoenix.Table do
               {Map.get(col, :attrs, [])}
               phx-click={@row_click && @row_click.(item)}
             >
-              <%= render_slot(col, item) %>
+              <%= render_slot(col, @row_item.(item)) %>
             </td>
           <% end %>
           <td
@@ -169,7 +193,7 @@ defmodule Flop.Phoenix.Table do
             {@opts[:tbody_td_attrs]}
             {Map.get(action, :attrs, [])}
           >
-            <%= render_slot(action, item) %>
+            <%= render_slot(action, @row_item.(item)) %>
           </td>
         </tr>
       </tbody>
