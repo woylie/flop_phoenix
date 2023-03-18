@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## [0.18.1] - 2023-03-18
+
+### Changed
+
+- Added support for LiveView streams to the table component. To this end,
+  `row_id`, `row_item` and `id` attributes were added to the component,
+  following the example of Phoenix 1.7. The `id` attribute is added to the
+  `tbody`. If no `id` is explicitly set, a default value will be used depending
+  on the schema name.
+
 ## [0.18.0] - 2023-02-25
 
 ### Changed
@@ -71,7 +81,8 @@ version 0.15.0.
 
 ### Added
 
-- Allow passing an `offset` when generating filter inputs with `Phoenix.HTML.Form.inputs_for/3`.
+- Allow passing an `offset` when generating filter inputs with
+  `Phoenix.HTML.Form.inputs_for/3`.
 
 ## [0.17.0] - 2022-10-27
 
@@ -83,7 +94,8 @@ version 0.15.0.
 ### Changed
 
 - To pass additional attributes to a column, you will now have to use the
-  `attrs` attribute. This was necessary because defining a `global` attribute on a slot causes a compile-time error in `phoenix_live_view` 0.18.3.
+  `attrs` attribute. This was necessary because defining a `global` attribute on
+  a slot causes a compile-time error in `phoenix_live_view` 0.18.3.
 
 ```diff
 <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
