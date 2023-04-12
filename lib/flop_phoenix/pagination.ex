@@ -121,16 +121,16 @@ defmodule Flop.Phoenix.Pagination do
         opts={@opts}
         target={@target}
       />
-      <.next_link
-        attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
+      <.page_links
         event={@event}
         meta={@meta}
         page_link_helper={@page_link_helper}
         opts={@opts}
         target={@target}
       />
-      <.page_links
+      <.next_link
+        attrs={@opts[:next_link_attrs]}
+        content={@opts[:next_link_content]}
         event={@event}
         meta={@meta}
         page_link_helper={@page_link_helper}
