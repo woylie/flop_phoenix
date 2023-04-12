@@ -241,49 +241,47 @@ defmodule Flop.Phoenix.Pagination do
     assigns = assign(assigns, first: first, last: last)
 
     ~H"""
-    <ul {@opts[:pagination_list_attrs]}>
-      <.page_link_tag
-        :if={@first > 1}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={1}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
+    <.page_link_tag
+      :if={@first > 1}
+      event={@event}
+      meta={@meta}
+      opts={@opts}
+      page={1}
+      page_link_helper={@page_link_helper}
+      target={@target}
+    />
 
-      <.pagination_ellipsis
-        :if={@first > 2}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
+    <.pagination_ellipsis
+      :if={@first > 2}
+      attrs={@opts[:ellipsis_attrs]}
+      content={@opts[:ellipsis_content]}
+    />
 
-      <.page_link_tag
-        :for={page <- @range}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={page}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
+    <.page_link_tag
+      :for={page <- @range}
+      event={@event}
+      meta={@meta}
+      opts={@opts}
+      page={page}
+      page_link_helper={@page_link_helper}
+      target={@target}
+    />
 
-      <.pagination_ellipsis
-        :if={@last < @meta.total_pages - 1}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
+    <.pagination_ellipsis
+      :if={@last < @meta.total_pages - 1}
+      attrs={@opts[:ellipsis_attrs]}
+      content={@opts[:ellipsis_content]}
+    />
 
-      <.page_link_tag
-        :if={@last < @meta.total_pages}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={@meta.total_pages}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
-    </ul>
+    <.page_link_tag
+      :if={@last < @meta.total_pages}
+      event={@event}
+      meta={@meta}
+      opts={@opts}
+      page={@meta.total_pages}
+      page_link_helper={@page_link_helper}
+      target={@target}
+    />
     """
   end
 
@@ -299,15 +297,11 @@ defmodule Flop.Phoenix.Pagination do
 
     ~H"""
     <%= if @event do %>
-      <li>
-        <.link {add_phx_attrs(@attrs, @event, @target, @page)}><%= @page %></.link>
-      </li>
+      <.link {add_phx_attrs(@attrs, @event, @target, @page)}><%= @page %></.link>
     <% else %>
-      <li>
-        <.link patch={@page_link_helper.(@page)} {@attrs}>
-          <%= @page %>
-        </.link>
-      </li>
+      <.link patch={@page_link_helper.(@page)} {@attrs}>
+        <%= @page %>
+      </.link>
     <% end %>
     """
   end
@@ -317,7 +311,7 @@ defmodule Flop.Phoenix.Pagination do
 
   defp pagination_ellipsis(assigns) do
     ~H"""
-    <li><span {@attrs}><%= @content %></span></li>
+    <span {@attrs}><%= @content %></span>
     """
   end
 
