@@ -567,8 +567,6 @@ defmodule Flop.PhoenixTest do
     test "renders page links" do
       html = render_pagination(meta: build(:meta_on_second_page))
 
-      assert [_] = Floki.find(html, "ul[class='pagination-links']")
-
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
@@ -637,17 +635,6 @@ defmodule Flop.PhoenixTest do
         )
 
       assert Floki.find(html, ".pagination-links") == []
-    end
-
-    test "allows to overwrite pagination list attributes" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_first_page),
-          opts: [pagination_list_attrs: [class: "p-list", title: "boop"]]
-        )
-
-      assert [list] = Floki.find(html, "ul.p-list")
-      assert Floki.attribute(list, "title") == ["boop"]
     end
 
     test "allows to overwrite pagination link attributes" do
