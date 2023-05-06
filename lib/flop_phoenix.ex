@@ -1073,6 +1073,7 @@ defmodule Flop.Phoenix do
       id={input_id(@form, @field) <> "_#{index}"}
       name={input_name(@form, @field) <> "[]"}
       value={v}
+      hidden
     />
     """
   end
@@ -1084,6 +1085,7 @@ defmodule Flop.Phoenix do
       id={input_id(@form, @field)}
       name={input_name(@form, @field)}
       value={@value}
+      hidden
     />
     """
   end
