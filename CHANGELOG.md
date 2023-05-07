@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.18.2] - 2023-05-08
+
 ### Changed
 
 - Added `hidden` attribute to hidden inputs rendered by `filter_fields`
