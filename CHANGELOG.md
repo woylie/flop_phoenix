@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Added `hidden` attribute to hidden inputs rendered by `filter_fields`
+  component in order to solve CSS spacing issues.
+
 ## [0.18.1] - 2023-03-18
 
 ### Changed
