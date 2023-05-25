@@ -224,7 +224,7 @@ defmodule Flop.Phoenix.Table do
       |> assign(:order_direction, direction)
 
     ~H"""
-    <%= if is_sortable?(@field, @meta.schema) do %>
+    <%= if sortable?(@field, @meta.schema) do %>
       <th
         {@opts[:thead_th_attrs]}
         aria-sort={aria_sort(@order_index, @order_direction)}
@@ -314,10 +314,10 @@ defmodule Flop.Phoenix.Table do
   defp order_direction(nil, _), do: :asc
   defp order_direction(directions, index), do: Enum.at(directions, index)
 
-  defp is_sortable?(nil, _), do: false
-  defp is_sortable?(_, nil), do: true
+  defp sortable?(nil, _), do: false
+  defp sortable?(_, nil), do: true
 
-  defp is_sortable?(field, module) do
+  defp sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
 end
