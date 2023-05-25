@@ -104,6 +104,12 @@ The `path` attribute points to the current path. `Flop.Phoenix` will add the pag
 routes, route helpers, or custom path builder functions. The different formats
 are explained in the documentation of `Flop.Phoenix.build_path/3`.
 
+The `field` attribute of the `:col` slot is optional. If set and the field is
+configured as sortable in the schema, the column header will be clickable,
+allowing the user to sort by that column. If the field is not marked as sortable
+or if the attribute is omitted or set to `nil` or `false`, the column header
+will not be clickable.
+
 If you pass the `for` option when making the query with Flop, Flop Phoenix can
 determine which table columns are sortable. It also hides the `order` and
 `page_size` parameters if they match the default values defined with

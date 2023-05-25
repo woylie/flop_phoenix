@@ -638,7 +638,15 @@ defmodule Flop.Phoenix do
 
     """ do
     attr :label, :string, doc: "The content for the header column."
-    attr :field, :atom, doc: "The field name for sorting."
+
+    attr :field, :atom,
+      doc: """
+      The field name for sorting. If set and the field is configured as sortable
+      in the schema, the column header will be clickable, allowing the user to
+      sort by that column. If the field is not marked as sortable or if the
+      `field` attribute is omitted or set to `nil` or `false`, the column header
+      will not be clickable.
+      """
 
     attr :show, :boolean,
       doc: "Boolean value to conditionally show the column. Defaults to `true`."
