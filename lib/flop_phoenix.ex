@@ -1318,8 +1318,7 @@ defmodule Flop.Phoenix do
   ### Set filter value as path parameter
 
   If you need to set a filter value as a path parameter, you can use
-  `Flop.Filter.pop/3` (Flop >= 0.20) or `Flop.Phoenix.pop_filter/2`
-  (Flop < 0.20) to manipulate the parameters.
+  `Flop.Filter.pop/3`.
 
       iex> flop = %Flop{
       ...>   page: 5,
