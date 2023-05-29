@@ -1529,7 +1529,7 @@ defmodule Flop.PhoenixTest do
     test "uses default row ID function if items are a stream" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        stream: LiveStream.new(:pets, [%Pet{id: 1}, %Pet{id: 2}], [])
+        stream: LiveStream.new(:pets, 0, [%Pet{id: 1}, %Pet{id: 2}], [])
       }
 
       html =
