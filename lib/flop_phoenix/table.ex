@@ -292,16 +292,10 @@ defmodule Flop.Phoenix.Table do
 
   defp sort_link(assigns) do
     ~H"""
-    <.link {sort_link_attrs(@field, @event, @target)}>
+    <.link phx-click={@event} phx-target={@target} phx-value-order={@field}>
       <%= @label %>
     </.link>
     """
-  end
-
-  defp sort_link_attrs(field, event, target) do
-    [phx_value_order: field, to: "#"]
-    |> Misc.maybe_put(:phx_click, event)
-    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp order_index(%Flop{order_by: nil}, _), do: nil

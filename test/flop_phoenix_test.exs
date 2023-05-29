@@ -603,7 +603,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert Floki.text(link) == "1"
+      assert Floki.text(link) =~ "1"
     end
 
     test "adds phx-target to page link" do

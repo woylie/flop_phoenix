@@ -104,7 +104,12 @@ defmodule Flop.Phoenix.CursorPagination do
     ~H"""
     <%= if show_link?(@meta, @direction) do %>
       <%= if @event do %>
-        <.link {add_phx_attrs(@attrs, @event, @target, @direction)}>
+        <.link
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-to={@direction}
+          {@attrs}
+        >
           <%= @content %>
         </.link>
       <% else %>
@@ -131,14 +136,6 @@ defmodule Flop.Phoenix.CursorPagination do
       |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
 
     Flop.Phoenix.build_path(path, params)
-  end
-
-  defp add_phx_attrs(attrs, event, target, direction) do
-    attrs
-    |> Keyword.put(:phx_click, event)
-    |> Keyword.put(:phx_value_to, direction)
-    |> Keyword.put(:to, "#")
-    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp add_disabled_class(attrs, disabled_class) do
