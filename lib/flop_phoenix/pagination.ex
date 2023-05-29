@@ -153,7 +153,12 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_previous_page? do %>
       <%= if @event do %>
-        <.link {add_phx_attrs(@attrs, @event, @target, @meta.previous_page)}>
+        <.link
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@meta.previous_page}
+          {@attrs}
+        >
           <%= @content %>
         </.link>
       <% else %>
@@ -181,7 +186,12 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @meta.has_next_page? do %>
       <%= if @event do %>
-        <.link {add_phx_attrs(@attrs, @event, @target, @meta.next_page)}>
+        <.link
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@meta.next_page}
+          {@attrs}
+        >
           <%= @content %>
         </.link>
       <% else %>
@@ -300,7 +310,14 @@ defmodule Flop.Phoenix.Pagination do
     ~H"""
     <%= if @event do %>
       <li>
-        <.link {add_phx_attrs(@attrs, @event, @target, @page)}><%= @page %></.link>
+        <.link
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@page}
+          {@attrs}
+        >
+          <%= @page %>
+        </.link>
       </li>
     <% else %>
       <li>
@@ -398,14 +415,6 @@ defmodule Flop.Phoenix.Pagination do
         else: opts[:pagination_link_attrs]
 
     add_page_link_aria_label(attrs, page, opts)
-  end
-
-  defp add_phx_attrs(attrs, event, target, page) do
-    attrs
-    |> Keyword.put(:phx_click, event)
-    |> Keyword.put(:phx_value_page, page)
-    |> Keyword.put(:to, "#")
-    |> Misc.maybe_put(:phx_target, target)
   end
 
   defp add_disabled_class(attrs, disabled_class) do

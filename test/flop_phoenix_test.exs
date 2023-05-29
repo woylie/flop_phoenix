@@ -603,7 +603,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert Floki.text(link) == "1"
+      assert Floki.text(link) =~ "1"
     end
 
     test "adds phx-target to page link" do
@@ -1529,7 +1529,7 @@ defmodule Flop.PhoenixTest do
     test "uses default row ID function if items are a stream" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        stream: LiveStream.new(:pets, [%Pet{id: 1}, %Pet{id: 2}], [])
+        stream: LiveStream.new(:pets, 0, [%Pet{id: 1}, %Pet{id: 2}], [])
       }
 
       html =

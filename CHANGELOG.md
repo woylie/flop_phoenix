@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## [0.19.0] - 2023-05-30
+
+### Changed
+
+- Necessary updates for `phoenix_live_view ~> 0.19.0`.
+- Requires `phoenix_live_view ~> 0.19.0`.
+- Remove previously deprecated `Flop.Phoenix.pop_filter/2`. Use
+  `Flop.Filter.pop/3` instead.
+
 ## [0.18.2] - 2023-05-08
 
 ### Changed
