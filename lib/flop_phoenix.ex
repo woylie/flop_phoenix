@@ -169,9 +169,9 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:previous_link_attrs])}`.
   - `:previous_link_content` - The content for the link to the previous page.
     Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
-  - `:wrappers_attrs` - The attributes for the `<nav>` element that wraps the
+  - `:wrapper_attrs` - The attributes for the `<nav>` element that wraps the
     pagination links.
-    Default: `#{inspect(Pagination.default_opts()[:wrappers_attrs])}`.
+    Default: `#{inspect(Pagination.default_opts()[:wrapper_attrs])}`.
   """
   @type pagination_option ::
           {:current_link_attrs, keyword}
@@ -201,7 +201,7 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(CursorPagination.default_opts()[:previous_link_attrs])}`.
   - `:previous_link_content` - The content for the link to the previous page.
     Default: `#{inspect(CursorPagination.default_opts()[:previous_link_content])}`.
-  - `:wrappers_attrs` - The attributes for the `<nav>` element that wraps the
+  - `:wrapper_attrs` - The attributes for the `<nav>` element that wraps the
     pagination links.
     Default: `#{inspect(CursorPagination.default_opts()[:wrapper_attrs])}`.
   """
