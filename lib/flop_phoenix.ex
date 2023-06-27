@@ -1143,12 +1143,16 @@ defmodule Flop.Phoenix do
           1 => %{field: :age, op: :>, value: 25}
         }
       ]
-      iex> f |> to_query() |> Plug.Conn.Query.encode()
-      "filters[0][field]=name&filters[0][op]=%3D~&filters[0][value]=Mag&filters[1][field]=age&filters[1][op]=%3E&filters[1][value]=25"
+      iex> to_query(f)
+      [filters: %{0 => %{value: "Mag", op: :=~, field: :name}, 1 => %{value: 25, op: :>, field: :age}}]
 
       iex> f = %Flop{page: 5, page_size: 20}
       iex> to_query(f, default_limit: 20)
       [page: 5]
+
+  Note that you will need to use `Plug.Conn.Query.encode/1` to encode the query
+  as a string, since `URI.encode_query/1` does not support bracket notation
+  for arrays and maps.
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
@@ -1204,14 +1208,18 @@ defmodule Flop.Phoenix do
   anything else that produces a URL.
 
       iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets", flop)
-      "/pets?page=2&page_size=10"
+      iex> path = build_path("/pets", flop)
+      iex> %URI{path: parsed_path, query: parsed_query} = URI.parse(path)
+      iex> {parsed_path, URI.decode_query(parsed_query)}
+      {"/pets", %{"page" => "2", "page_size" => "10"}}
 
   The Flop query parameters will be merged into existing query parameters.
 
       iex> flop = %Flop{page: 2, page_size: 10}
-      iex> build_path("/pets?species=dogs", flop)
-      "/pets?page=2&page_size=10&species=dogs"
+      iex> path = build_path("/pets?species=dogs", flop)
+      iex> %URI{path: parsed_path, query: parsed_query} = URI.parse(path)
+      iex> {parsed_path, URI.decode_query(parsed_query)}
+      {"/pets", %{"page" => "2", "page_size" => "10", "species" => "dogs"}}
 
   ### With an MFA tuple
 

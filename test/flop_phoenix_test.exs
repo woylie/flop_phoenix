@@ -828,39 +828,49 @@ defmodule Flop.PhoenixTest do
             )
         )
 
-      expected_url = fn page ->
-        default =
-          ~s(filters[0][field]=fur_length&) <>
-            ~s(filters[0][op]=%3E%3D&) <>
-            ~s(filters[0][value]=5&) <>
-            ~s(filters[1][field]=curiosity&) <>
-            ~s(filters[1][op]=in&) <>
-            ~s(filters[1][value][]=a_lot&) <>
-            ~s(filters[1][value][]=somewhat&) <>
-            ~s(page_size=10)
+      expected_query = fn page ->
+        default_query =
+          %{
+            "filters[0][field]" => "fur_length",
+            "filters[0][op]" => ">=",
+            "filters[0][value]" => "5",
+            "filters[1][field]" => "curiosity",
+            "filters[1][op]" => "in",
+            "filters[1][value][]" => "somewhat",
+            "page_size" => "10"
+          }
 
         if page == 1,
-          do: "/pets?" <> default,
-          else: ~s(/pets?page=#{page}&) <> default
+          do: default_query,
+          else: Map.put(default_query, "page", to_string(page))
       end
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(previous, "href") == [expected_url.(1)]
+      [href] = Floki.attribute(previous, "href")
+      uri = URI.parse(href)
+      assert uri.path == "/pets"
+      assert URI.decode_query(uri.query) == expected_query.(1)
 
       assert [one] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(one, "class") == ["pagination-link"]
       assert Floki.attribute(one, "data-phx-link") == ["patch"]
       assert Floki.attribute(one, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(one, "href") == [expected_url.(1)]
+      [href] = Floki.attribute(one, "href")
+      uri = URI.parse(href)
+      assert uri.path == "/pets"
+      assert URI.decode_query(uri.query) == expected_query.(1)
 
       assert [next] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next"]
       assert Floki.attribute(next, "data-phx-link") == ["patch"]
       assert Floki.attribute(next, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(next, "href") == [expected_url.(3)]
+      [href] = Floki.attribute(next, "href")
+      uri = URI.parse(href)
+      assert uri.path == "/pets"
+      assert URI.decode_query(uri.query) == expected_query.(3)
     end
 
     test "does not render ellipsis if total pages <= max pages" do
@@ -1144,7 +1154,10 @@ defmodule Flop.PhoenixTest do
         )
 
       link = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?before=B&last=10"]
+      [href] = Floki.attribute(link, "href")
+      uri = URI.parse(href)
+      assert uri.path == "/pets"
+      assert URI.decode_query(uri.query) == %{"before" => "B", "last" => "10"}
     end
 
     test "renders previous link when using click event handling" do
@@ -1729,9 +1742,14 @@ defmodule Flop.PhoenixTest do
       html = render_table(path: "/pets")
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
-      assert Floki.attribute(a, "href") == [
-               "/pets?order_by[]=name&order_directions[]=asc"
-             ]
+      [href] = Floki.attribute(a, "href")
+      uri = URI.parse(href)
+      assert uri.path == "/pets"
+
+      assert URI.decode_query(uri.query) == %{
+               "order_by[]" => "name",
+               "order_directions[]" => "asc"
+             }
     end
 
     test "displays headers with safe HTML values in action col" do
