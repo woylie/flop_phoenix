@@ -215,20 +215,12 @@ defmodule Flop.Phoenix.Table do
   attr :opts, :any, required: true
 
   defp header_column(assigns) do
-    index = order_index(assigns.meta.flop, assigns.field)
-    direction = order_direction(assigns.meta.flop.order_directions, index)
-
-    assigns =
-      assigns
-      |> assign(:order_index, index)
-      |> assign(:order_direction, direction)
+    direction = order_direction(assigns.meta.flop, assigns.field)
+    assigns = assign(assigns, :order_direction, direction)
 
     ~H"""
     <%= if sortable?(@field, @meta.schema) do %>
-      <th
-        {@opts[:thead_th_attrs]}
-        aria-sort={aria_sort(@order_index, @order_direction)}
-      >
+      <th {@opts[:thead_th_attrs]} aria-sort={aria_sort(@order_direction)}>
         <span {@opts[:th_wrapper_attrs]}>
           <%= if @event do %>
             <.sort_link
@@ -258,30 +250,37 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  defp aria_sort(0, direction), do: direction_to_aria(direction)
-  defp aria_sort(_, _), do: nil
-
-  defp direction_to_aria(:desc), do: "descending"
-  defp direction_to_aria(:desc_nulls_last), do: "descending"
-  defp direction_to_aria(:desc_nulls_first), do: "descending"
-  defp direction_to_aria(:asc), do: "ascending"
-  defp direction_to_aria(:asc_nulls_last), do: "ascending"
-  defp direction_to_aria(:asc_nulls_first), do: "ascending"
+  defp aria_sort(:desc), do: "descending"
+  defp aria_sort(:desc_nulls_last), do: "descending"
+  defp aria_sort(:desc_nulls_first), do: "descending"
+  defp aria_sort(:asc), do: "ascending"
+  defp aria_sort(:asc_nulls_last), do: "ascending"
+  defp aria_sort(:asc_nulls_first), do: "ascending"
+  defp aria_sort(_), do: nil
 
   attr :direction, :atom, required: true
   attr :opts, :list, required: true
 
   defp arrow(assigns) do
     ~H"""
-    <%= if @direction in [:asc, :asc_nulls_first, :asc_nulls_last] do %>
-      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_asc] %></span>
-    <% end %>
-    <%= if @direction in [:desc, :desc_nulls_first, :desc_nulls_last] do %>
-      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_desc] %></span>
-    <% end %>
-    <%= if is_nil(@direction) && !is_nil(@opts[:symbol_unsorted]) do %>
-      <span {@opts[:symbol_attrs]}><%= @opts[:symbol_unsorted] %></span>
-    <% end %>
+    <span
+      :if={@direction in [:asc, :asc_nulls_first, :asc_nulls_last]}
+      {@opts[:symbol_attrs]}
+    >
+      <%= @opts[:symbol_asc] %>
+    </span>
+    <span
+      :if={@direction in [:desc, :desc_nulls_first, :desc_nulls_last]}
+      {@opts[:symbol_attrs]}
+    >
+      <%= @opts[:symbol_desc] %>
+    </span>
+    <span
+      :if={is_nil(@direction) && !is_nil(@opts[:symbol_unsorted])}
+      {@opts[:symbol_attrs]}
+    >
+      <%= @opts[:symbol_unsorted] %>
+    </span>
     """
   end
 
@@ -298,15 +297,14 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  defp order_index(%Flop{order_by: nil}, _), do: nil
-
-  defp order_index(%Flop{order_by: order_by}, field) do
-    Enum.find_index(order_by, &(&1 == field))
+  defp order_direction(
+         %Flop{order_by: [field | _], order_directions: [direction | _]},
+         field
+       ) do
+    direction
   end
 
-  defp order_direction(_, nil), do: nil
-  defp order_direction(nil, _), do: :asc
-  defp order_direction(directions, index), do: Enum.at(directions, index)
+  defp order_direction(%Flop{}, _), do: nil
 
   defp sortable?(nil, _), do: false
   defp sortable?(_, nil), do: true

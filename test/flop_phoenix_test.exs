@@ -1896,7 +1896,7 @@ defmodule Flop.PhoenixTest do
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert Floki.text(span) == "▴"
+      assert span |> Floki.text() |> String.trim() == "▴"
 
       html =
         render_table(
@@ -1911,7 +1911,32 @@ defmodule Flop.PhoenixTest do
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert Floki.text(span) == "▾"
+      assert span |> Floki.text() |> String.trim() == "▾"
+    end
+
+    test "only renders order direction symbol for first order field" do
+      html =
+        render_table(
+          meta: %Flop.Meta{
+            flop: %Flop{
+              order_by: [:name, :email],
+              order_directions: [:asc, :asc]
+            }
+          }
+        )
+
+      assert [span] =
+               Floki.find(
+                 html,
+                 "th a:fl-contains('Name') + span.order-direction"
+               )
+
+      assert span |> Floki.text() |> String.trim() == "▴"
+
+      assert Floki.find(
+               html,
+               "a:fl-contains('Email') + span.order-direction"
+             ) == []
     end
 
     test "allows to set symbol class" do
@@ -1936,7 +1961,7 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [span] = Floki.find(html, "span.order-direction")
-      assert Floki.text(span) == "asc"
+      assert span |> Floki.text() |> String.trim() == "asc"
 
       html =
         render_table(
@@ -1947,7 +1972,7 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [span] = Floki.find(html, "span.order-direction")
-      assert Floki.text(span) == "desc"
+      assert span |> Floki.text() |> String.trim() == "desc"
     end
 
     test "allows to set indicator for unsorted column" do
@@ -1965,7 +1990,7 @@ defmodule Flop.PhoenixTest do
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert Floki.text(span) == "random"
+      assert span |> Floki.text() |> String.trim() == "random"
     end
 
     test "renders notice if item list is empty" do
