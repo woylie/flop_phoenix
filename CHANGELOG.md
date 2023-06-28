@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- The table component only renders an ascending/descending order indicator in
+  the column header for the first order field, instead rendering one in the
+  column headers for all ordered fields.
+
 ## [0.19.0] - 2023-05-30
 
 ### Changed
