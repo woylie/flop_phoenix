@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+## [0.19.1] - 2023-06-30
+
 ### Changed
 
 - The table component only renders an ascending/descending order indicator in
   the column header for the first order field, instead rendering one in the
   column headers for all ordered fields.
+- Support Flop 0.22.
 
 ## [0.19.0] - 2023-05-30
 
