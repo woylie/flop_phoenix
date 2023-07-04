@@ -2,10 +2,14 @@
 
 ![CI](https://github.com/woylie/flop_phoenix/workflows/CI/badge.svg) [![Hex](https://img.shields.io/hexpm/v/flop_phoenix)](https://hex.pm/packages/flop_phoenix) [![Coverage Status](https://coveralls.io/repos/github/woylie/flop_phoenix/badge.svg)](https://coveralls.io/github/woylie/flop_phoenix)
 
-Phoenix components for pagination, sortable tables and filter forms with
-[Flop](https://hex.pm/packages/flop) and [Ecto](https://hex.pm/packages/ecto).
+Flop Phoenix provides Phoenix components for pagination, sortable tables, and
+filter forms with [Flop](https://hex.pm/packages/flop) and
+[Ecto](https://hex.pm/packages/ecto).
 
 ## Installation
+
+To start using flop_phoenix, add it to your list of dependencies in `mix.exs`
+of your Phoenix application:
 
 Add `flop_phoenix` to your list of dependencies in the `mix.exs` of your Phoenix
 application.
@@ -18,14 +22,13 @@ def deps do
 end
 ```
 
-Follow the instructions in the
-[Flop documentation](https://hex.pm/packages/flop) to set up your business
-logic.
+Next, set up your business logic according to the
+[Flop documentation](https://hex.pm/packages/flop).
 
-## Fetch the data
+## Usage
 
-Define a function that calls `Flop.validate_and_run/3` to query the list of
-pets.
+First, define a function that utilizes `Flop.validate_and_run/3` to query your
+desired list. For example:
 
 ```elixir
 defmodule MyApp.Pets do
@@ -39,7 +42,8 @@ end
 
 ### LiveView
 
-Fetch the data and assign it along with the meta data to the socket.
+In the LiveView, fetch the data and assign it alongside the meta data to the
+socket.
 
 ```elixir
 defmodule MyAppWeb.PetLive.Index do
@@ -53,21 +57,25 @@ defmodule MyAppWeb.PetLive.Index do
       {:ok, {pets, meta}} ->
         {:noreply, assign(socket, %{pets: pets, meta: meta})}
 
-      _ ->
+      {:error, _meta} ->
+        # This will reset invalid parameters. Alternatively, you can assign
+        # only the meta and render the errors, or you can ignore the error
+        # case entirely.
         {:noreply, push_navigate(socket, to: ~p"/pets")}
     end
   end
 end
 ```
 
-If you don't want the `Flop.Phoenix` components to reflect the pagination,
-sorting and filtering parameters in the URL, you can fetch and assign the data
-in the `c:Phoenix.LiveView.handle_event/3` callback instead. In that case, you
-need to pass the event name as an attribute to the components.
+If you prefer the `Flop.Phoenix` components not to reflect pagination, sorting,
+and filtering parameters in the URL, fetch and assign the data in the
+`c:Phoenix.LiveView.handle_event/3` callback. You need to pass the event name as
+an attribute to the components in that case.
 
 ### Controller
 
-For dead views, pass the data and the Flop meta struct to your template in your controller.
+For non-LiveView ("dead") views, pass the data and Flop meta struct to your
+template in the controller.
 
 ```elixir
 defmodule MyAppWeb.PetController do
@@ -87,7 +95,8 @@ end
 
 ## Sortable tables and pagination
 
-In your template, add a sortable table and pagination links.
+To add a sortable table and pagination links, you can add the following to your
+template:
 
 ```elixir
 <h1>Pets</h1>
@@ -100,33 +109,34 @@ In your template, add a sortable table and pagination links.
 <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} />
 ```
 
-The `path` attribute points to the current path. `Flop.Phoenix` will add the pagination, filtering and sorting parameters to that path. You can use verified
-routes, route helpers, or custom path builder functions. The different formats
-are explained in the documentation of `Flop.Phoenix.build_path/3`.
+In this context, path points to the current route, and Flop Phoenix appends
+pagination, filtering, and sorting parameters to it. You can use verified
+routes, route helpers, or custom path builder functions. You'll find
+explanations for the different formats in the documentation for
+`Flop.Phoenix.build_path/3`.
 
-The `field` attribute of the `:col` slot is optional. If set and the field is
-configured as sortable in the schema, the column header will be clickable,
-allowing the user to sort by that column. If the field is not marked as sortable
-or if the attribute is omitted or set to `nil` or `false`, the column header
-will not be clickable.
+Note that the field attribute in the `:col` slot is optional. If set and the
+corresponding field in the schema is defined as sortable, the table header for
+that column will be interactive, allowing users to sort by that column. However,
+if the field isn't defined as sortable, or if the field attribute is omitted, or
+set to `nil` or `false`, the table header will not be clickable.
 
-If you pass the `for` option when making the query with Flop, Flop Phoenix can
-determine which table columns are sortable. It also hides the `order` and
-`page_size` parameters if they match the default values defined with
-`Flop.Schema`.
+By using the `for` option in your Flop query, Flop Phoenix can identify which
+table columns are sortable. Additionally, it omits the `order` and `page_size`
+parameters if they align with the default values specified via `Flop.Schema`.
 
-Alternatively, you can pass an event name instead of a path. Refer to the
-component documentation for details.
+You also have the option to pass an event name instead of a path. For more
+details, please refer to the component documentation.
 
-See `Flop.Phoenix.cursor_pagination/1` for instructions to set up cursor-based
-pagination.
+If you wish to implement cursor-based pagination, see
+`Flop.Phoenix.cursor_pagination/1` for setup instructions.
 
 ## Filter forms
 
-This library implements `Phoenix.HTML.FormData` for the `Flop.Meta` struct,
-which means you can pass the struct to the Phoenix form functions. The
-easiest way to render a filter form is to use the `Flop.Phoenix.filter_fields/1`
-component:
+Flop Phoenix implements the `Phoenix.HTML.FormData` for the `Flop.Meta` struct.
+As such, you can easily pass the struct to Phoenix form functions. One
+straightforward way to render a filter form is through the
+`Flop.Phoenix.filter_fields/1` component, as shown below:
 
 ```elixir
 attr :meta, Flop.Meta, required: true
@@ -164,15 +174,15 @@ def filter_form(%{meta: meta} = assigns) do
 end
 ```
 
-The `filter_fields` component renders all necessary hidden inputs, but it does
-not render the inputs for the filter values on its own. Instead, it passes all
-necessary details to the inner block. This allows you to render the filter
-inputs with your custom input component.
+Note that while the `filter_fields` component produces all necessary hidden
+inputs, it doesn't automatically render inputs for filter values. Instead, it
+passes the necessary details to the inner block, allowing you to customize the
+filter inputs with your custom input component.
 
 You can pass additional options for each field. Refer to the
 `Flop.Phoenix.filter_fields/1` documentation for details.
 
-Now you can render a filter form like this:
+Now, you can render a filter form like so:
 
 ```elixir
 <.filter_form
@@ -197,4 +207,37 @@ def handle_event("reset-filter", _, %{assigns: assigns} = socket) do
   path = Flop.Phoenix.build_path(~p"/pets", flop, backend: assigns.meta.backend)
   {:noreply, push_patch(socket, to: path)}
 end
+```
+
+## LiveView streams
+
+To use LiveView streams, you can change your `handle_params/3` function as
+follows:
+
+```elixir
+def handle_params(params, _, socket) do
+  case Pets.list_pets(params) do
+    {:ok, {pets, meta}} ->
+      {:noreply,
+         socket
+         |> assign(:meta, meta)
+         |> stream(:pets, pets, reset: true)}
+
+    # ...
+  end
+end
+```
+
+When using LiveView streams, the data being passed to the table component
+differs. Instead of passing `@pets`, you'll need to use `@streams.pets`.
+
+The stream values are tuples, with the DOM ID as the first element and the items
+(in this case, Pets) as the second element. You need to match on these tuples
+within the `:let` attributes of the table component.
+
+```elixir
+<Flop.Phoenix.table items={@streams.pets} meta={@meta} path={~p"/pets"}>
+  <:col :let={{_, pet}} label="Name" field={:name}><%= pet.name %></:col>
+  <:col :let={{_, pet}} label="Age" field={:age}><%= pet.age %></:col>
+</Flop.Phoenix.table>
 ```
