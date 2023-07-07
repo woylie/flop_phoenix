@@ -242,6 +242,8 @@ defmodule Flop.Phoenix do
     `<table>`. Default: `#{inspect(Table.default_opts()[:tbody_attrs])}`.
   - `:tbody_td_attrs`: Attributes to be added to each `<td>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_td_attrs])}`.
+  - `:thead_attrs`: Attributes to be added to the `<thead>` tag within the
+    `<table>`. Default: `#{inspect(Table.default_opts()[:thead_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to be added to each `<tr>` tag within the
     `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
   - `:thead_th_attrs`: Attributes to be added to each `<th>` tag within the
@@ -259,6 +261,7 @@ defmodule Flop.Phoenix do
           | {:symbol_unsorted, Phoenix.HTML.safe() | binary}
           | {:table_attrs, keyword}
           | {:tbody_attrs, keyword}
+          | {:thead_attrs, keyword}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword}
           | {:th_wrapper_attrs, keyword}
