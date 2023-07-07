@@ -1454,6 +1454,18 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "tbody.mango_body")
     end
 
+    test "setting thead attributes" do
+      html =
+        render_table(
+          opts: [
+            thead_attrs: [class: "text-left text-zinc-500 leading-6"],
+            container: true
+          ]
+        )
+
+      assert [_] = Floki.find(html, "thead.text-left.text-zinc-500.leading-6")
+    end
+
     test "allows to set id on tbody" do
       html = render_table(id: "some-id")
       assert [_] = Floki.find(html, "tbody#some-id")

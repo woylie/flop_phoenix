@@ -72,6 +72,7 @@ defmodule Flop.Phoenix.Table do
       tbody_attrs: [],
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
+      thead_attrs: [],
       th_wrapper_attrs: [],
       thead_th_attrs: [],
       thead_tr_attrs: []
@@ -140,7 +141,7 @@ defmodule Flop.Phoenix.Table do
           <col :if={show_column?(action)} style={action[:col_style]} />
         <% end %>
       </colgroup>
-      <thead>
+      <thead {@opts[:thead_attrs]}>
         <tr {@opts[:thead_tr_attrs]}>
           <%= for col <- @col do %>
             <.header_column
