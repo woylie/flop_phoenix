@@ -18,7 +18,7 @@ defmodule Flop.Phoenix do
   are deep-merged into the default options.
 
       defmodule MyAppWeb.CoreComponents do
-        import Phoenix.HTML
+        import Phoenix.HTML.Tag
 
         def pagination_opts do
            [
