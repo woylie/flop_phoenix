@@ -849,16 +849,15 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_query = fn page ->
-        default_query =
-          %{
-            "filters[0][field]" => "fur_length",
-            "filters[0][op]" => ">=",
-            "filters[0][value]" => "5",
-            "filters[1][field]" => "curiosity",
-            "filters[1][op]" => "in",
-            "filters[1][value][]" => "somewhat",
-            "page_size" => "10"
-          }
+        default_query = %{
+          "filters[0][field]" => "fur_length",
+          "filters[0][op]" => ">=",
+          "filters[0][value]" => "5",
+          "filters[1][field]" => "curiosity",
+          "filters[1][op]" => "in",
+          "filters[1][value][]" => "somewhat",
+          "page_size" => "10"
+        }
 
         if page == 1,
           do: default_query,
@@ -1643,7 +1642,10 @@ defmodule Flop.PhoenixTest do
             ],
             opts: [
               tbody_tr_attrs: fn item ->
-                [class: String.downcase(item.occupation) |> String.replace(" ", "-")]
+                [
+                  class:
+                    String.downcase(item.occupation) |> String.replace(" ", "-")
+                ]
               end
             ]
           ],
