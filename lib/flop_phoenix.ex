@@ -672,7 +672,8 @@ defmodule Flop.Phoenix do
       doc: """
       Additional attributes to pass to the `<td>` element. May be provided as a
       static keyword list, or a function of arity 1 can be passed to dynamically
-      generate the list using row data.
+      generate the list using row data. Note that these attributes will
+      override any tbody_td_attrs that are set at the table level.
       """
   end
 
