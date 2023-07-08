@@ -652,11 +652,16 @@ defmodule Flop.Phoenix do
       """
 
     attr :show, :boolean,
-      doc: "Boolean value to conditionally show the column. Defaults to `true`."
+      doc: """
+      Boolean value to conditionally show the column. Defaults to `true`
+      Deprecated. Use `:if` instead.
+      """
 
     attr :hide, :boolean,
-      doc:
-        "Boolean value to conditionally hide the column. Defaults to `false`."
+      doc: """
+      Boolean value to conditionally hide the column. Defaults to `false`.
+      Deprecated. Use `:if` instead.
+      """
 
     attr :col_style, :string,
       doc: """
