@@ -1,6 +1,8 @@
 defmodule Flop.Phoenix.Misc do
   @moduledoc false
 
+  alias Phoenix.LiveView.JS
+
   require Logger
 
   @doc """
@@ -123,4 +125,29 @@ defmodule Flop.Phoenix.Misc do
       do: :ok
 
   def validate_path_or_event!(_, error_msg), do: raise(ArgumentError, error_msg)
+
+  @doc """
+  Validates that either a path attribute or an on_paginate attribute is set.
+  """
+  def validate_path_or_on_paginate!(%{path: {module, function, args}}, _)
+      when is_atom(module) and is_atom(function) and is_list(args),
+      do: :ok
+
+  def validate_path_or_on_paginate!(%{path: {function, args}}, _)
+      when is_function(function) and is_list(args),
+      do: :ok
+
+  def validate_path_or_on_paginate!(%{path: path}, _)
+      when is_binary(path) or is_function(path, 1),
+      do: :ok
+
+  def validate_path_or_on_paginate!(%{on_paginate: %JS{}}, _),
+    do: :ok
+
+  def validate_path_or_on_paginate!(%{event: event}, _)
+      when is_binary(event),
+      do: :ok
+
+  def validate_path_or_on_paginate!(_, error_msg),
+    do: raise(ArgumentError, error_msg)
 end

@@ -8,16 +8,18 @@ defmodule Flop.Phoenix.Pagination do
 
   require Logger
 
-  @path_event_error_msg """
-  the :path or :event option is required when rendering pagination
+  @path_on_paginate_error_msg """
+  path or on_paginate attribute is required
+
+  At least one of the mentioned attributes is required for the pagination
+  component. Combining them will append a JS.patch command to the on_paginate
+  command.
 
   The :path value can be a path as a string, a
   {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
   function.
 
-  The :event value needs to be a string.
-
-  ## Example
+  ## Examples
 
       <Flop.Phoenix.pagination
         meta={@meta}
@@ -50,6 +52,14 @@ defmodule Flop.Phoenix.Pagination do
       <Flop.Phoenix.pagination
         meta={@meta}
         on_paginate={JS.push("paginate")}
+      />
+
+  or
+
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={&build_path/1}
+        on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
       />
   """
 
@@ -87,7 +97,7 @@ defmodule Flop.Phoenix.Pagination do
 
   @spec init_assigns(map) :: map
   def init_assigns(%{meta: meta, opts: opts, path: path} = assigns) do
-    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
+    Misc.validate_path_or_on_paginate!(assigns, @path_on_paginate_error_msg)
 
     assigns
     |> assign(:opts, merge_opts(opts))

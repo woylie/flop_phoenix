@@ -313,6 +313,49 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
+    test "uses phx-click with on_paginate without path" do
+      html =
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          path: nil,
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == ["#"]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
+    end
+
+    test "uses phx-click with on_paginate and path" do
+      html =
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          path: "/pets",
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      expected_path = "/pets?page_size=10"
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == [expected_path]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+
+      assert Jason.decode!(phx_click) == [
+               ["push", %{"event" => "paginate"}],
+               ["patch", %{"href" => "/pets?page_size=10", "replace" => false}]
+             ]
+    end
+
     test "supports a function/args tuple as path" do
       html =
         render_pagination(
@@ -796,9 +839,9 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
     end
 
-    test "raises if neither path nor event are passed" do
+    test "raises if neither path nor event nor on_paginate are passed" do
       assert_raise ArgumentError,
-                   ~r/^the :path or :event option is required/,
+                   ~r/^path or on_paginate attribute is required/,
                    fn ->
                      render_component(&pagination/1,
                        __changed__: nil,
