@@ -160,47 +160,17 @@ defmodule Flop.Phoenix.Pagination do
   attr :target, :string, required: true
   attr :opts, :list, required: true
 
-  def page_links(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :max_pages,
-        max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
-      )
+  def page_links(%{meta: meta} = assigns) do
+    max_pages = max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
+
+    range =
+      first..last =
+      get_page_link_range(meta.current_page, max_pages, meta.total_pages)
+
+    assigns = assign(assigns, first: first, last: last, range: range)
 
     ~H"""
-    <.render_page_links
-      :if={@opts[:page_links] != :hide}
-      event={@event}
-      meta={@meta}
-      on_paginate={@on_paginate}
-      page_link_helper={@page_link_helper}
-      opts={@opts}
-      range={
-        get_page_link_range(
-          @meta.current_page,
-          @max_pages,
-          @meta.total_pages
-        )
-      }
-      target={@target}
-    />
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :on_paginate, JS
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-  attr :range, :any, required: true
-
-  defp render_page_links(%{range: first..last} = assigns) do
-    assigns = assign(assigns, first: first, last: last)
-
-    ~H"""
-    <ul {@opts[:pagination_list_attrs]}>
+    <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
       <.page_link_tag
         :if={@first > 1}
         event={@event}
