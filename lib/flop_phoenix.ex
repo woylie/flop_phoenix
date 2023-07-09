@@ -1047,9 +1047,11 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :attrs, :list,
+    attr :attrs, :any,
       doc: """
-      Any additional attributes to pass to the `<td>`.
+      Any additional attributes to pass to the `<td>`. Can be a keyword list or
+      a function that takes the current row item as an argument and returns a
+      keyword list.
       """
   end
 
