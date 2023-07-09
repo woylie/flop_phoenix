@@ -86,64 +86,19 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   @spec init_assigns(map) :: map
-  def init_assigns(%{opts: opts} = assigns) do
-    assigns = assign(assigns, :opts, merge_opts(opts))
+  def init_assigns(%{meta: meta, opts: opts, path: path} = assigns) do
     Misc.validate_path_or_event!(assigns, @path_event_error_msg)
+
     assigns
+    |> assign(:opts, merge_opts(opts))
+    |> assign(:page_link_helper, build_page_link_helper(meta, path))
+    |> assign(:path, nil)
   end
 
   defp merge_opts(opts) do
     default_opts()
     |> Misc.deep_merge(Misc.get_global_opts(:pagination))
     |> Misc.deep_merge(opts)
-  end
-
-  @spec render(map) :: Phoenix.LiveView.Rendered.t()
-
-  attr :meta, Flop.Meta, required: true
-  attr :on_paginate, JS
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-
-  def render(assigns) do
-    ~H"""
-    <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
-      <.pagination_link
-        disabled={!@meta.has_previous_page?}
-        disabled_class={@opts[:disabled_class]}
-        event={@event}
-        target={@target}
-        page={@meta.previous_page}
-        path={get_path(@page_link_helper, @meta.previous_page)}
-        on_paginate={@on_paginate}
-        attrs={@opts[:previous_link_attrs]}
-      >
-        <%= @opts[:previous_link_content] %>
-      </.pagination_link>
-      <.pagination_link
-        disabled={!@meta.has_next_page?}
-        disabled_class={@opts[:disabled_class]}
-        event={@event}
-        target={@target}
-        page={@meta.next_page}
-        path={get_path(@page_link_helper, @meta.next_page)}
-        on_paginate={@on_paginate}
-        attrs={@opts[:next_link_attrs]}
-      >
-        <%= @opts[:next_link_content] %>
-      </.pagination_link>
-      <.page_links
-        event={@event}
-        meta={@meta}
-        on_paginate={@on_paginate}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-    </nav>
-    """
   end
 
   attr :path, :string
@@ -156,7 +111,7 @@ defmodule Flop.Phoenix.Pagination do
   attr :disabled_class, :string, required: true
   slot :inner_block
 
-  defp pagination_link(%{disabled: true} = assigns) do
+  def pagination_link(%{disabled: true} = assigns) do
     ~H"""
     <span {add_disabled_class(@attrs, @disabled_class)}>
       <%= render_slot(@inner_block) %>
@@ -164,7 +119,7 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
+  def pagination_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
     <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@attrs}>
       <%= render_slot(@inner_block) %>
@@ -172,8 +127,8 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp pagination_link(%{on_paginate: nil, path: path} = assigns)
-       when is_binary(path) do
+  def pagination_link(%{on_paginate: nil, path: path} = assigns)
+      when is_binary(path) do
     ~H"""
     <.link patch={@path} {@attrs}>
       <%= render_slot(@inner_block) %>
@@ -181,7 +136,7 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp pagination_link(%{} = assigns) do
+  def pagination_link(%{} = assigns) do
     ~H"""
     <.link
       href={@path}
@@ -195,9 +150,6 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  defp get_path(nil, _page), do: nil
-  defp get_path(page_link_helper, page), do: page_link_helper.(page)
-
   defp click_cmd(on_paginate, nil), do: on_paginate
   defp click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
 
@@ -208,7 +160,7 @@ defmodule Flop.Phoenix.Pagination do
   attr :target, :string, required: true
   attr :opts, :list, required: true
 
-  defp page_links(assigns) do
+  def page_links(assigns) do
     assigns =
       assign(
         assigns,
@@ -357,7 +309,7 @@ defmodule Flop.Phoenix.Pagination do
     end
   end
 
-  def build_page_link_helper(_meta, nil), do: nil
+  def build_page_link_helper(_meta, nil), do: fn _ -> nil end
 
   def build_page_link_helper(meta, path) do
     query_params = build_query_params(meta)

@@ -360,15 +360,40 @@ defmodule Flop.Phoenix do
     assigns = Pagination.init_assigns(assigns)
 
     ~H"""
-    <Pagination.render
-      :if={@meta.total_pages > 1}
-      event={@event}
-      meta={@meta}
-      opts={@opts}
-      on_paginate={@on_paginate}
-      page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
-      target={@target}
-    />
+    <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>
+      <Pagination.pagination_link
+        disabled={!@meta.has_previous_page?}
+        disabled_class={@opts[:disabled_class]}
+        event={@event}
+        target={@target}
+        page={@meta.previous_page}
+        path={@page_link_helper.(@meta.previous_page)}
+        on_paginate={@on_paginate}
+        attrs={@opts[:previous_link_attrs]}
+      >
+        <%= @opts[:previous_link_content] %>
+      </Pagination.pagination_link>
+      <Pagination.pagination_link
+        disabled={!@meta.has_next_page?}
+        disabled_class={@opts[:disabled_class]}
+        event={@event}
+        target={@target}
+        page={@meta.next_page}
+        path={@page_link_helper.(@meta.next_page)}
+        on_paginate={@on_paginate}
+        attrs={@opts[:next_link_attrs]}
+      >
+        <%= @opts[:next_link_content] %>
+      </Pagination.pagination_link>
+      <Pagination.page_links
+        event={@event}
+        meta={@meta}
+        on_paginate={@on_paginate}
+        page_link_helper={@page_link_helper}
+        opts={@opts}
+        target={@target}
+      />
+    </nav>
     """
   end
 
