@@ -8,64 +8,61 @@ defmodule Flop.Phoenix.CursorPagination do
 
   require Logger
 
-  @path_on_paginate_error_msg """
-  path or on_paginate attribute is required
+  def path_on_paginate_error_msg do
+    """
+    path or on_paginate attribute is required
 
-  At least one of the mentioned attributes is required for the cursor
-  pagination component. Combining them will append a JS.patch command to the
-  on_paginate command.
+    At least one of the mentioned attributes is required for the cursor
+    pagination component. Combining them will append a JS.patch command to the
+    on_paginate command.
 
-  The :path value can be a path as a string, a
-  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-  function.
+    The :path value can be a path as a string, a
+    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
+    function.
 
-  ## Example
+    ## Example
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        path={~p"/pets"}
-      />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path={~p"/pets"}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        path={{Routes, :pet_path, [@socket, :index]}}
-      />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path={{Routes, :pet_path, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        path={{&Routes.pet_path/3, [@socket, :index]}}
-      />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path={{&Routes.pet_path/3, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        path={&build_path/1}
-      />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path={&build_path/1}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        on_paginate={JS.push("paginate")}
-      />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.cursor_pagination
-        meta={@meta}
-        path={~"/pets"}
-        on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
-      />
-  """
-
-  def validate_assigns!(assigns) do
-    Misc.validate_path_or_on_paginate!(assigns, @path_on_paginate_error_msg)
-    assigns
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path={~"/pets"}
+          on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
+        />
+    """
   end
 
   @spec default_opts() :: [Flop.Phoenix.cursor_pagination_option()]
@@ -97,11 +94,11 @@ defmodule Flop.Phoenix.CursorPagination do
   end
 
   # meta, direction, reverse
-  def show_link?(%Meta{has_previous_page?: true}, :previous, false), do: true
-  def show_link?(%Meta{has_next_page?: true}, :next, false), do: true
-  def show_link?(%Meta{has_previous_page?: true}, :next, true), do: true
-  def show_link?(%Meta{has_next_page?: true}, :previous, true), do: true
-  def show_link?(%Meta{}, _, _), do: false
+  def disable?(%Meta{has_previous_page?: true}, :previous, false), do: false
+  def disable?(%Meta{has_next_page?: true}, :next, false), do: false
+  def disable?(%Meta{has_previous_page?: true}, :next, true), do: false
+  def disable?(%Meta{has_next_page?: true}, :previous, true), do: false
+  def disable?(%Meta{}, _, _), do: true
 
   def pagination_path(_, nil, _), do: nil
 

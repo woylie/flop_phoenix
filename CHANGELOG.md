@@ -9,6 +9,15 @@
   The attribute can be combined with the `path` attribute, in which case the
   `patch` command to the new URL will be appended to the given JS command.
 - Similarly, an `on_sort` attribute was added to the `table` component.
+- Allow setting `tbody_tr_attrs` to a function that takes the current row item
+  as an argument and returns a list of attributes.
+- Allow setting the `attrs` attribute of the `:col` slot of the table component
+  to a function that takes the current row item as an argument and returns a
+  list of attributes.
+
+### Changed
+
+- The table ID falls back to `"sortable_table"` if no schema module is used.
 
 ### Deprecated
 

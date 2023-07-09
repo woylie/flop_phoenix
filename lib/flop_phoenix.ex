@@ -355,7 +355,7 @@ defmodule Flop.Phoenix do
         <.pagination
           meta={@meta}
           on_paginate={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("paginate")
           }
         />
 
@@ -365,8 +365,18 @@ defmodule Flop.Phoenix do
         <.pagination
           meta={@meta}
           path={~"/pets"}
-          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_paginate={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
+
+    With the above attributes in place, you can add the following JavaScript to
+    your application to scroll to the top of your table whenever a pagination
+    link is clicked:
+
+    ```js
+    window.addEventListener("my_app:scroll_to", (e) => {
+      e.target.scrollIntoView();
+    });
+    ```
     """
 
   attr :event, :string,
@@ -394,12 +404,11 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
-    Misc.validate_path_or_on_paginate!(
-      assigns,
-      Pagination.path_on_paginate_error_msg()
-    )
+  def pagination(%{path: nil, on_paginate: nil, event: nil}) do
+    raise ArgumentError, Pagination.path_on_paginate_error_msg()
+  end
 
+  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
     assigns =
       assigns
       |> assign(:opts, Pagination.merge_opts(opts))
@@ -677,7 +686,7 @@ defmodule Flop.Phoenix do
         <.cursor_pagination
           meta={@meta}
           on_paginate={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("paginate")
           }
         />
 
@@ -687,8 +696,18 @@ defmodule Flop.Phoenix do
         <.cursor_pagination
           meta={@meta}
           path={~"/pets"}
-          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_paginate={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
+
+    With the above attributes in place, you can add the following JavaScript to
+    your application to scroll to the top of your table whenever a pagination
+    link is clicked:
+
+    ```js
+    window.addEventListener("my_app:scroll_to", (e) => {
+      e.target.scrollIntoView();
+    });
+    ```
     """
 
   attr :event, :string,
@@ -724,11 +743,12 @@ defmodule Flop.Phoenix do
     documentation.
     """
 
+  def cursor_pagination(%{path: nil, on_paginate: nil, event: nil}) do
+    raise ArgumentError, CursorPagination.path_on_paginate_error_msg()
+  end
+
   def cursor_pagination(%{opts: opts} = assigns) do
-    assigns =
-      assigns
-      |> CursorPagination.validate_assigns!()
-      |> assign(:opts, CursorPagination.merge_opts(opts))
+    assigns = assign(assigns, :opts, CursorPagination.merge_opts(opts))
 
     ~H"""
     <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
@@ -739,7 +759,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         event={@event}
         target={@target}
-        disabled={!CursorPagination.show_link?(@meta, :previous, @reverse)}
+        disabled={CursorPagination.disable?(@meta, :previous, @reverse)}
         disabled_class={@opts[:disabled_class]}
         {@opts[:previous_link_attrs]}
       >
@@ -752,7 +772,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         event={@event}
         target={@target}
-        disabled={!CursorPagination.show_link?(@meta, :next, @reverse)}
+        disabled={CursorPagination.disable?(@meta, :next, @reverse)}
         disabled_class={@opts[:disabled_class]}
         {@opts[:next_link_attrs]}
       >
@@ -896,7 +916,7 @@ defmodule Flop.Phoenix do
           items={@items}
           meta={@meta}
           on_sort={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("sort")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("sort")
           }
         />
 
@@ -906,7 +926,7 @@ defmodule Flop.Phoenix do
         <.table
           meta={@meta}
           path={~"/pets"}
-          on_sort={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_sort={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
     """
 
@@ -1047,9 +1067,11 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :attrs, :list,
+    attr :attrs, :any,
       doc: """
-      Any additional attributes to pass to the `<td>`.
+      Any additional attributes to pass to the `<td>`. Can be a keyword list or
+      a function that takes the current row item as an argument and returns a
+      keyword list.
       """
   end
 
@@ -1066,8 +1088,15 @@ defmodule Flop.Phoenix do
         </Flop.Phoenix.table>
     """
 
-  def table(assigns) do
-    assigns = Table.init_assigns(assigns)
+  def table(%{path: nil, on_sort: nil, event: nil}) do
+    raise ArgumentError, Table.path_on_sort_error_msg()
+  end
+
+  def table(%{meta: meta, opts: opts} = assigns) do
+    assigns =
+      assigns
+      |> assign(:opts, Table.merge_opts(opts))
+      |> assign_new(:id, fn -> table_id(meta.schema) end)
 
     ~H"""
     <%= if @items == [] do %>
@@ -1114,6 +1143,13 @@ defmodule Flop.Phoenix do
       <% end %>
     <% end %>
     """
+  end
+
+  defp table_id(nil), do: "sortable_table"
+
+  defp table_id(schema) do
+    module_name = schema |> Module.split() |> List.last() |> Macro.underscore()
+    module_name <> "_table"
   end
 
   @doc """

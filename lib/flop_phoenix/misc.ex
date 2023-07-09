@@ -64,8 +64,8 @@ defmodule Flop.Phoenix.Misc do
   def maybe_put(keywords, key, value, _), do: Keyword.put(keywords, key, value)
 
   @doc """
-  Puts the order params of a into a keyword list only if they don't match the
-  defaults passed as the last argument.
+  Puts the order params of a Flop struct into a keyword list only if they don't
+  match the defaults passed as the last argument.
   """
   @spec maybe_put_order_params(keyword, Flop.t() | map, map) :: keyword
   def maybe_put_order_params(
@@ -106,29 +106,4 @@ defmodule Flop.Phoenix.Misc do
 
   def click_cmd(on_paginate, nil), do: on_paginate
   def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
-
-  @doc """
-  Validates that either a path attribute or an on_paginate attribute is set.
-  """
-  def validate_path_or_on_paginate!(%{path: {module, function, args}}, _)
-      when is_atom(module) and is_atom(function) and is_list(args),
-      do: :ok
-
-  def validate_path_or_on_paginate!(%{path: {function, args}}, _)
-      when is_function(function) and is_list(args),
-      do: :ok
-
-  def validate_path_or_on_paginate!(%{path: path}, _)
-      when is_binary(path) or is_function(path, 1),
-      do: :ok
-
-  def validate_path_or_on_paginate!(%{on_paginate: %JS{}}, _),
-    do: :ok
-
-  def validate_path_or_on_paginate!(%{event: event}, _)
-      when is_binary(event),
-      do: :ok
-
-  def validate_path_or_on_paginate!(_, error_msg),
-    do: raise(ArgumentError, error_msg)
 end
