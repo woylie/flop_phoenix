@@ -320,16 +320,40 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
-    route helper), or a 1-ary path builder function. See
-    `Flop.Phoenix.build_path/3` for details. If set, links will be
-    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
-    LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module. Alternatively, set `:event`, if you don't
-    want the parameters to appear in the URL.
+    If set, the current view is patched with updated query parameters when a
+    pagination link is clicked. In case the `on_paginate` attribute is set as
+    well, the `patch` command is appended to the `on_paginate` command.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
     """
 
-  attr :on_paginate, JS, default: nil
+  attr :on_paginate, JS,
+    default: nil,
+    doc: """
+    A `Phoenix.LiveView.JS` command that is triggered when a pagination link is
+    clicked.
+
+    If used without the `path` attribute, you should include a `push` operation
+    to handle the event with the `handle_event` callback.
+
+        <.pagination
+          meta={@meta}
+          on_paginate={
+            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+          }
+        />
+
+    If used with the `path` attribute, a `patch` command is appended to the
+    given JS command.
+
+        <.pagination
+          meta={@meta}
+          path={~"/pets"}
+          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+        />
+    """
 
   attr :event, :string,
     default: nil,
@@ -618,16 +642,40 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
-    route helper), or a 1-ary path builder function. See
-    `Flop.Phoenix.build_path/3` for details. If set, links will be
-    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
-    LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module. Alternatively, set `:event`, if you don't
-    want the parameters to appear in the URL.
+    If set, the current view is patched with updated query parameters when a
+    pagination link is clicked. In case the `on_paginate` attribute is set as
+    well, the `patch` command is appended to the `on_paginate` command.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
     """
 
-  attr :on_paginate, JS, default: nil
+  attr :on_paginate, JS,
+    default: nil,
+    doc: """
+    A `Phoenix.LiveView.JS` command that is triggered when a pagination link is
+    clicked.
+
+    If used without the `path` attribute, you should include a `push` operation
+    to handle the event with the `handle_event` callback.
+
+        <.cursor_pagination
+          meta={@meta}
+          on_paginate={
+            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+          }
+        />
+
+    If used with the `path` attribute, a `patch` command is appended to the
+    given JS command.
+
+        <.cursor_pagination
+          meta={@meta}
+          path={~"/pets"}
+          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+        />
+    """
 
   attr :event, :string,
     default: nil,
