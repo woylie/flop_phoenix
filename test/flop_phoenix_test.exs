@@ -1630,7 +1630,7 @@ defmodule Flop.PhoenixTest do
         |> rendered_to_string()
         |> Floki.parse_fragment!()
 
-      assert [_] = Floki.find(html, "tbody#paginated_table")
+      assert [_] = Floki.find(html, "tbody#sortable_table")
     end
 
     test "does not set row ID if items are not a stream" do

@@ -394,12 +394,11 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
-    Misc.validate_path_or_on_paginate!(
-      assigns,
-      Pagination.path_on_paginate_error_msg()
-    )
+  def pagination(%{path: nil, on_paginate: nil, event: nil}) do
+    raise ArgumentError, Pagination.path_on_paginate_error_msg()
+  end
 
+  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
     assigns =
       assigns
       |> assign(:opts, Pagination.merge_opts(opts))
@@ -724,11 +723,12 @@ defmodule Flop.Phoenix do
     documentation.
     """
 
+  def cursor_pagination(%{path: nil, on_paginate: nil, event: nil}) do
+    raise ArgumentError, CursorPagination.path_on_paginate_error_msg()
+  end
+
   def cursor_pagination(%{opts: opts} = assigns) do
-    assigns =
-      assigns
-      |> CursorPagination.validate_assigns!()
-      |> assign(:opts, CursorPagination.merge_opts(opts))
+    assigns = assign(assigns, :opts, CursorPagination.merge_opts(opts))
 
     ~H"""
     <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
@@ -1066,8 +1066,15 @@ defmodule Flop.Phoenix do
         </Flop.Phoenix.table>
     """
 
-  def table(assigns) do
-    assigns = Table.init_assigns(assigns)
+  def table(%{path: nil, on_sort: nil, event: nil}) do
+    raise ArgumentError, Table.path_on_sort_error_msg()
+  end
+
+  def table(%{meta: meta, opts: opts} = assigns) do
+    assigns =
+      assigns
+      |> assign(:opts, Table.merge_opts(opts))
+      |> assign_new(:id, fn -> table_id(meta.schema) end)
 
     ~H"""
     <%= if @items == [] do %>
@@ -1114,6 +1121,13 @@ defmodule Flop.Phoenix do
       <% end %>
     <% end %>
     """
+  end
+
+  defp table_id(nil), do: "sortable_table"
+
+  defp table_id(schema) do
+    module_name = schema |> Module.split() |> List.last() |> Macro.underscore()
+    module_name <> "_table"
   end
 
   @doc """

@@ -9,66 +9,68 @@ defmodule Flop.Phoenix.Table do
 
   require Logger
 
-  @path_on_sort_error_msg """
-  path or on_sort attribute is required
+  def path_on_sort_error_msg do
+    """
+    path or on_sort attribute is required
 
-  At least one of the mentioned attributes is required for the table
-  component. Combining them will append a JS.patch command to the on_paginate
-  command.
+    At least one of the mentioned attributes is required for the table
+    component. Combining them will append a JS.patch command to the on_paginate
+    command.
 
-  The :path value can be a path as a string, a
-  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-  function.
+    The :path value can be a path as a string, a
+    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
+    function.
 
-  ## Examples
+    ## Examples
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path={~p"/pets"}
-      >
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          path={~p"/pets"}
+        >
 
-  or
+    or
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path={{Routes, :pet_path, [@socket, :index]}}
-      >
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          path={{Routes, :pet_path, [@socket, :index]}}
+        >
 
-  or
+    or
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path={{&Routes.pet_path/3, [@socket, :index]}}
-      >
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          path={{&Routes.pet_path/3, [@socket, :index]}}
+        >
 
-  or
+    or
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path={&build_path/1}
-      >
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          path={&build_path/1}
+        >
 
-  or
+    or
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        on_sort={JS.push("sort-table")}
-      >
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          on_sort={JS.push("sort-table")}
+        >
 
-  or
+    or
 
-      <Flop.Phoenix.table
-        items={@pets}
-        meta={@meta}
-        path={~p"/pets"}
-        on_sort={JS.dispatch("scroll-to", to: "#my-table")}
-      >
-  """
+        <Flop.Phoenix.table
+          items={@pets}
+          meta={@meta}
+          path={~p"/pets"}
+          on_sort={JS.dispatch("scroll-to", to: "#my-table")}
+        >
+    """
+  end
 
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
@@ -91,32 +93,7 @@ defmodule Flop.Phoenix.Table do
     ]
   end
 
-  @doc """
-  Deep merges the given options into the default options.
-  """
-  @spec init_assigns(map) :: map
-  def init_assigns(%{event: nil, on_sort: nil, path: nil}) do
-    raise ArgumentError, @path_on_sort_error_msg
-  end
-
-  def init_assigns(%{meta: meta} = assigns) do
-    assigns
-    |> assign(:opts, merge_opts(assigns.opts))
-    |> assign_new(:id, fn ->
-      case meta.schema do
-        nil ->
-          "paginated_table"
-
-        module ->
-          module_name =
-            module |> Module.split() |> List.last() |> Macro.underscore()
-
-          module_name <> "_table"
-      end
-    end)
-  end
-
-  defp merge_opts(opts) do
+  def merge_opts(opts) do
     default_opts()
     |> Misc.deep_merge(Misc.get_global_opts(:table))
     |> Misc.deep_merge(opts)

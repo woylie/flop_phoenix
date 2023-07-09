@@ -10,6 +10,10 @@
   `patch` command to the new URL will be appended to the given JS command.
 - Similarly, an `on_sort` attribute was added to the `table` component.
 
+### Changed
+
+- The table ID falls back to `"sortable_table"` if no schema module is used.
+
 ### Deprecated
 
 - The `show` and `hide` attributes of the `:col` slot of the table component are
