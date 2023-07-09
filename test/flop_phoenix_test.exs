@@ -1195,19 +1195,29 @@ defmodule Flop.PhoenixTest do
         )
 
       link = Floki.find(html, "a:fl-contains('Previous')")
-      expected_path = "/pets?last=10&before=B"
+      expected_path = "/pets"
+      expected_query = %{"before" => "B", "last" => "10"}
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == []
       assert Floki.attribute(link, "data-phx-link-state") == []
-      assert Floki.attribute(link, "href") == [expected_path]
+      assert [href] = Floki.attribute(link, "href")
+
+      uri = URI.parse(href)
+      assert uri.path == expected_path
+      assert URI.decode_query(uri.query) == expected_query
+
       assert Floki.attribute(link, "phx-value-to") == ["previous"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
 
-      assert Jason.decode!(phx_click) == [
+      assert [
                ["push", %{"event" => "paginate"}],
-               ["patch", %{"href" => expected_path, "replace" => false}]
-             ]
+               ["patch", %{"href" => href, "replace" => false}]
+             ] = Jason.decode!(phx_click)
+
+      uri = URI.parse(href)
+      assert uri.path == expected_path
+      assert URI.decode_query(uri.query) == expected_query
     end
 
     test "supports a function/args tuple as path" do
