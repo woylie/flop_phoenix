@@ -180,89 +180,62 @@ defmodule Flop.Phoenix.Pagination do
 
     ~H"""
     <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
-      <.page_link_tag
+      <.pagination_link
         :if={@first > 1}
         event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={1}
-        page_link_helper={@page_link_helper}
         target={@target}
-      />
+        page={1}
+        path={@page_link_helper.(1)}
+        on_paginate={@on_paginate}
+        {attrs_for_page_link(1, @meta, @opts)}
+      >
+        1
+      </.pagination_link>
 
-      <.pagination_ellipsis
-        :if={@first > 2}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
+      <.pagination_ellipsis :if={@first > 2} {@opts[:ellipsis_attrs]}>
+        <%= @opts[:ellipsis_content] %>
+      </.pagination_ellipsis>
 
-      <.page_link_tag
+      <.pagination_link
         :for={page <- @range}
         event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={page}
-        page_link_helper={@page_link_helper}
         target={@target}
-      />
+        page={page}
+        path={@page_link_helper.(page)}
+        on_paginate={@on_paginate}
+        {attrs_for_page_link(page, @meta, @opts)}
+      >
+        <%= page %>
+      </.pagination_link>
 
       <.pagination_ellipsis
         :if={@last < @meta.total_pages - 1}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
+        {@opts[:ellipsis_attrs]}
+      >
+        <%= @opts[:ellipsis_content] %>
+      </.pagination_ellipsis>
 
-      <.page_link_tag
+      <.pagination_link
         :if={@last < @meta.total_pages}
         event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={@meta.total_pages}
-        page_link_helper={@page_link_helper}
         target={@target}
-      />
+        page={@meta.total_pages}
+        path={@page_link_helper.(@meta.total_pages)}
+        on_paginate={@on_paginate}
+        {attrs_for_page_link(@meta.total_pages, @meta, @opts)}
+      >
+        <%= @meta.total_pages %>
+      </.pagination_link>
     </ul>
     """
   end
 
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-  attr :page, :integer, required: true
-
-  defp page_link_tag(%{meta: meta, opts: opts, page: page} = assigns) do
-    assigns = assign(assigns, :attrs, attrs_for_page_link(page, meta, opts))
-
-    ~H"""
-    <%= if @event do %>
-      <li>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@page}
-          {@attrs}
-        >
-          <%= @page %>
-        </.link>
-      </li>
-    <% else %>
-      <li>
-        <.link patch={@page_link_helper.(@page)} {@attrs}>
-          <%= @page %>
-        </.link>
-      </li>
-    <% end %>
-    """
-  end
-
-  attr :attrs, :list, required: true
-  attr :content, :any, required: true
+  attr :rest, :global
+  slot :inner_block
 
   defp pagination_ellipsis(assigns) do
     ~H"""
-    <li><span {@attrs}><%= @content %></span></li>
+    <li><span {@rest}><%= render_slot(@inner_block) %></span></li>
     """
   end
 
@@ -338,13 +311,12 @@ defmodule Flop.Phoenix.Pagination do
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
 
-  defp attrs_for_page_link(page, meta, opts) do
-    attrs =
-      if meta.current_page == page,
-        do: opts[:current_link_attrs],
-        else: opts[:pagination_link_attrs]
+  defp attrs_for_page_link(page, %{current_page: page}, opts) do
+    add_page_link_aria_label(opts[:current_link_attrs], page, opts)
+  end
 
-    add_page_link_aria_label(attrs, page, opts)
+  defp attrs_for_page_link(page, _meta, opts) do
+    add_page_link_aria_label(opts[:pagination_link_attrs], page, opts)
   end
 
   defp add_page_link_aria_label(attrs, page, opts) do

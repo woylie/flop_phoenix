@@ -1049,7 +1049,7 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
-      assert Floki.text(el) == "dot dot dot"
+      assert el |> Floki.text() |> String.trim() == "dot dot dot"
     end
 
     test "always uses page/page_size" do
