@@ -659,32 +659,86 @@ defmodule Flop.Phoenix do
     documentation.
     """
 
-  def cursor_pagination(assigns) do
-    assigns = CursorPagination.init_assigns(assigns)
+  def cursor_pagination(%{opts: opts} = assigns) do
+    assigns =
+      assigns
+      |> CursorPagination.validate_assigns!()
+      |> assign(:opts, CursorPagination.merge_opts(opts))
 
     ~H"""
     <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
-      <CursorPagination.render_link
-        attrs={@opts[:previous_link_attrs]}
-        content={@opts[:previous_link_content]}
+      <.cursor_pagination_link
         direction={if @reverse, do: :next, else: :previous}
-        event={@event}
         meta={@meta}
         path={@path}
-        opts={@opts}
+        event={@event}
         target={@target}
-      />
-      <CursorPagination.render_link
-        attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
+        disabled={!CursorPagination.show_link?(@meta, :previous, @reverse)}
+        disabled_class={@opts[:disabled_class]}
+        {@opts[:previous_link_attrs]}
+      >
+        <%= @opts[:previous_link_content] %>
+      </.cursor_pagination_link>
+      <.cursor_pagination_link
         direction={if @reverse, do: :previous, else: :next}
-        event={@event}
         meta={@meta}
         path={@path}
-        opts={@opts}
+        event={@event}
         target={@target}
-      />
+        disabled={!CursorPagination.show_link?(@meta, :next, @reverse)}
+        disabled_class={@opts[:disabled_class]}
+        {@opts[:next_link_attrs]}
+      >
+        <%= @opts[:next_link_content] %>
+      </.cursor_pagination_link>
     </nav>
+    """
+  end
+
+  attr :direction, :atom, required: true
+  attr :meta, Flop.Meta, required: true
+  attr :path, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string, required: true
+  attr :rest, :global
+  slot :inner_block
+
+  defp cursor_pagination_link(
+         %{disabled: true, disabled_class: disabled_class} = assigns
+       ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
+    ~H"""
+    <span {@rest} class={@disabled_class}>
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  defp cursor_pagination_link(%{event: event} = assigns)
+       when is_binary(event) do
+    ~H"""
+    <.link phx-click={@event} phx-target={@target} phx-value-to={@direction} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp cursor_pagination_link(assigns) do
+    ~H"""
+    <.link
+      patch={CursorPagination.pagination_path(@direction, @path, @meta)}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
     """
   end
 
