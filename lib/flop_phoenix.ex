@@ -79,18 +79,22 @@ defmodule Flop.Phoenix do
   params in the `c:Phoenix.LiveView.handle_params/3` callback of your LiveView
   module.
 
-  ## Event-Based Pagination and Sorting
+  ## Pagination and sorting with JS commands
 
-  To make `Flop.Phoenix` use event based pagination and sorting, you need to
-  assign the `:event` to the pagination and table components. This will
-  generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
+  You can pass a `Phoenix.LiveView.JS` command as the `on_paginate` attribute.
+
+  If used with the `path` attribute, a `patch` command to the new URL will be
+  appended to the given command.
+
+  If used without the `path` attribute, you will need to include a `push`
+  command to trigger an event when a pagination or sort link is clicked.
 
   You can set a different target by assigning a `:target`. The value
   will be used as the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
         meta={@meta}
-        event="paginate-pets"
+        on_paginate={JS.push("paginate-pets")}
         target={@myself}
       />
 
@@ -576,7 +580,7 @@ defmodule Flop.Phoenix do
         path={{Routes, :pet_path, [@socket, :index]}}
       />
 
-  ## Handling parameters and events
+  ## Handling parameters and JS commands
 
   If you set the `path` assign, a link with query parameters is rendered.
   In a LiveView, you need to handle the parameters in the
@@ -587,8 +591,8 @@ defmodule Flop.Phoenix do
         {:noreply, assign(socket, meta: meta, pets: pets)}
       end
 
-  If you use LiveView and set the `event` assign, you need to update the Flop
-  parameters in the `handle_event/3` callback.
+  If you use LiveView and set the `on_paginate` attribute, you need to update
+  the Flop parameters in the `handle_event/3` callback.
 
       def handle_event("paginate-users", %{"to" => to}, socket) do
         flop = Flop.set_cursor(socket.assigns.meta, to)
