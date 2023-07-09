@@ -366,15 +366,14 @@ defmodule Flop.PhoenixTest do
       expected_path = "/pets?page_size=10"
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == []
-      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == [expected_path]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
 
       assert Jason.decode!(phx_click) == [
-               ["push", %{"event" => "paginate"}],
-               ["patch", %{"href" => "/pets?page_size=10", "replace" => false}]
+               ["push", %{"event" => "paginate"}]
              ]
     end
 
@@ -1220,8 +1219,8 @@ defmodule Flop.PhoenixTest do
       expected_query = %{"before" => "B", "last" => "10"}
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == []
-      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert [href] = Floki.attribute(link, "href")
 
       uri = URI.parse(href)
@@ -1231,10 +1230,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "phx-value-to") == ["previous"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
 
-      assert [
-               ["push", %{"event" => "paginate"}],
-               ["patch", %{"href" => href, "replace" => false}]
-             ] = Jason.decode!(phx_click)
+      assert [["push", %{"event" => "paginate"}]] = Jason.decode!(phx_click)
 
       uri = URI.parse(href)
       assert uri.path == expected_path
@@ -1936,15 +1932,14 @@ defmodule Flop.PhoenixTest do
       expected_path = "/pets?page_size=10"
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == []
-      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "data-phx-link") == ["patch"]
+      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == [expected_path]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
 
       assert Jason.decode!(phx_click) == [
-               ["push", %{"event" => "paginate"}],
-               ["patch", %{"href" => "/pets?page_size=10", "replace" => false}]
+               ["push", %{"event" => "paginate"}]
              ]
     end
 

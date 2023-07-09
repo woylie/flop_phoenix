@@ -14,8 +14,8 @@ defmodule Flop.Phoenix.Table do
     path or on_sort attribute is required
 
     At least one of the mentioned attributes is required for the table
-    component. Combining them will append a JS.patch command to the on_paginate
-    command.
+    component. Combining them will both patch the URL and execute
+    the JS command.
 
     The :path value can be a path as a string, a
     {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
@@ -315,8 +315,8 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(%{} = assigns) do
     ~H"""
     <.link
-      href={@path}
-      phx-click={Misc.click_cmd(@on_sort, @path)}
+      patch={@path}
+      phx-click={@on_sort}
       phx-target={@target}
       phx-value-order={@field}
     >

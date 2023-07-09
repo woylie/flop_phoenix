@@ -13,8 +13,8 @@ defmodule Flop.Phoenix.CursorPagination do
     path or on_paginate attribute is required
 
     At least one of the mentioned attributes is required for the cursor
-    pagination component. Combining them will append a JS.patch command to the
-    on_paginate command.
+    pagination component. Combining them will both patch the URL and execute
+    the JS command.
 
     The :path value can be a path as a string, a
     {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary

@@ -1,8 +1,6 @@
 defmodule Flop.Phoenix.Misc do
   @moduledoc false
 
-  alias Phoenix.LiveView.JS
-
   require Logger
 
   @doc """
@@ -103,7 +101,4 @@ defmodule Flop.Phoenix.Misc do
     |> Application.get_env(component, [])
     |> Keyword.get(:opts)
   end
-
-  def click_cmd(on_paginate, nil), do: on_paginate
-  def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
 end

@@ -84,8 +84,8 @@ defmodule Flop.Phoenix do
   You can pass a `Phoenix.LiveView.JS` command as `on_paginate` and `on_sort`
   attributes.
 
-  If used with the `path` attribute, a `patch` command to the new URL will be
-  appended to the given command.
+  If used with the `path` attribute, the URL will be patched _and_ the given
+  JS command will be executed.
 
   If used without the `path` attribute, you will need to include a `push`
   command to trigger an event when a pagination or sort link is clicked.
@@ -336,7 +336,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, the current view is patched with updated query parameters when a
     pagination link is clicked. In case the `on_paginate` attribute is set as
-    well, the `patch` command is appended to the `on_paginate` command.
+    well, the URL is patched _and_ the given command is executed.
 
     The value must be either a URI string (Phoenix verified route), an MFA or FA
     tuple (Phoenix route helper), or a 1-ary path builder function. See
@@ -359,8 +359,8 @@ defmodule Flop.Phoenix do
           }
         />
 
-    If used with the `path` attribute, a `patch` command is appended to the
-    given JS command.
+    If used with the `path` attribute, the URL is patched _and_ the given
+    JS command is executed.
 
         <.pagination
           meta={@meta}
@@ -573,8 +573,8 @@ defmodule Flop.Phoenix do
   defp pagination_link(%{} = assigns) do
     ~H"""
     <.link
-      href={@path}
-      phx-click={Misc.click_cmd(@on_paginate, @path)}
+      patch={@path}
+      phx-click={@on_paginate}
       phx-target={@target}
       phx-value-page={@page}
       {@rest}
@@ -667,7 +667,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, the current view is patched with updated query parameters when a
     pagination link is clicked. In case the `on_paginate` attribute is set as
-    well, the `patch` command is appended to the `on_paginate` command.
+    well, the URL is patched _and_ the given JS command is executed.
 
     The value must be either a URI string (Phoenix verified route), an MFA or FA
     tuple (Phoenix route helper), or a 1-ary path builder function. See
@@ -690,8 +690,8 @@ defmodule Flop.Phoenix do
           }
         />
 
-    If used with the `path` attribute, a `patch` command is appended to the
-    given JS command.
+    If used with the `path` attribute, the URL is patched _and_ the given JS
+    command is executed.
 
         <.cursor_pagination
           meta={@meta}
@@ -838,8 +838,8 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <.link
-      href={@path}
-      phx-click={Misc.click_cmd(@on_paginate, @path)}
+      patch={@path}
+      phx-click={@on_paginate}
       phx-target={@target}
       phx-value-to={@direction}
       {@rest}
@@ -896,7 +896,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, the current view is patched with updated query parameters when a
     header link for sorting is clicked. In case the `on_sort` attribute is
-    set as well, the `patch` command is appended to the `on_sort` command.
+    set as well, the URL is patched _and_ the given JS command is executed.
 
     The value must be either a URI string (Phoenix verified route), an MFA or FA
     tuple (Phoenix route helper), or a 1-ary path builder function. See
@@ -920,8 +920,8 @@ defmodule Flop.Phoenix do
           }
         />
 
-    If used with the `path` attribute, a `patch` command is appended to the
-    given JS command.
+    If used with the `path` attribute, the URL is patched _and_ the given
+    JS command is executed.
 
         <.table
           meta={@meta}
