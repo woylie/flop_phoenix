@@ -1,8 +1,6 @@
 defmodule Flop.Phoenix.Pagination do
   @moduledoc false
 
-  use Phoenix.Component
-
   alias Flop.Phoenix.Misc
   alias Phoenix.LiveView.JS
 
@@ -103,149 +101,14 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.deep_merge(opts)
   end
 
-  attr :path, :string
-  attr :on_paginate, JS
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :page, :integer, required: true
-  attr :disabled, :boolean, default: false
-  attr :disabled_class, :string
-  attr :rest, :global
-  slot :inner_block
+  def click_cmd(on_paginate, nil), do: on_paginate
+  def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
 
-  def pagination_link(
-        %{disabled: true, disabled_class: disabled_class} = assigns
-      ) do
-    rest =
-      Map.update(assigns.rest, :class, disabled_class, fn class ->
-        [class, disabled_class]
-      end)
+  def max_pages(:all, total_pages), do: total_pages
+  def max_pages(:hide, _), do: 0
+  def max_pages({:ellipsis, max_pages}, _), do: max_pages
 
-    assigns = assign(assigns, :rest, rest)
-
-    ~H"""
-    <span {@rest} class={@disabled_class}>
-      <%= render_slot(@inner_block) %>
-    </span>
-    """
-  end
-
-  def pagination_link(%{event: event} = assigns) when is_binary(event) do
-    ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
-      <%= render_slot(@inner_block) %>
-    </.link>
-    """
-  end
-
-  def pagination_link(%{on_paginate: nil, path: path} = assigns)
-      when is_binary(path) do
-    ~H"""
-    <.link patch={@path} {@rest}>
-      <%= render_slot(@inner_block) %>
-    </.link>
-    """
-  end
-
-  def pagination_link(%{} = assigns) do
-    ~H"""
-    <.link
-      href={@path}
-      phx-click={click_cmd(@on_paginate, @path)}
-      phx-target={@target}
-      phx-value-page={@page}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </.link>
-    """
-  end
-
-  defp click_cmd(on_paginate, nil), do: on_paginate
-  defp click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
-
-  attr :meta, Flop.Meta, required: true
-  attr :on_paginate, JS
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-
-  def page_links(%{meta: meta} = assigns) do
-    max_pages = max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
-
-    range =
-      first..last =
-      get_page_link_range(meta.current_page, max_pages, meta.total_pages)
-
-    assigns = assign(assigns, first: first, last: last, range: range)
-
-    ~H"""
-    <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
-      <.pagination_link
-        :if={@first > 1}
-        event={@event}
-        target={@target}
-        page={1}
-        path={@page_link_helper.(1)}
-        on_paginate={@on_paginate}
-        {attrs_for_page_link(1, @meta, @opts)}
-      >
-        1
-      </.pagination_link>
-
-      <.pagination_ellipsis :if={@first > 2} {@opts[:ellipsis_attrs]}>
-        <%= @opts[:ellipsis_content] %>
-      </.pagination_ellipsis>
-
-      <.pagination_link
-        :for={page <- @range}
-        event={@event}
-        target={@target}
-        page={page}
-        path={@page_link_helper.(page)}
-        on_paginate={@on_paginate}
-        {attrs_for_page_link(page, @meta, @opts)}
-      >
-        <%= page %>
-      </.pagination_link>
-
-      <.pagination_ellipsis
-        :if={@last < @meta.total_pages - 1}
-        {@opts[:ellipsis_attrs]}
-      >
-        <%= @opts[:ellipsis_content] %>
-      </.pagination_ellipsis>
-
-      <.pagination_link
-        :if={@last < @meta.total_pages}
-        event={@event}
-        target={@target}
-        page={@meta.total_pages}
-        path={@page_link_helper.(@meta.total_pages)}
-        on_paginate={@on_paginate}
-        {attrs_for_page_link(@meta.total_pages, @meta, @opts)}
-      >
-        <%= @meta.total_pages %>
-      </.pagination_link>
-    </ul>
-    """
-  end
-
-  attr :rest, :global
-  slot :inner_block
-
-  defp pagination_ellipsis(assigns) do
-    ~H"""
-    <li><span {@rest}><%= render_slot(@inner_block) %></span></li>
-    """
-  end
-
-  defp max_pages(:all, total_pages), do: total_pages
-  defp max_pages(:hide, _), do: 0
-  defp max_pages({:ellipsis, max_pages}, _), do: max_pages
-
-  defp get_page_link_range(current_page, max_pages, total_pages) do
+  def get_page_link_range(current_page, max_pages, total_pages) do
     # number of additional pages to show before or after current page
     additional = ceil(max_pages / 2)
 
@@ -313,11 +176,11 @@ defmodule Flop.Phoenix.Pagination do
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
 
-  defp attrs_for_page_link(page, %{current_page: page}, opts) do
+  def attrs_for_page_link(page, %{current_page: page}, opts) do
     add_page_link_aria_label(opts[:current_link_attrs], page, opts)
   end
 
-  defp attrs_for_page_link(page, _meta, opts) do
+  def attrs_for_page_link(page, _meta, opts) do
     add_page_link_aria_label(opts[:pagination_link_attrs], page, opts)
   end
 

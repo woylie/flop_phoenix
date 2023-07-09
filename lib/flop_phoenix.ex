@@ -373,7 +373,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>
-      <Pagination.pagination_link
+      <.pagination_link
         disabled={!@meta.has_previous_page?}
         disabled_class={@opts[:disabled_class]}
         event={@event}
@@ -384,8 +384,8 @@ defmodule Flop.Phoenix do
         {@opts[:previous_link_attrs]}
       >
         <%= @opts[:previous_link_content] %>
-      </Pagination.pagination_link>
-      <Pagination.pagination_link
+      </.pagination_link>
+      <.pagination_link
         disabled={!@meta.has_next_page?}
         disabled_class={@opts[:disabled_class]}
         event={@event}
@@ -396,8 +396,8 @@ defmodule Flop.Phoenix do
         {@opts[:next_link_attrs]}
       >
         <%= @opts[:next_link_content] %>
-      </Pagination.pagination_link>
-      <Pagination.page_links
+      </.pagination_link>
+      <.page_links
         event={@event}
         meta={@meta}
         on_paginate={@on_paginate}
@@ -406,6 +406,134 @@ defmodule Flop.Phoenix do
         target={@target}
       />
     </nav>
+    """
+  end
+
+  attr :meta, Flop.Meta, required: true
+  attr :on_paginate, JS
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+
+  def page_links(%{meta: meta} = assigns) do
+    max_pages =
+      Pagination.max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
+
+    range =
+      first..last =
+      Pagination.get_page_link_range(
+        meta.current_page,
+        max_pages,
+        meta.total_pages
+      )
+
+    assigns = assign(assigns, first: first, last: last, range: range)
+
+    ~H"""
+    <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
+      <.pagination_link
+        :if={@first > 1}
+        event={@event}
+        target={@target}
+        page={1}
+        path={@page_link_helper.(1)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(1, @meta, @opts)}
+      >
+        1
+      </.pagination_link>
+
+      <li :if={@first > 2}>
+        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+      </li>
+
+      <.pagination_link
+        :for={page <- @range}
+        event={@event}
+        target={@target}
+        page={page}
+        path={@page_link_helper.(page)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(page, @meta, @opts)}
+      >
+        <%= page %>
+      </.pagination_link>
+
+      <li :if={@last < @meta.total_pages - 1}>
+        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+      </li>
+
+      <.pagination_link
+        :if={@last < @meta.total_pages}
+        event={@event}
+        target={@target}
+        page={@meta.total_pages}
+        path={@page_link_helper.(@meta.total_pages)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(@meta.total_pages, @meta, @opts)}
+      >
+        <%= @meta.total_pages %>
+      </.pagination_link>
+    </ul>
+    """
+  end
+
+  attr :path, :string
+  attr :on_paginate, JS
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :page, :integer, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string
+  attr :rest, :global
+  slot :inner_block
+
+  defp pagination_link(
+         %{disabled: true, disabled_class: disabled_class} = assigns
+       ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
+    ~H"""
+    <span {@rest} class={@disabled_class}>
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
+    ~H"""
+    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp pagination_link(%{on_paginate: nil, path: path} = assigns)
+       when is_binary(path) do
+    ~H"""
+    <.link patch={@path} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp pagination_link(%{} = assigns) do
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={Pagination.click_cmd(@on_paginate, @path)}
+      phx-target={@target}
+      phx-value-page={@page}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
     """
   end
 
