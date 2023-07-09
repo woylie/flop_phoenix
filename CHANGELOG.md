@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.20.0] - 2023-07-09
+
 ### Added
 
 - Added an `on_paginate` attribute to the `pagination` and `cursor_pagination`
