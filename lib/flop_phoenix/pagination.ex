@@ -86,12 +86,8 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   @spec init_assigns(map) :: map
-  def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-      |> assign(:path, assigns[:path])
-
+  def init_assigns(%{opts: opts} = assigns) do
+    assigns = assign(assigns, :opts, merge_opts(opts))
     Misc.validate_path_or_event!(assigns, @path_event_error_msg)
     assigns
   end
