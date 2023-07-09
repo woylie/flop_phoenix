@@ -29,7 +29,7 @@
 - The `show` and `hide` attributes of the `:col` slot of the table component are
   now deprecated in favor of the `:if` attribute.
 - The `event` attribute of the pagination, cursor pagination and table
-  components has been deprecated in favor of `on_sort`.
+  components has been deprecated in favor of `on_pagination` and `on_sort`.
 
 ## [0.19.1] - 2023-06-30
 
