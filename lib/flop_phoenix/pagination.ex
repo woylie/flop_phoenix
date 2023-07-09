@@ -1,56 +1,66 @@
 defmodule Flop.Phoenix.Pagination do
   @moduledoc false
 
-  use Phoenix.Component
-
   alias Flop.Phoenix.Misc
 
   require Logger
 
-  @path_event_error_msg """
-  the :path or :event option is required when rendering pagination
+  def path_on_paginate_error_msg do
+    """
+    path or on_paginate attribute is required
 
-  The :path value can be a path as a string, a
-  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-  function.
+    At least one of the mentioned attributes is required for the pagination
+    component. Combining them will append a JS.patch command to the on_paginate
+    command.
 
-  The :event value needs to be a string.
+    The :path value can be a path as a string, a
+    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
+    function.
 
-  ## Example
+    ## Examples
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={~p"/pets"}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={~p"/pets"}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={{Routes, :pet_path, [@socket, :index]}}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={{Routes, :pet_path, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={{&Routes.pet_path/3, [@socket, :index]}}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={{&Routes.pet_path/3, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={&build_path/1}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={&build_path/1}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        event="paginate"
-      />
-  """
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+        />
+
+    or
+
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={&build_path/1}
+          on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
+        />
+    """
+  end
 
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
@@ -84,265 +94,17 @@ defmodule Flop.Phoenix.Pagination do
     ]
   end
 
-  @spec init_assigns(map) :: map
-  def init_assigns(assigns) do
-    assigns =
-      assigns
-      |> assign(:opts, merge_opts(assigns[:opts] || []))
-      |> assign(:path, assigns[:path])
-
-    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
-    assigns
-  end
-
-  defp merge_opts(opts) do
+  def merge_opts(opts) do
     default_opts()
     |> Misc.deep_merge(Misc.get_global_opts(:pagination))
     |> Misc.deep_merge(opts)
   end
 
-  @spec render(map) :: Phoenix.LiveView.Rendered.t()
+  def max_pages(:all, total_pages), do: total_pages
+  def max_pages(:hide, _), do: 0
+  def max_pages({:ellipsis, max_pages}, _), do: max_pages
 
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-
-  def render(assigns) do
-    ~H"""
-    <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
-      <.previous_link
-        attrs={@opts[:previous_link_attrs]}
-        content={@opts[:previous_link_content]}
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-      <.next_link
-        attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-      <.page_links
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-    </nav>
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :content, :any, required: true
-  attr :attrs, :list, required: true
-  attr :opts, :list, required: true
-
-  defp previous_link(assigns) do
-    ~H"""
-    <%= if @meta.has_previous_page? do %>
-      <%= if @event do %>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@meta.previous_page}
-          {@attrs}
-        >
-          <%= @content %>
-        </.link>
-      <% else %>
-        <.link patch={@page_link_helper.(@meta.previous_page)} {@attrs}>
-          <%= @content %>
-        </.link>
-      <% end %>
-    <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
-        <%= @content %>
-      </span>
-    <% end %>
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :content, :any, required: true
-  attr :attrs, :list, required: true
-  attr :opts, :list, required: true
-
-  defp next_link(assigns) do
-    ~H"""
-    <%= if @meta.has_next_page? do %>
-      <%= if @event do %>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@meta.next_page}
-          {@attrs}
-        >
-          <%= @content %>
-        </.link>
-      <% else %>
-        <.link patch={@page_link_helper.(@meta.next_page)} {@attrs}>
-          <%= @content %>
-        </.link>
-      <% end %>
-    <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
-        <%= @content %>
-      </span>
-    <% end %>
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-
-  defp page_links(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :max_pages,
-        max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
-      )
-
-    ~H"""
-    <.render_page_links
-      :if={@opts[:page_links] != :hide}
-      event={@event}
-      meta={@meta}
-      page_link_helper={@page_link_helper}
-      opts={@opts}
-      range={
-        get_page_link_range(
-          @meta.current_page,
-          @max_pages,
-          @meta.total_pages
-        )
-      }
-      target={@target}
-    />
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-  attr :range, :any, required: true
-
-  defp render_page_links(%{range: first..last} = assigns) do
-    assigns = assign(assigns, first: first, last: last)
-
-    ~H"""
-    <ul {@opts[:pagination_list_attrs]}>
-      <.page_link_tag
-        :if={@first > 1}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={1}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
-
-      <.pagination_ellipsis
-        :if={@first > 2}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
-
-      <.page_link_tag
-        :for={page <- @range}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={page}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
-
-      <.pagination_ellipsis
-        :if={@last < @meta.total_pages - 1}
-        attrs={@opts[:ellipsis_attrs]}
-        content={@opts[:ellipsis_content]}
-      />
-
-      <.page_link_tag
-        :if={@last < @meta.total_pages}
-        event={@event}
-        meta={@meta}
-        opts={@opts}
-        page={@meta.total_pages}
-        page_link_helper={@page_link_helper}
-        target={@target}
-      />
-    </ul>
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :opts, :list, required: true
-  attr :page, :integer, required: true
-
-  defp page_link_tag(%{meta: meta, opts: opts, page: page} = assigns) do
-    assigns = assign(assigns, :attrs, attrs_for_page_link(page, meta, opts))
-
-    ~H"""
-    <%= if @event do %>
-      <li>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@page}
-          {@attrs}
-        >
-          <%= @page %>
-        </.link>
-      </li>
-    <% else %>
-      <li>
-        <.link patch={@page_link_helper.(@page)} {@attrs}>
-          <%= @page %>
-        </.link>
-      </li>
-    <% end %>
-    """
-  end
-
-  attr :attrs, :list, required: true
-  attr :content, :any, required: true
-
-  defp pagination_ellipsis(assigns) do
-    ~H"""
-    <li><span {@attrs}><%= @content %></span></li>
-    """
-  end
-
-  defp max_pages(:all, total_pages), do: total_pages
-  defp max_pages(:hide, _), do: 0
-  defp max_pages({:ellipsis, max_pages}, _), do: max_pages
-
-  defp get_page_link_range(current_page, max_pages, total_pages) do
+  def get_page_link_range(current_page, max_pages, total_pages) do
     # number of additional pages to show before or after current page
     additional = ceil(max_pages / 2)
 
@@ -359,6 +121,8 @@ defmodule Flop.Phoenix.Pagination do
         first..last
     end
   end
+
+  def build_page_link_helper(_meta, nil), do: fn _ -> nil end
 
   def build_page_link_helper(meta, path) do
     query_params = build_query_params(meta)
@@ -408,19 +172,12 @@ defmodule Flop.Phoenix.Pagination do
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
 
-  defp attrs_for_page_link(page, meta, opts) do
-    attrs =
-      if meta.current_page == page,
-        do: opts[:current_link_attrs],
-        else: opts[:pagination_link_attrs]
-
-    add_page_link_aria_label(attrs, page, opts)
+  def attrs_for_page_link(page, %{current_page: page}, opts) do
+    add_page_link_aria_label(opts[:current_link_attrs], page, opts)
   end
 
-  defp add_disabled_class(attrs, disabled_class) do
-    Keyword.update(attrs, :class, disabled_class, fn class ->
-      class <> " " <> disabled_class
-    end)
+  def attrs_for_page_link(page, _meta, opts) do
+    add_page_link_aria_label(opts[:pagination_link_attrs], page, opts)
   end
 
   defp add_page_link_aria_label(attrs, page, opts) do

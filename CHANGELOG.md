@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- Added an `on_paginate` attribute to the `pagination` and `cursor_pagination`
+  components. This attribute takes a `Phoenix.LiveView.JS` command as a value.
+  The attribute can be combined with the `path` attribute, in which case the
+  `patch` command to the new URL will be appended to the given JS command.
+
+### Deprecated
+
+- The `show` and `hide` attributes of the `:col` slot of the table component are
+  now deprecated in favor of the `:if` attribute.
+- The `event` attribute of the pagination and cursor pagination components has
+  been deprecated in favor of `on_paginate`.
+
 ## [0.19.1] - 2023-06-30
 
 ### Changed

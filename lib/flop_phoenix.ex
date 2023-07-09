@@ -79,18 +79,22 @@ defmodule Flop.Phoenix do
   params in the `c:Phoenix.LiveView.handle_params/3` callback of your LiveView
   module.
 
-  ## Event-Based Pagination and Sorting
+  ## Pagination and sorting with JS commands
 
-  To make `Flop.Phoenix` use event based pagination and sorting, you need to
-  assign the `:event` to the pagination and table components. This will
-  generate an `<a>` tag with `phx-click` and `phx-value` attributes set.
+  You can pass a `Phoenix.LiveView.JS` command as the `on_paginate` attribute.
+
+  If used with the `path` attribute, a `patch` command to the new URL will be
+  appended to the given command.
+
+  If used without the `path` attribute, you will need to include a `push`
+  command to trigger an event when a pagination or sort link is clicked.
 
   You can set a different target by assigning a `:target`. The value
   will be used as the `phx-target` attribute.
 
       <Flop.Phoenix.pagination
         meta={@meta}
-        event="paginate-pets"
+        on_paginate={JS.push("paginate-pets")}
         target={@myself}
       />
 
@@ -320,13 +324,39 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
-    route helper), or a 1-ary path builder function. See
-    `Flop.Phoenix.build_path/3` for details. If set, links will be
-    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
-    LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module. Alternatively, set `:event`, if you don't
-    want the parameters to appear in the URL.
+    If set, the current view is patched with updated query parameters when a
+    pagination link is clicked. In case the `on_paginate` attribute is set as
+    well, the `patch` command is appended to the `on_paginate` command.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
+    """
+
+  attr :on_paginate, JS,
+    default: nil,
+    doc: """
+    A `Phoenix.LiveView.JS` command that is triggered when a pagination link is
+    clicked.
+
+    If used without the `path` attribute, you should include a `push` operation
+    to handle the event with the `handle_event` callback.
+
+        <.pagination
+          meta={@meta}
+          on_paginate={
+            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+          }
+        />
+
+    If used with the `path` attribute, a `patch` command is appended to the
+    given JS command.
+
+        <.pagination
+          meta={@meta}
+          path={~"/pets"}
+          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+        />
     """
 
   attr :event, :string,
@@ -334,6 +364,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
     Alternatively, set `:path`, if you want the parameters to appear in the URL.
+    Deprecated in favor of `on_paginate`.
     """
 
   attr :target, :string,
@@ -353,18 +384,184 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  def pagination(assigns) do
-    assigns = Pagination.init_assigns(assigns)
+  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
+    Misc.validate_path_or_on_paginate!(
+      assigns,
+      Pagination.path_on_paginate_error_msg()
+    )
+
+    assigns =
+      assigns
+      |> assign(:opts, Pagination.merge_opts(opts))
+      |> assign(
+        :page_link_helper,
+        Pagination.build_page_link_helper(meta, path)
+      )
+      |> assign(:path, nil)
 
     ~H"""
-    <Pagination.render
-      :if={@meta.total_pages > 1}
-      event={@event}
-      meta={@meta}
-      opts={@opts}
-      page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
-      target={@target}
-    />
+    <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>
+      <.pagination_link
+        disabled={!@meta.has_previous_page?}
+        disabled_class={@opts[:disabled_class]}
+        event={@event}
+        target={@target}
+        page={@meta.previous_page}
+        path={@page_link_helper.(@meta.previous_page)}
+        on_paginate={@on_paginate}
+        {@opts[:previous_link_attrs]}
+      >
+        <%= @opts[:previous_link_content] %>
+      </.pagination_link>
+      <.pagination_link
+        disabled={!@meta.has_next_page?}
+        disabled_class={@opts[:disabled_class]}
+        event={@event}
+        target={@target}
+        page={@meta.next_page}
+        path={@page_link_helper.(@meta.next_page)}
+        on_paginate={@on_paginate}
+        {@opts[:next_link_attrs]}
+      >
+        <%= @opts[:next_link_content] %>
+      </.pagination_link>
+      <.page_links
+        event={@event}
+        meta={@meta}
+        on_paginate={@on_paginate}
+        page_link_helper={@page_link_helper}
+        opts={@opts}
+        target={@target}
+      />
+    </nav>
+    """
+  end
+
+  attr :meta, Flop.Meta, required: true
+  attr :on_paginate, JS
+  attr :page_link_helper, :any, required: true
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :opts, :list, required: true
+
+  def page_links(%{meta: meta} = assigns) do
+    max_pages =
+      Pagination.max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
+
+    range =
+      first..last =
+      Pagination.get_page_link_range(
+        meta.current_page,
+        max_pages,
+        meta.total_pages
+      )
+
+    assigns = assign(assigns, first: first, last: last, range: range)
+
+    ~H"""
+    <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
+      <.pagination_link
+        :if={@first > 1}
+        event={@event}
+        target={@target}
+        page={1}
+        path={@page_link_helper.(1)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(1, @meta, @opts)}
+      >
+        1
+      </.pagination_link>
+
+      <li :if={@first > 2}>
+        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+      </li>
+
+      <.pagination_link
+        :for={page <- @range}
+        event={@event}
+        target={@target}
+        page={page}
+        path={@page_link_helper.(page)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(page, @meta, @opts)}
+      >
+        <%= page %>
+      </.pagination_link>
+
+      <li :if={@last < @meta.total_pages - 1}>
+        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+      </li>
+
+      <.pagination_link
+        :if={@last < @meta.total_pages}
+        event={@event}
+        target={@target}
+        page={@meta.total_pages}
+        path={@page_link_helper.(@meta.total_pages)}
+        on_paginate={@on_paginate}
+        {Pagination.attrs_for_page_link(@meta.total_pages, @meta, @opts)}
+      >
+        <%= @meta.total_pages %>
+      </.pagination_link>
+    </ul>
+    """
+  end
+
+  attr :path, :string
+  attr :on_paginate, JS
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :page, :integer, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string
+  attr :rest, :global
+  slot :inner_block
+
+  defp pagination_link(
+         %{disabled: true, disabled_class: disabled_class} = assigns
+       ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
+    ~H"""
+    <span {@rest} class={@disabled_class}>
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
+    ~H"""
+    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp pagination_link(%{on_paginate: nil, path: path} = assigns)
+       when is_binary(path) do
+    ~H"""
+    <.link patch={@path} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp pagination_link(%{} = assigns) do
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={Misc.click_cmd(@on_paginate, @path)}
+      phx-target={@target}
+      phx-value-page={@page}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
     """
   end
 
@@ -383,7 +580,7 @@ defmodule Flop.Phoenix do
         path={{Routes, :pet_path, [@socket, :index]}}
       />
 
-  ## Handling parameters and events
+  ## Handling parameters and JS commands
 
   If you set the `path` assign, a link with query parameters is rendered.
   In a LiveView, you need to handle the parameters in the
@@ -394,8 +591,8 @@ defmodule Flop.Phoenix do
         {:noreply, assign(socket, meta: meta, pets: pets)}
       end
 
-  If you use LiveView and set the `event` assign, you need to update the Flop
-  parameters in the `handle_event/3` callback.
+  If you use LiveView and set the `on_paginate` attribute, you need to update
+  the Flop parameters in the `handle_event/3` callback.
 
       def handle_event("paginate-users", %{"to" => to}, socket) do
         flop = Flop.set_cursor(socket.assigns.meta, to)
@@ -449,13 +646,39 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
-    route helper), or a 1-ary path builder function. See
-    `Flop.Phoenix.build_path/3` for details. If set, links will be
-    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
-    LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module. Alternatively, set `:event`, if you don't
-    want the parameters to appear in the URL.
+    If set, the current view is patched with updated query parameters when a
+    pagination link is clicked. In case the `on_paginate` attribute is set as
+    well, the `patch` command is appended to the `on_paginate` command.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
+    """
+
+  attr :on_paginate, JS,
+    default: nil,
+    doc: """
+    A `Phoenix.LiveView.JS` command that is triggered when a pagination link is
+    clicked.
+
+    If used without the `path` attribute, you should include a `push` operation
+    to handle the event with the `handle_event` callback.
+
+        <.cursor_pagination
+          meta={@meta}
+          on_paginate={
+            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+          }
+        />
+
+    If used with the `path` attribute, a `patch` command is appended to the
+    given JS command.
+
+        <.cursor_pagination
+          meta={@meta}
+          path={~"/pets"}
+          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+        />
     """
 
   attr :event, :string,
@@ -463,6 +686,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
     Alternatively, set `:path`, if you want the parameters to appear in the URL.
+    Deprecated. Use `on_paginate` instead.
     """
 
   attr :target, :string,
@@ -490,32 +714,108 @@ defmodule Flop.Phoenix do
     documentation.
     """
 
-  def cursor_pagination(assigns) do
-    assigns = CursorPagination.init_assigns(assigns)
+  def cursor_pagination(%{opts: opts} = assigns) do
+    assigns =
+      assigns
+      |> CursorPagination.validate_assigns!()
+      |> assign(:opts, CursorPagination.merge_opts(opts))
 
     ~H"""
     <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
-      <CursorPagination.render_link
-        attrs={@opts[:previous_link_attrs]}
-        content={@opts[:previous_link_content]}
+      <.cursor_pagination_link
         direction={if @reverse, do: :next, else: :previous}
-        event={@event}
         meta={@meta}
         path={@path}
-        opts={@opts}
+        on_paginate={@on_paginate}
+        event={@event}
         target={@target}
-      />
-      <CursorPagination.render_link
-        attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
+        disabled={!CursorPagination.show_link?(@meta, :previous, @reverse)}
+        disabled_class={@opts[:disabled_class]}
+        {@opts[:previous_link_attrs]}
+      >
+        <%= @opts[:previous_link_content] %>
+      </.cursor_pagination_link>
+      <.cursor_pagination_link
         direction={if @reverse, do: :previous, else: :next}
-        event={@event}
         meta={@meta}
         path={@path}
-        opts={@opts}
+        on_paginate={@on_paginate}
+        event={@event}
         target={@target}
-      />
+        disabled={!CursorPagination.show_link?(@meta, :next, @reverse)}
+        disabled_class={@opts[:disabled_class]}
+        {@opts[:next_link_attrs]}
+      >
+        <%= @opts[:next_link_content] %>
+      </.cursor_pagination_link>
     </nav>
+    """
+  end
+
+  attr :direction, :atom, required: true
+  attr :meta, Flop.Meta, required: true
+  attr :path, :any, required: true
+  attr :on_paginate, JS
+  attr :event, :string, required: true
+  attr :target, :string, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string, required: true
+  attr :rest, :global
+  slot :inner_block
+
+  defp cursor_pagination_link(
+         %{disabled: true, disabled_class: disabled_class} = assigns
+       ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
+    ~H"""
+    <span {@rest} class={@disabled_class}>
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  defp cursor_pagination_link(%{event: event} = assigns)
+       when is_binary(event) do
+    ~H"""
+    <.link phx-click={@event} phx-target={@target} phx-value-to={@direction} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
+    ~H"""
+    <.link
+      patch={CursorPagination.pagination_path(@direction, @path, @meta)}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp cursor_pagination_link(
+         %{direction: direction, path: path, meta: meta} = assigns
+       ) do
+    path = CursorPagination.pagination_path(direction, path, meta)
+    assigns = assign(assigns, :path, path)
+
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={Misc.click_cmd(@on_paginate, @path)}
+      phx-target={@target}
+      phx-value-to={@direction}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
     """
   end
 
@@ -652,11 +952,16 @@ defmodule Flop.Phoenix do
       """
 
     attr :show, :boolean,
-      doc: "Boolean value to conditionally show the column. Defaults to `true`."
+      doc: """
+      Boolean value to conditionally show the column. Defaults to `true`
+      Deprecated. Use `:if` instead.
+      """
 
     attr :hide, :boolean,
-      doc:
-        "Boolean value to conditionally hide the column. Defaults to `false`."
+      doc: """
+      Boolean value to conditionally hide the column. Defaults to `false`.
+      Deprecated. Use `:if` instead.
+      """
 
     attr :col_style, :string,
       doc: """
