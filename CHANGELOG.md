@@ -8,13 +8,14 @@
   components. This attribute takes a `Phoenix.LiveView.JS` command as a value.
   The attribute can be combined with the `path` attribute, in which case the
   `patch` command to the new URL will be appended to the given JS command.
+- Similarly, an `on_sort` attribute was added to the `table` component.
 
 ### Deprecated
 
 - The `show` and `hide` attributes of the `:col` slot of the table component are
   now deprecated in favor of the `:if` attribute.
-- The `event` attribute of the pagination and cursor pagination components has
-  been deprecated in favor of `on_paginate`.
+- The `event` attribute of the pagination, cursor pagination and table
+  components has been deprecated in favor of `on_sort`.
 
 ## [0.19.1] - 2023-06-30
 

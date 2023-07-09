@@ -9,13 +9,16 @@ defmodule Flop.Phoenix.Table do
 
   require Logger
 
-  @path_event_error_msg """
-  the :path or :event option is required when rendering a table
+  @path_on_sort_error_msg """
+  path or on_sort attribute is required
 
-  The :path value can be a {module, function_name, args} tuple, a
-  {function, args} tuple, or a 1-ary function.
+  At least one of the mentioned attributes is required for the table
+  component. Combining them will append a JS.patch command to the on_paginate
+  command.
 
-  The :event value needs to be a string.
+  The :path value can be a path as a string, a
+  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
+  function.
 
   ## Examples
 
@@ -54,7 +57,16 @@ defmodule Flop.Phoenix.Table do
       <Flop.Phoenix.table
         items={@pets}
         meta={@meta}
-        event="sort-table"
+        on_sort={JS.push("sort-table")}
+      >
+
+  or
+
+      <Flop.Phoenix.table
+        items={@pets}
+        meta={@meta}
+        path={~p"/pets"}
+        on_sort={JS.dispatch("scroll-to", to: "#my-table")}
       >
   """
 
@@ -83,11 +95,14 @@ defmodule Flop.Phoenix.Table do
   Deep merges the given options into the default options.
   """
   @spec init_assigns(map) :: map
-  def init_assigns(%{meta: meta} = assigns) do
-    assigns = assign(assigns, :opts, merge_opts(assigns[:opts] || []))
-    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
+  def init_assigns(%{event: nil, on_sort: nil, path: nil}) do
+    raise ArgumentError, @path_on_sort_error_msg
+  end
 
-    assign_new(assigns, :id, fn ->
+  def init_assigns(%{meta: meta} = assigns) do
+    assigns
+    |> assign(:opts, merge_opts(assigns.opts))
+    |> assign_new(:id, fn ->
       case meta.schema do
         nil ->
           "paginated_table"
@@ -110,6 +125,7 @@ defmodule Flop.Phoenix.Table do
   attr :id, :string, required: true
   attr :meta, Flop.Meta, required: true
   attr :path, :any, required: true
+  attr :on_sort, JS
   attr :event, :string, required: true
   attr :target, :string, required: true
   attr :caption, :string, required: true
@@ -146,6 +162,7 @@ defmodule Flop.Phoenix.Table do
           <%= for col <- @col do %>
             <.header_column
               :if={show_column?(col)}
+              on_sort={@on_sort}
               event={@event}
               field={col[:field]}
               label={col[:label]}
@@ -216,6 +233,7 @@ defmodule Flop.Phoenix.Table do
   attr :field, :atom, required: true
   attr :label, :string, required: true
   attr :path, :any, required: true
+  attr :on_sort, JS
   attr :event, :string, required: true
   attr :target, :string, required: true
   attr :opts, :any, required: true
@@ -228,25 +246,14 @@ defmodule Flop.Phoenix.Table do
     <%= if sortable?(@field, @meta.schema) do %>
       <th {@opts[:thead_th_attrs]} aria-sort={aria_sort(@order_direction)}>
         <span {@opts[:th_wrapper_attrs]}>
-          <%= if @event do %>
-            <.sort_link
-              event={@event}
-              field={@field}
-              label={@label}
-              target={@target}
-            />
-          <% else %>
-            <.link patch={
-              Flop.Phoenix.build_path(
-                @path,
-                Flop.push_order(@meta.flop, @field),
-                backend: @meta.backend,
-                for: @meta.schema
-              )
-            }>
-              <%= @label %>
-            </.link>
-          <% end %>
+          <.sort_link
+            path={build_path(@path, @meta, @field)}
+            on_sort={@on_sort}
+            event={@event}
+            field={@field}
+            label={@label}
+            target={@target}
+          />
           <.arrow direction={@order_direction} opts={@opts} />
         </span>
       </th>
@@ -292,12 +299,34 @@ defmodule Flop.Phoenix.Table do
 
   attr :field, :atom, required: true
   attr :label, :string, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
+  attr :path, :string
+  attr :on_sort, JS
+  attr :event, :string
+  attr :target, :string
 
-  defp sort_link(assigns) do
+  defp sort_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
     <.link phx-click={@event} phx-target={@target} phx-value-order={@field}>
+      <%= @label %>
+    </.link>
+    """
+  end
+
+  defp sort_link(%{on_sort: nil, path: path} = assigns)
+       when is_binary(path) do
+    ~H"""
+    <.link patch={@path}><%= @label %></.link>
+    """
+  end
+
+  defp sort_link(%{} = assigns) do
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={Misc.click_cmd(@on_sort, @path)}
+      phx-target={@target}
+      phx-value-order={@field}
+    >
       <%= @label %>
     </.link>
     """
@@ -317,5 +346,16 @@ defmodule Flop.Phoenix.Table do
 
   defp sortable?(field, module) do
     field in (module |> struct() |> Flop.Schema.sortable())
+  end
+
+  defp build_path(nil, _, _), do: nil
+
+  defp build_path(path, meta, field) do
+    Flop.Phoenix.build_path(
+      path,
+      Flop.push_order(meta.flop, field),
+      backend: meta.backend,
+      for: meta.schema
+    )
   end
 end
