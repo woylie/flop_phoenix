@@ -231,7 +231,13 @@ defmodule Flop.Phoenix.Table do
             label={@label}
             target={@target}
           />
-          <.arrow direction={@order_direction} opts={@opts} />
+          <.arrow
+            direction={@order_direction}
+            symbol_asc={@opts[:symbol_asc]}
+            symbol_desc={@opts[:symbol_desc]}
+            symbol_unsorted={@opts[:symbol_unsorted]}
+            {@opts[:symbol_attrs]}
+          />
         </span>
       </th>
     <% else %>
@@ -249,29 +255,27 @@ defmodule Flop.Phoenix.Table do
   defp aria_sort(_), do: nil
 
   attr :direction, :atom, required: true
-  attr :opts, :list, required: true
+  attr :symbol_asc, :any, required: true
+  attr :symbol_desc, :any, required: true
+  attr :symbol_unsorted, :any, required: true
+  attr :rest, :global
 
-  defp arrow(assigns) do
-    ~H"""
-    <span
-      :if={@direction in [:asc, :asc_nulls_first, :asc_nulls_last]}
-      {@opts[:symbol_attrs]}
-    >
-      <%= @opts[:symbol_asc] %>
-    </span>
-    <span
-      :if={@direction in [:desc, :desc_nulls_first, :desc_nulls_last]}
-      {@opts[:symbol_attrs]}
-    >
-      <%= @opts[:symbol_desc] %>
-    </span>
-    <span
-      :if={is_nil(@direction) && !is_nil(@opts[:symbol_unsorted])}
-      {@opts[:symbol_attrs]}
-    >
-      <%= @opts[:symbol_unsorted] %>
-    </span>
-    """
+  defp arrow(%{direction: direction} = assigns)
+       when direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
+    ~H"<span {@rest}><%= @symbol_asc %></span>"
+  end
+
+  defp arrow(%{direction: direction} = assigns)
+       when direction in [:desc, :desc_nulls_first, :desc_nulls_last] do
+    ~H"<span {@rest}><%= @symbol_desc %></span>"
+  end
+
+  defp arrow(%{direction: nil, symbol_unsorted: nil} = assigns) do
+    ~H""
+  end
+
+  defp arrow(%{direction: nil} = assigns) do
+    ~H"<span {@rest}><%= @symbol_unsorted %></span>"
   end
 
   attr :field, :atom, required: true
