@@ -127,40 +127,38 @@ defmodule Flop.Phoenix.Table do
       <colgroup :if={
         Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style])
       }>
-        <%= for col <- @col do %>
-          <col :if={show_column?(col)} style={col[:col_style]} />
-        <% end %>
-        <%= for action <- @action do %>
-          <col :if={show_column?(action)} style={action[:col_style]} />
-        <% end %>
+        <col :for={col <- @col} :if={show_column?(col)} style={col[:col_style]} />
+        <col
+          :for={action <- @action}
+          :if={show_column?(action)}
+          style={action[:col_style]}
+        />
       </colgroup>
       <thead {@opts[:thead_attrs]}>
         <tr {@opts[:thead_tr_attrs]}>
-          <%= for col <- @col do %>
-            <.header_column
-              :if={show_column?(col)}
-              on_sort={@on_sort}
-              event={@event}
-              field={col[:field]}
-              label={col[:label]}
-              meta={@meta}
-              opts={@opts}
-              path={@path}
-              target={@target}
-            />
-          <% end %>
-          <%= for action <- @action do %>
-            <.header_column
-              :if={show_column?(action)}
-              event={@event}
-              field={nil}
-              label={action[:label]}
-              meta={@meta}
-              opts={@opts}
-              path={nil}
-              target={@event}
-            />
-          <% end %>
+          <.header_column
+            :for={col <- @col}
+            :if={show_column?(col)}
+            on_sort={@on_sort}
+            event={@event}
+            field={col[:field]}
+            label={col[:label]}
+            meta={@meta}
+            opts={@opts}
+            path={@path}
+            target={@target}
+          />
+          <.header_column
+            :for={action <- @action}
+            :if={show_column?(action)}
+            event={@event}
+            field={nil}
+            label={action[:label]}
+            meta={@meta}
+            opts={@opts}
+            path={nil}
+            target={@event}
+          />
         </tr>
       </thead>
       <tbody
@@ -173,16 +171,15 @@ defmodule Flop.Phoenix.Table do
           id={@row_id && @row_id.(item)}
           {maybe_invoke_options_callback(@opts[:tbody_tr_attrs], item)}
         >
-          <%= for col <- @col do %>
-            <td
-              :if={show_column?(col)}
-              {@opts[:tbody_td_attrs]}
-              {maybe_invoke_options_callback(Map.get(col, :attrs, []), item)}
-              phx-click={@row_click && @row_click.(item)}
-            >
-              <%= render_slot(col, @row_item.(item)) %>
-            </td>
-          <% end %>
+          <td
+            :for={col <- @col}
+            :if={show_column?(col)}
+            {@opts[:tbody_td_attrs]}
+            {maybe_invoke_options_callback(Map.get(col, :attrs, []), item)}
+            phx-click={@row_click && @row_click.(item)}
+          >
+            <%= render_slot(col, @row_item.(item)) %>
+          </td>
           <td
             :for={action <- @action}
             {@opts[:tbody_td_attrs]}
