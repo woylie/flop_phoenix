@@ -143,8 +143,14 @@ defmodule Flop.Phoenix.Table do
             event={@event}
             field={col[:field]}
             label={col[:label]}
+            sortable={sortable?(col[:field], @meta.schema)}
             meta={@meta}
-            opts={@opts}
+            thead_th_attrs={@opts[:thead_th_attrs]}
+            symbol_asc={@opts[:symbol_asc]}
+            symbol_desc={@opts[:symbol_desc]}
+            symbol_unsorted={@opts[:symbol_unsorted]}
+            symbol_attrs={@opts[:symbol_attrs]}
+            th_wrapper_attrs={@opts[:th_wrapper_attrs]}
             path={@path}
             target={@target}
           />
@@ -154,8 +160,9 @@ defmodule Flop.Phoenix.Table do
             event={@event}
             field={nil}
             label={action[:label]}
+            sortable={false}
             meta={@meta}
-            opts={@opts}
+            thead_th_attrs={@opts[:thead_th_attrs]}
             path={nil}
             target={@event}
           />
@@ -210,36 +217,44 @@ defmodule Flop.Phoenix.Table do
   attr :on_sort, JS
   attr :event, :string, required: true
   attr :target, :string, required: true
-  attr :opts, :any, required: true
+  attr :sortable, :boolean, required: true
+  attr :thead_th_attrs, :list, required: true
+  attr :symbol_asc, :any
+  attr :symbol_desc, :any
+  attr :symbol_unsorted, :any
+  attr :symbol_attrs, :list
+  attr :th_wrapper_attrs, :list
 
-  defp header_column(assigns) do
+  defp header_column(%{sortable: true} = assigns) do
     direction = order_direction(assigns.meta.flop, assigns.field)
     assigns = assign(assigns, :order_direction, direction)
 
     ~H"""
-    <%= if sortable?(@field, @meta.schema) do %>
-      <th {@opts[:thead_th_attrs]} aria-sort={aria_sort(@order_direction)}>
-        <span {@opts[:th_wrapper_attrs]}>
-          <.sort_link
-            path={build_path(@path, @meta, @field)}
-            on_sort={@on_sort}
-            event={@event}
-            field={@field}
-            label={@label}
-            target={@target}
-          />
-          <.arrow
-            direction={@order_direction}
-            symbol_asc={@opts[:symbol_asc]}
-            symbol_desc={@opts[:symbol_desc]}
-            symbol_unsorted={@opts[:symbol_unsorted]}
-            {@opts[:symbol_attrs]}
-          />
-        </span>
-      </th>
-    <% else %>
-      <th {@opts[:thead_th_attrs]}><%= @label %></th>
-    <% end %>
+    <th {@thead_th_attrs} aria-sort={aria_sort(@order_direction)}>
+      <span {@th_wrapper_attrs}>
+        <.sort_link
+          path={build_path(@path, @meta, @field)}
+          on_sort={@on_sort}
+          event={@event}
+          field={@field}
+          label={@label}
+          target={@target}
+        />
+        <.arrow
+          direction={@order_direction}
+          symbol_asc={@symbol_asc}
+          symbol_desc={@symbol_desc}
+          symbol_unsorted={@symbol_unsorted}
+          {@symbol_attrs}
+        />
+      </span>
+    </th>
+    """
+  end
+
+  defp header_column(%{sortable: false} = assigns) do
+    ~H"""
+    <th {@thead_th_attrs}><%= @label %></th>
     """
   end
 
