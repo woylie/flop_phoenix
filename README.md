@@ -69,8 +69,8 @@ end
 
 If you prefer the `Flop.Phoenix` components not to reflect pagination, sorting,
 and filtering parameters in the URL, fetch and assign the data in the
-`c:Phoenix.LiveView.handle_event/3` callback. You need to pass the event name as
-an attribute to the components in that case.
+`c:Phoenix.LiveView.handle_event/3` callback. You need to pass a
+`Phoenix.LiveView.JS` command as an attribute to the components in that case.
 
 ### Controller
 
@@ -125,8 +125,9 @@ By using the `for` option in your Flop query, Flop Phoenix can identify which
 table columns are sortable. Additionally, it omits the `order` and `page_size`
 parameters if they align with the default values specified via `Flop.Schema`.
 
-You also have the option to pass an event name instead of a path. For more
-details, please refer to the component documentation.
+You also have the option to pass a `Phoenix.LiveView.JS` command instead of or
+in addition to a path. For more details, please refer to the component
+documentation.
 
 If you wish to implement cursor-based pagination, see
 `Flop.Phoenix.cursor_pagination/1` for setup instructions.

@@ -333,6 +333,49 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
+    test "uses phx-click with on_paginate without path" do
+      html =
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          path: nil,
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == ["#"]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
+    end
+
+    test "uses phx-click with on_paginate and path" do
+      html =
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          path: "/pets",
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      expected_path = "/pets?page_size=10"
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == [expected_path]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+
+      assert Jason.decode!(phx_click) == [
+               ["push", %{"event" => "paginate"}],
+               ["patch", %{"href" => "/pets?page_size=10", "replace" => false}]
+             ]
+    end
+
     test "supports a function/args tuple as path" do
       html =
         render_pagination(
@@ -816,9 +859,9 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "href") == ["#"]
     end
 
-    test "raises if neither path nor event are passed" do
+    test "raises if neither path nor event nor on_paginate are passed" do
       assert_raise ArgumentError,
-                   ~r/^the :path or :event option is required/,
+                   ~r/^path or on_paginate attribute is required/,
                    fn ->
                      render_component(&pagination/1,
                        __changed__: nil,
@@ -1068,7 +1111,7 @@ defmodule Flop.PhoenixTest do
         )
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
-      assert Floki.text(el) == "dot dot dot"
+      assert el |> Floki.text() |> String.trim() == "dot dot dot"
     end
 
     test "always uses page/page_size" do
@@ -1141,6 +1184,59 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+    end
+
+    test "uses phx-click with on_paginate without path" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          path: nil,
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == ["#"]
+      assert Floki.attribute(link, "phx-value-to") == ["previous"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
+    end
+
+    test "uses phx-click with on_paginate and path" do
+      html =
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          path: "/pets",
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      expected_path = "/pets"
+      expected_query = %{"before" => "B", "last" => "10"}
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert [href] = Floki.attribute(link, "href")
+
+      uri = URI.parse(href)
+      assert uri.path == expected_path
+      assert URI.decode_query(uri.query) == expected_query
+
+      assert Floki.attribute(link, "phx-value-to") == ["previous"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+
+      assert [
+               ["push", %{"event" => "paginate"}],
+               ["patch", %{"href" => href, "replace" => false}]
+             ] = Jason.decode!(phx_click)
+
+      uri = URI.parse(href)
+      assert uri.path == expected_path
+      assert URI.decode_query(uri.query) == expected_query
     end
 
     test "supports a function/args tuple as path" do
@@ -1419,7 +1515,7 @@ defmodule Flop.PhoenixTest do
 
     test "raises if neither path nor event are passed" do
       assert_raise ArgumentError,
-                   ~r/^the :path or :event option is required/,
+                   ~r/^path or on_paginate attribute is required/,
                    fn ->
                      render_component(&cursor_pagination/1,
                        __changed__: nil,
