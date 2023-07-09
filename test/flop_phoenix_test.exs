@@ -1553,13 +1553,13 @@ defmodule Flop.PhoenixTest do
       html =
         render_table(
           opts: [
-            container_attrs: [class: "container", id: "a"],
+            container_attrs: [class: "container", data_some: "thing"],
             container: true
           ]
         )
 
       assert [container] = Floki.find(html, "div.container")
-      assert Floki.attribute(container, "id") == ["a"]
+      assert Floki.attribute(container, "data_some") == ["thing"]
     end
 
     test "allows to set tbody attributes" do
@@ -1586,9 +1586,11 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "thead.text-left.text-zinc-500.leading-6")
     end
 
-    test "allows to set id on tbody" do
-      html = render_table(id: "some-id")
-      assert [_] = Floki.find(html, "tbody#some-id")
+    test "allows to set id on table, tbody and container" do
+      html = render_table(id: "some-id", opts: [container: true])
+      assert [_] = Floki.find(html, "div#some-id_container")
+      assert [_] = Floki.find(html, "table#some-id")
+      assert [_] = Floki.find(html, "tbody#some-id_tbody")
     end
 
     test "sets default ID based on schema module" do
@@ -1607,26 +1609,32 @@ defmodule Flop.PhoenixTest do
         |> rendered_to_string()
         |> Floki.parse_fragment!()
 
-      assert [_] = Floki.find(html, "tbody#pet_table")
+      assert [_] = Floki.find(html, "table#pet_table")
+      assert [_] = Floki.find(html, "tbody#pet_table_tbody")
     end
 
     test "sets default ID without schema module" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}},
         event: "sort-table",
-        items: ["George"]
+        items: ["George"],
+        opts: [container: true]
       }
 
       html =
         ~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+        <Flop.Phoenix.table items={@items} meta={@meta} opts={@opts} event="sort">
           <:col></:col>
         </Flop.Phoenix.table>
         """
         |> rendered_to_string()
         |> Floki.parse_fragment!()
 
-      assert [_] = Floki.find(html, "tbody#sortable_table")
+      assert [_] =
+               Floki.find(html, "div.table-container#sortable_table_container")
+
+      assert [_] = Floki.find(html, "table#sortable_table")
+      assert [_] = Floki.find(html, "tbody#sortable_table_tbody")
     end
 
     test "does not set row ID if items are not a stream" do
@@ -2233,7 +2241,7 @@ defmodule Flop.PhoenixTest do
       html = render_table([], &test_table_with_row_click_and_action/1)
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, rows}
@@ -2251,7 +2259,7 @@ defmodule Flop.PhoenixTest do
       html = render_table([])
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, rows}
@@ -2265,7 +2273,7 @@ defmodule Flop.PhoenixTest do
       html = render_table([opts: []], &test_table_with_action/1)
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, rows}
@@ -2280,7 +2288,7 @@ defmodule Flop.PhoenixTest do
       html = render_table([])
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [{"thead", _, _}, {"tbody", _, rows}]}
              ] = html
 
@@ -2294,7 +2302,7 @@ defmodule Flop.PhoenixTest do
       html = render_table([], &test_table_with_foot/1)
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, _},
@@ -2305,7 +2313,7 @@ defmodule Flop.PhoenixTest do
 
     test "renders colgroup" do
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
                 [
                   {"colgroup", _,
                    [
@@ -2320,7 +2328,7 @@ defmodule Flop.PhoenixTest do
 
     test "does not render a colgroup if no style attribute is set" do
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, _}
@@ -2330,7 +2338,7 @@ defmodule Flop.PhoenixTest do
 
     test "renders colgroup on action col" do
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
                 [
                   {"colgroup", _,
                    [
@@ -2345,7 +2353,7 @@ defmodule Flop.PhoenixTest do
 
     test "does not render colgroup on action col if no style attribute is set" do
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [
                   {"thead", _, _},
                   {"tbody", _, _}
@@ -2355,7 +2363,7 @@ defmodule Flop.PhoenixTest do
 
     test "renders caption" do
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [
                   {"caption", [], ["some caption"]},
                   {"thead", _, _},
@@ -2368,7 +2376,7 @@ defmodule Flop.PhoenixTest do
       html = render_table()
 
       assert [
-               {"table", [{"class", "sortable-table"}],
+               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
                 [{"thead", _, _}, {"tbody", _, _}]}
              ] = html
     end

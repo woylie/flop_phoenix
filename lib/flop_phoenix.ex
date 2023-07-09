@@ -890,7 +890,7 @@ defmodule Flop.Phoenix do
 
   attr :id, :string,
     doc: """
-    ID used on the table body. If not set, an ID is chosen based on the schema
+    ID used on the table. If not set, an ID is chosen based on the schema
     module derived from the `Flop.Meta` struct.
 
     The ID is necessary in case the table is fed with a LiveView stream.
@@ -1119,7 +1119,7 @@ defmodule Flop.Phoenix do
       <%= @opts[:no_results_content] %>
     <% else %>
       <%= if @opts[:container] do %>
-        <div {@opts[:container_attrs]}>
+        <div id={@id <> "_container"} {@opts[:container_attrs]}>
           <Table.render
             caption={@caption}
             col={@col}

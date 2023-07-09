@@ -122,7 +122,7 @@ defmodule Flop.Phoenix.Table do
       end
 
     ~H"""
-    <table {@opts[:table_attrs]}>
+    <table id={@id} {@opts[:table_attrs]}>
       <caption :if={@caption}><%= @caption %></caption>
       <colgroup :if={
         Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style])
@@ -169,7 +169,7 @@ defmodule Flop.Phoenix.Table do
         </tr>
       </thead>
       <tbody
-        id={@id}
+        id={@id <> "_tbody"}
         phx-update={match?(%Phoenix.LiveView.LiveStream{}, @items) && "stream"}
         {@opts[:tbody_attrs]}
       >
