@@ -377,6 +377,14 @@ defmodule Flop.Phoenix do
       e.target.scrollIntoView();
     });
     ```
+
+    You can use CSS to scroll to the new position smoothly.
+
+    ```css
+    .html {
+      scroll-behavior: smooth;
+    }
+    ```
     """
 
   attr :event, :string,
@@ -707,6 +715,14 @@ defmodule Flop.Phoenix do
     window.addEventListener("my_app:scroll_to", (e) => {
       e.target.scrollIntoView();
     });
+    ```
+
+    You can use CSS to scroll to the new position smoothly.
+
+    ```css
+    .html {
+      scroll-behavior: smooth;
+    }
     ```
     """
 
