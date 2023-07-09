@@ -527,7 +527,7 @@ defmodule Flop.Phoenix do
     ~H"""
     <.link
       href={@path}
-      phx-click={Pagination.click_cmd(@on_paginate, @path)}
+      phx-click={Misc.click_cmd(@on_paginate, @path)}
       phx-target={@target}
       phx-value-page={@page}
       {@rest}
@@ -627,11 +627,14 @@ defmodule Flop.Phoenix do
     want the parameters to appear in the URL.
     """
 
+  attr :on_paginate, JS, default: nil
+
   attr :event, :string,
     default: nil,
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
     Alternatively, set `:path`, if you want the parameters to appear in the URL.
+    Deprecated. Use `on_paginate` instead.
     """
 
   attr :target, :string,
@@ -671,6 +674,7 @@ defmodule Flop.Phoenix do
         direction={if @reverse, do: :next, else: :previous}
         meta={@meta}
         path={@path}
+        on_paginate={@on_paginate}
         event={@event}
         target={@target}
         disabled={!CursorPagination.show_link?(@meta, :previous, @reverse)}
@@ -683,6 +687,7 @@ defmodule Flop.Phoenix do
         direction={if @reverse, do: :previous, else: :next}
         meta={@meta}
         path={@path}
+        on_paginate={@on_paginate}
         event={@event}
         target={@target}
         disabled={!CursorPagination.show_link?(@meta, :next, @reverse)}
@@ -698,6 +703,7 @@ defmodule Flop.Phoenix do
   attr :direction, :atom, required: true
   attr :meta, Flop.Meta, required: true
   attr :path, :any, required: true
+  attr :on_paginate, JS
   attr :event, :string, required: true
   attr :target, :string, required: true
   attr :disabled, :boolean, default: false
@@ -731,10 +737,29 @@ defmodule Flop.Phoenix do
     """
   end
 
-  defp cursor_pagination_link(assigns) do
+  defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
     ~H"""
     <.link
       patch={CursorPagination.pagination_path(@direction, @path, @meta)}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp cursor_pagination_link(
+         %{direction: direction, path: path, meta: meta} = assigns
+       ) do
+    path = CursorPagination.pagination_path(direction, path, meta)
+    assigns = assign(assigns, :path, path)
+
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={Misc.click_cmd(@on_paginate, @path)}
+      phx-target={@target}
+      phx-value-to={@direction}
       {@rest}
     >
       <%= render_slot(@inner_block) %>

@@ -104,6 +104,9 @@ defmodule Flop.Phoenix.Misc do
     |> Keyword.get(:opts)
   end
 
+  def click_cmd(on_paginate, nil), do: on_paginate
+  def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
+
   @doc """
   Validates that either a path helper in the right format or an event are
   assigned, but not both.

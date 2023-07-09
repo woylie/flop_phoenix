@@ -2,7 +2,6 @@ defmodule Flop.Phoenix.Pagination do
   @moduledoc false
 
   alias Flop.Phoenix.Misc
-  alias Phoenix.LiveView.JS
 
   require Logger
 
@@ -100,9 +99,6 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.deep_merge(Misc.get_global_opts(:pagination))
     |> Misc.deep_merge(opts)
   end
-
-  def click_cmd(on_paginate, nil), do: on_paginate
-  def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
 
   def max_pages(:all, total_pages), do: total_pages
   def max_pages(:hide, _), do: 0

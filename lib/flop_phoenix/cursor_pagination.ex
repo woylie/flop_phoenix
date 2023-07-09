@@ -8,14 +8,16 @@ defmodule Flop.Phoenix.CursorPagination do
 
   require Logger
 
-  @path_event_error_msg """
-  the :path or :event option is required when rendering cursor pagination
+  @path_on_paginate_error_msg """
+  path or on_paginate attribute is required
+
+  At least one of the mentioned attributes is required for the cursor
+  pagination component. Combining them will append a JS.patch command to the
+  on_paginate command.
 
   The :path value can be a path as a string, a
-  {module, function_name, args} tuple, a {function, args} tuple, or a 1-ary
+  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
   function.
-
-  The :event value needs to be a string.
 
   ## Example
 
@@ -49,12 +51,20 @@ defmodule Flop.Phoenix.CursorPagination do
 
       <Flop.Phoenix.cursor_pagination
         meta={@meta}
-        event="paginate"
+        on_paginate={JS.push("paginate")}
+      />
+
+  or
+
+      <Flop.Phoenix.cursor_pagination
+        meta={@meta}
+        path={~"/pets"}
+        on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
       />
   """
 
   def validate_assigns!(assigns) do
-    Misc.validate_path_or_event!(assigns, @path_event_error_msg)
+    Misc.validate_path_or_on_paginate!(assigns, @path_on_paginate_error_msg)
     assigns
   end
 
@@ -93,6 +103,8 @@ defmodule Flop.Phoenix.CursorPagination do
   def show_link?(%Meta{has_next_page?: true}, :previous, true), do: true
   def show_link?(%Meta{}, _, _), do: false
 
+  def pagination_path(_, nil, _), do: nil
+
   def pagination_path(direction, path, %Flop.Meta{} = meta) do
     params =
       meta
@@ -100,11 +112,5 @@ defmodule Flop.Phoenix.CursorPagination do
       |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
 
     Flop.Phoenix.build_path(path, params)
-  end
-
-  def add_disabled_class(attrs, disabled_class) do
-    Keyword.update(attrs, :class, disabled_class, fn class ->
-      class <> " " <> disabled_class
-    end)
   end
 end
