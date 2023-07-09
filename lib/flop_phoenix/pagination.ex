@@ -4,6 +4,7 @@ defmodule Flop.Phoenix.Pagination do
   use Phoenix.Component
 
   alias Flop.Phoenix.Misc
+  alias Phoenix.LiveView.JS
 
   require Logger
 
@@ -48,7 +49,7 @@ defmodule Flop.Phoenix.Pagination do
 
       <Flop.Phoenix.pagination
         meta={@meta}
-        event="paginate"
+        on_paginate={JS.push("paginate")}
       />
   """
 
@@ -104,6 +105,7 @@ defmodule Flop.Phoenix.Pagination do
   @spec render(map) :: Phoenix.LiveView.Rendered.t()
 
   attr :meta, Flop.Meta, required: true
+  attr :on_paginate, JS
   attr :page_link_helper, :any, required: true
   attr :event, :string, required: true
   attr :target, :string, required: true
@@ -112,27 +114,34 @@ defmodule Flop.Phoenix.Pagination do
   def render(assigns) do
     ~H"""
     <nav :if={@meta.errors == []} {@opts[:wrapper_attrs]}>
-      <.previous_link
+      <.pagination_link
+        disabled={!@meta.has_previous_page?}
+        disabled_class={@opts[:disabled_class]}
+        event={@event}
+        target={@target}
+        page={@meta.previous_page}
+        path={get_path(@page_link_helper, @meta.previous_page)}
+        on_paginate={@on_paginate}
         attrs={@opts[:previous_link_attrs]}
-        content={@opts[:previous_link_content]}
+      >
+        <%= @opts[:previous_link_content] %>
+      </.pagination_link>
+      <.pagination_link
+        disabled={!@meta.has_next_page?}
+        disabled_class={@opts[:disabled_class]}
         event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
         target={@target}
-      />
-      <.next_link
+        page={@meta.next_page}
+        path={get_path(@page_link_helper, @meta.next_page)}
+        on_paginate={@on_paginate}
         attrs={@opts[:next_link_attrs]}
-        content={@opts[:next_link_content]}
-        event={@event}
-        meta={@meta}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
+      >
+        <%= @opts[:next_link_content] %>
+      </.pagination_link>
       <.page_links
         event={@event}
         meta={@meta}
+        on_paginate={@on_paginate}
         page_link_helper={@page_link_helper}
         opts={@opts}
         target={@target}
@@ -141,73 +150,63 @@ defmodule Flop.Phoenix.Pagination do
     """
   end
 
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
+  attr :path, :string
+  attr :on_paginate, JS
   attr :event, :string, required: true
   attr :target, :string, required: true
-  attr :content, :any, required: true
+  attr :page, :integer, required: true
   attr :attrs, :list, required: true
-  attr :opts, :list, required: true
+  attr :disabled, :boolean, required: true
+  attr :disabled_class, :string, required: true
+  slot :inner_block
 
-  defp previous_link(assigns) do
+  defp pagination_link(%{disabled: true} = assigns) do
     ~H"""
-    <%= if @meta.has_previous_page? do %>
-      <%= if @event do %>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@meta.previous_page}
-          {@attrs}
-        >
-          <%= @content %>
-        </.link>
-      <% else %>
-        <.link patch={@page_link_helper.(@meta.previous_page)} {@attrs}>
-          <%= @content %>
-        </.link>
-      <% end %>
-    <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
-        <%= @content %>
-      </span>
-    <% end %>
+    <span {add_disabled_class(@attrs, @disabled_class)}>
+      <%= render_slot(@inner_block) %>
+    </span>
     """
   end
 
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
-  attr :target, :string, required: true
-  attr :content, :any, required: true
-  attr :attrs, :list, required: true
-  attr :opts, :list, required: true
-
-  defp next_link(assigns) do
+  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
-    <%= if @meta.has_next_page? do %>
-      <%= if @event do %>
-        <.link
-          phx-click={@event}
-          phx-target={@target}
-          phx-value-page={@meta.next_page}
-          {@attrs}
-        >
-          <%= @content %>
-        </.link>
-      <% else %>
-        <.link patch={@page_link_helper.(@meta.next_page)} {@attrs}>
-          <%= @content %>
-        </.link>
-      <% end %>
-    <% else %>
-      <span {add_disabled_class(@attrs, @opts[:disabled_class])}>
-        <%= @content %>
-      </span>
-    <% end %>
+    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@attrs}>
+      <%= render_slot(@inner_block) %>
+    </.link>
     """
   end
 
+  defp pagination_link(%{on_paginate: nil, path: path} = assigns)
+       when is_binary(path) do
+    ~H"""
+    <.link patch={@path} {@attrs}>
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp pagination_link(%{} = assigns) do
+    ~H"""
+    <.link
+      href={@path}
+      phx-click={click_cmd(@on_paginate, @path)}
+      phx-target={@target}
+      phx-value-page={@page}
+      {@attrs}
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  defp get_path(nil, _page), do: nil
+  defp get_path(page_link_helper, page), do: page_link_helper.(page)
+
+  defp click_cmd(on_paginate, nil), do: on_paginate
+  defp click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
+
   attr :meta, Flop.Meta, required: true
+  attr :on_paginate, JS
   attr :page_link_helper, :any, required: true
   attr :event, :string, required: true
   attr :target, :string, required: true
@@ -226,6 +225,7 @@ defmodule Flop.Phoenix.Pagination do
       :if={@opts[:page_links] != :hide}
       event={@event}
       meta={@meta}
+      on_paginate={@on_paginate}
       page_link_helper={@page_link_helper}
       opts={@opts}
       range={
@@ -241,6 +241,7 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   attr :meta, Flop.Meta, required: true
+  attr :on_paginate, JS
   attr :page_link_helper, :any, required: true
   attr :event, :string, required: true
   attr :target, :string, required: true
@@ -359,6 +360,8 @@ defmodule Flop.Phoenix.Pagination do
         first..last
     end
   end
+
+  def build_page_link_helper(_meta, nil), do: nil
 
   def build_page_link_helper(meta, path) do
     query_params = build_query_params(meta)

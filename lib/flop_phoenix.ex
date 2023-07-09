@@ -329,11 +329,14 @@ defmodule Flop.Phoenix do
     want the parameters to appear in the URL.
     """
 
+  attr :on_paginate, JS, default: nil
+
   attr :event, :string,
     default: nil,
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
     Alternatively, set `:path`, if you want the parameters to appear in the URL.
+    Deprecated in favor of `on_paginate`.
     """
 
   attr :target, :string,
@@ -362,6 +365,7 @@ defmodule Flop.Phoenix do
       event={@event}
       meta={@meta}
       opts={@opts}
+      on_paginate={@on_paginate}
       page_link_helper={Pagination.build_page_link_helper(@meta, @path)}
       target={@target}
     />
