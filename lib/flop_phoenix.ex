@@ -369,7 +369,7 @@ defmodule Flop.Phoenix do
         page={@meta.previous_page}
         path={@page_link_helper.(@meta.previous_page)}
         on_paginate={@on_paginate}
-        attrs={@opts[:previous_link_attrs]}
+        {@opts[:previous_link_attrs]}
       >
         <%= @opts[:previous_link_content] %>
       </Pagination.pagination_link>
@@ -381,7 +381,7 @@ defmodule Flop.Phoenix do
         page={@meta.next_page}
         path={@page_link_helper.(@meta.next_page)}
         on_paginate={@on_paginate}
-        attrs={@opts[:next_link_attrs]}
+        {@opts[:next_link_attrs]}
       >
         <%= @opts[:next_link_content] %>
       </Pagination.pagination_link>

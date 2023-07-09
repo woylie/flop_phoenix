@@ -106,14 +106,23 @@ defmodule Flop.Phoenix.Pagination do
   attr :event, :string, required: true
   attr :target, :string, required: true
   attr :page, :integer, required: true
-  attr :attrs, :list, required: true
-  attr :disabled, :boolean, required: true
-  attr :disabled_class, :string, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string
+  attr :rest, :global
   slot :inner_block
 
-  def pagination_link(%{disabled: true} = assigns) do
+  def pagination_link(
+        %{disabled: true, disabled_class: disabled_class} = assigns
+      ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
     ~H"""
-    <span {add_disabled_class(@attrs, @disabled_class)}>
+    <span {@rest} class={@disabled_class}>
       <%= render_slot(@inner_block) %>
     </span>
     """
@@ -121,7 +130,7 @@ defmodule Flop.Phoenix.Pagination do
 
   def pagination_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@attrs}>
+    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
       <%= render_slot(@inner_block) %>
     </.link>
     """
@@ -130,7 +139,7 @@ defmodule Flop.Phoenix.Pagination do
   def pagination_link(%{on_paginate: nil, path: path} = assigns)
       when is_binary(path) do
     ~H"""
-    <.link patch={@path} {@attrs}>
+    <.link patch={@path} {@rest}>
       <%= render_slot(@inner_block) %>
     </.link>
     """
@@ -143,7 +152,7 @@ defmodule Flop.Phoenix.Pagination do
       phx-click={click_cmd(@on_paginate, @path)}
       phx-target={@target}
       phx-value-page={@page}
-      {@attrs}
+      {@rest}
     >
       <%= render_slot(@inner_block) %>
     </.link>
@@ -336,12 +345,6 @@ defmodule Flop.Phoenix.Pagination do
         else: opts[:pagination_link_attrs]
 
     add_page_link_aria_label(attrs, page, opts)
-  end
-
-  defp add_disabled_class(attrs, disabled_class) do
-    Keyword.update(attrs, :class, disabled_class, fn class ->
-      class <> " " <> disabled_class
-    end)
   end
 
   defp add_page_link_aria_label(attrs, page, opts) do
