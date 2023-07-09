@@ -8,8 +8,8 @@
 
 - Added an `on_paginate` attribute to the `pagination` and `cursor_pagination`
   components. This attribute takes a `Phoenix.LiveView.JS` command as a value.
-  The attribute can be combined with the `path` attribute, the URL will be
-  patched _and_ the the given JS command is executed.
+  The attribute can be combined with the `path` attribute, in which case the URL
+  will be patched _and_ the the given JS command is executed.
 - Similarly, an `on_sort` attribute was added to the `table` component.
 - Allow setting `tbody_tr_attrs` to a function that takes the current row item
   as an argument and returns a list of attributes.
