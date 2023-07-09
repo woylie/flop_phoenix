@@ -381,7 +381,7 @@ defmodule Flop.Phoenix do
     You can use CSS to scroll to the new position smoothly.
 
     ```css
-    .html {
+    html {
       scroll-behavior: smooth;
     }
     ```
@@ -720,7 +720,7 @@ defmodule Flop.Phoenix do
     You can use CSS to scroll to the new position smoothly.
 
     ```css
-    .html {
+    html {
       scroll-behavior: smooth;
     }
     ```
