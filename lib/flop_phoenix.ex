@@ -356,8 +356,20 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  def pagination(assigns) do
-    assigns = Pagination.init_assigns(assigns)
+  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
+    Misc.validate_path_or_on_paginate!(
+      assigns,
+      Pagination.path_on_paginate_error_msg()
+    )
+
+    assigns =
+      assigns
+      |> assign(:opts, Pagination.merge_opts(opts))
+      |> assign(
+        :page_link_helper,
+        Pagination.build_page_link_helper(meta, path)
+      )
+      |> assign(:path, nil)
 
     ~H"""
     <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>

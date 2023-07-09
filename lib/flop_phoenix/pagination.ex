@@ -8,60 +8,62 @@ defmodule Flop.Phoenix.Pagination do
 
   require Logger
 
-  @path_on_paginate_error_msg """
-  path or on_paginate attribute is required
+  def path_on_paginate_error_msg do
+    """
+    path or on_paginate attribute is required
 
-  At least one of the mentioned attributes is required for the pagination
-  component. Combining them will append a JS.patch command to the on_paginate
-  command.
+    At least one of the mentioned attributes is required for the pagination
+    component. Combining them will append a JS.patch command to the on_paginate
+    command.
 
-  The :path value can be a path as a string, a
-  {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-  function.
+    The :path value can be a path as a string, a
+    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
+    function.
 
-  ## Examples
+    ## Examples
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={~p"/pets"}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={~p"/pets"}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={{Routes, :pet_path, [@socket, :index]}}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={{Routes, :pet_path, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={{&Routes.pet_path/3, [@socket, :index]}}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={{&Routes.pet_path/3, [@socket, :index]}}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={&build_path/1}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={&build_path/1}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        on_paginate={JS.push("paginate")}
-      />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+        />
 
-  or
+    or
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={&build_path/1}
-        on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
-      />
-  """
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={&build_path/1}
+          on_paginate={JS.dispatch("scroll-to", to: "#my-table")}
+        />
+    """
+  end
 
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
@@ -95,17 +97,7 @@ defmodule Flop.Phoenix.Pagination do
     ]
   end
 
-  @spec init_assigns(map) :: map
-  def init_assigns(%{meta: meta, opts: opts, path: path} = assigns) do
-    Misc.validate_path_or_on_paginate!(assigns, @path_on_paginate_error_msg)
-
-    assigns
-    |> assign(:opts, merge_opts(opts))
-    |> assign(:page_link_helper, build_page_link_helper(meta, path))
-    |> assign(:path, nil)
-  end
-
-  defp merge_opts(opts) do
+  def merge_opts(opts) do
     default_opts()
     |> Misc.deep_merge(Misc.get_global_opts(:pagination))
     |> Misc.deep_merge(opts)
