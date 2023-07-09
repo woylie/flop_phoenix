@@ -94,11 +94,11 @@ defmodule Flop.Phoenix.CursorPagination do
   end
 
   # meta, direction, reverse
-  def show_link?(%Meta{has_previous_page?: true}, :previous, false), do: true
-  def show_link?(%Meta{has_next_page?: true}, :next, false), do: true
-  def show_link?(%Meta{has_previous_page?: true}, :next, true), do: true
-  def show_link?(%Meta{has_next_page?: true}, :previous, true), do: true
-  def show_link?(%Meta{}, _, _), do: false
+  def disable?(%Meta{has_previous_page?: true}, :previous, false), do: false
+  def disable?(%Meta{has_next_page?: true}, :next, false), do: false
+  def disable?(%Meta{has_previous_page?: true}, :next, true), do: false
+  def disable?(%Meta{has_next_page?: true}, :previous, true), do: false
+  def disable?(%Meta{}, _, _), do: true
 
   def pagination_path(_, nil, _), do: nil
 

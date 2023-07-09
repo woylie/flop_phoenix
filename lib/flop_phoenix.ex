@@ -739,7 +739,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         event={@event}
         target={@target}
-        disabled={!CursorPagination.show_link?(@meta, :previous, @reverse)}
+        disabled={CursorPagination.disable?(@meta, :previous, @reverse)}
         disabled_class={@opts[:disabled_class]}
         {@opts[:previous_link_attrs]}
       >
@@ -752,7 +752,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         event={@event}
         target={@target}
-        disabled={!CursorPagination.show_link?(@meta, :next, @reverse)}
+        disabled={CursorPagination.disable?(@meta, :next, @reverse)}
         disabled_class={@opts[:disabled_class]}
         {@opts[:next_link_attrs]}
       >
