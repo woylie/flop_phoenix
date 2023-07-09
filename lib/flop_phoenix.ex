@@ -1119,7 +1119,7 @@ defmodule Flop.Phoenix do
       <%= @opts[:no_results_content] %>
     <% else %>
       <%= if @opts[:container] do %>
-        <div id={@id <> "_container"} {@opts[:container_attrs]}>
+        <div id={@id <> "-container"} {@opts[:container_attrs]}>
           <Table.render
             caption={@caption}
             col={@col}
@@ -1161,11 +1161,11 @@ defmodule Flop.Phoenix do
     """
   end
 
-  defp table_id(nil), do: "sortable_table"
+  defp table_id(nil), do: "sortable-table"
 
   defp table_id(schema) do
     module_name = schema |> Module.split() |> List.last() |> Macro.underscore()
-    module_name <> "_table"
+    module_name <> "-table"
   end
 
   @doc """

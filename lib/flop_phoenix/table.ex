@@ -169,7 +169,7 @@ defmodule Flop.Phoenix.Table do
         </tr>
       </thead>
       <tbody
-        id={@id <> "_tbody"}
+        id={@id <> "-tbody"}
         phx-update={match?(%Phoenix.LiveView.LiveStream{}, @items) && "stream"}
         {@opts[:tbody_attrs]}
       >

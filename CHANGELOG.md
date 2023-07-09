@@ -19,9 +19,9 @@
 
 ### Changed
 
-- The table ID falls back to `"sortable_table"` if no schema module is used.
-- The tbody ID was changed to `{id}_tbody`.
-- The table container ID is set to `{id}_container` now.
+- The table ID falls back to `"sortable-table"` if no schema module is used.
+- The tbody ID was changed to `{id}-tbody`.
+- The table container ID is set to `{id}-container` now.
 - The table ID is set to `{id}` now.
 
 ### Deprecated

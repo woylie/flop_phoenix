@@ -1588,9 +1588,9 @@ defmodule Flop.PhoenixTest do
 
     test "allows to set id on table, tbody and container" do
       html = render_table(id: "some-id", opts: [container: true])
-      assert [_] = Floki.find(html, "div#some-id_container")
+      assert [_] = Floki.find(html, "div#some-id-container")
       assert [_] = Floki.find(html, "table#some-id")
-      assert [_] = Floki.find(html, "tbody#some-id_tbody")
+      assert [_] = Floki.find(html, "tbody#some-id-tbody")
     end
 
     test "sets default ID based on schema module" do
@@ -1609,8 +1609,8 @@ defmodule Flop.PhoenixTest do
         |> rendered_to_string()
         |> Floki.parse_fragment!()
 
-      assert [_] = Floki.find(html, "table#pet_table")
-      assert [_] = Floki.find(html, "tbody#pet_table_tbody")
+      assert [_] = Floki.find(html, "table#pet-table")
+      assert [_] = Floki.find(html, "tbody#pet-table-tbody")
     end
 
     test "sets default ID without schema module" do
@@ -1631,10 +1631,10 @@ defmodule Flop.PhoenixTest do
         |> Floki.parse_fragment!()
 
       assert [_] =
-               Floki.find(html, "div.table-container#sortable_table_container")
+               Floki.find(html, "div.table-container#sortable-table-container")
 
-      assert [_] = Floki.find(html, "table#sortable_table")
-      assert [_] = Floki.find(html, "tbody#sortable_table_tbody")
+      assert [_] = Floki.find(html, "table#sortable-table")
+      assert [_] = Floki.find(html, "tbody#sortable-table-tbody")
     end
 
     test "does not set row ID if items are not a stream" do
