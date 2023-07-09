@@ -249,7 +249,9 @@ defmodule Flop.Phoenix do
   - `:thead_attrs`: Attributes to be added to the `<thead>` tag within the
     `<table>`. Default: `#{inspect(Table.default_opts()[:thead_attrs])}`.
   - `:tbody_tr_attrs`: Attributes to be added to each `<tr>` tag within the
-    `<tbody>`. Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
+    `<tbody>`. A function with arity of 1 may be passed to dynamically generate
+    the attrs based on row data.
+    Default: `#{inspect(Table.default_opts()[:tbody_tr_attrs])}`.
   - `:thead_th_attrs`: Attributes to be added to each `<th>` tag within the
     `<thead>`. Default: `#{inspect(Table.default_opts()[:thead_th_attrs])}`.
   - `:thead_tr_attrs`: Attributes to be added to each `<tr>` tag within the
@@ -267,7 +269,7 @@ defmodule Flop.Phoenix do
           | {:tbody_attrs, keyword}
           | {:thead_attrs, keyword}
           | {:tbody_td_attrs, keyword}
-          | {:tbody_tr_attrs, keyword}
+          | {:tbody_tr_attrs, keyword | (any -> keyword)}
           | {:th_wrapper_attrs, keyword}
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
@@ -971,9 +973,12 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :attrs, :list,
+    attr :attrs, :any,
       doc: """
-      Any additional attributes to pass to the `<td>`.
+      Additional attributes to pass to the `<td>` element. May be provided as a
+      static keyword list, or as a 1-arity function to dynamically generate the
+      list using row data. Note that these attributes will override any
+      conflicting `tbody_td_attrs` that are set at the table level.
       """
   end
 

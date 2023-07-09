@@ -130,6 +130,26 @@ defmodule Flop.PhoenixTest do
     """
   end
 
+  defp test_table_with_dynamically_generated_attrs(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      event="sort"
+      items={@items}
+      opts={@opts}
+      meta={%Flop.Meta{flop: %Flop{}}}
+    >
+      <:col
+        :let={user}
+        label="Name"
+        field={:name}
+        attrs={@opts[:col_slot_attrs] || []}
+      >
+        <%= user.name %>
+      </:col>
+    </Flop.Phoenix.table>
+    """
+  end
+
   defp test_table_with_action(assigns) do
     assigns =
       assigns
@@ -872,16 +892,15 @@ defmodule Flop.PhoenixTest do
         )
 
       expected_query = fn page ->
-        default_query =
-          %{
-            "filters[0][field]" => "fur_length",
-            "filters[0][op]" => ">=",
-            "filters[0][value]" => "5",
-            "filters[1][field]" => "curiosity",
-            "filters[1][op]" => "in",
-            "filters[1][value][]" => "somewhat",
-            "page_size" => "10"
-          }
+        default_query = %{
+          "filters[0][field]" => "fur_length",
+          "filters[0][op]" => ">=",
+          "filters[0][value]" => "5",
+          "filters[1][field]" => "curiosity",
+          "filters[1][op]" => "in",
+          "filters[1][value][]" => "somewhat",
+          "page_size" => "10"
+        }
 
         if page == 1,
           do: default_query,
@@ -1296,7 +1315,10 @@ defmodule Flop.PhoenixTest do
 
       # reverse
       html =
-        render_cursor_pagination(meta: build(:meta_with_cursors), reverse: true)
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          reverse: true
+        )
 
       link = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
@@ -1347,7 +1369,11 @@ defmodule Flop.PhoenixTest do
     test "disables previous link if on first page" do
       html =
         render_cursor_pagination(
-          meta: build(:meta_with_cursors, has_previous_page?: false)
+          meta:
+            build(
+              :meta_with_cursors,
+              has_previous_page?: false
+            )
         )
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
@@ -1692,7 +1718,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.text(td) =~ "GEORGE"
     end
 
-    test "allows to set tr and td classes" do
+    test "allows to set tr and td classes via keyword lists" do
       html =
         render_table(
           opts: [
@@ -1707,6 +1733,58 @@ defmodule Flop.PhoenixTest do
       assert [_, _, _, _, _] = Floki.find(html, "th.bean")
       assert [_] = Floki.find(html, "tr.salt")
       assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
+    end
+
+    test "support of functions for supplying dynamic tr attrs based on row data" do
+      html =
+        render_table(
+          [
+            items: [
+              %{name: "Bruce Wayne", age: 42, occupation: "Superhero"},
+              %{name: "April O'Neil", age: 39, occupation: "Crime Reporter"}
+            ],
+            opts: [
+              tbody_tr_attrs: fn item ->
+                class =
+                  item.occupation
+                  |> String.downcase()
+                  |> String.replace(" ", "-")
+
+                [
+                  class: class
+                ]
+              end
+            ]
+          ],
+          &test_table_with_dynamically_generated_attrs/1
+        )
+
+      assert [_] = Floki.find(html, "tr.superhero")
+      assert [_] = Floki.find(html, "tr.crime-reporter")
+    end
+
+    test "support of functions for supplying dynamic td attrs based on row data" do
+      html =
+        render_table(
+          [
+            items: [
+              %{name: "Mary Cratsworth-Shane", age: 99},
+              %{name: "Bart Harley-Jarvis", age: 1}
+            ],
+            opts: [
+              # this key is used in the test for readability/passage via assigns
+              # but it is passed to a component's :col slot's `attrs` in
+              # real-world calls.
+              col_slot_attrs: fn item ->
+                [class: if(item.age > 17, do: "adult", else: "child")]
+              end
+            ]
+          ],
+          &test_table_with_dynamically_generated_attrs/1
+        )
+
+      assert [_] = Floki.find(html, "td.adult")
+      assert [_] = Floki.find(html, "td.child")
     end
 
     test "allows to set td class on action" do
@@ -1907,7 +1985,9 @@ defmodule Flop.PhoenixTest do
 
       html =
         render_table(
-          meta: %Flop.Meta{flop: %Flop{order_by: [], order_directions: []}}
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [], order_directions: []}
+          }
         )
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
