@@ -1219,7 +1219,10 @@ defmodule Flop.PhoenixTest do
 
       # reverse
       html =
-        render_cursor_pagination(meta: build(:meta_with_cursors), reverse: true)
+        render_cursor_pagination(
+          meta: build(:meta_with_cursors),
+          reverse: true
+        )
 
       link = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
@@ -1270,7 +1273,11 @@ defmodule Flop.PhoenixTest do
     test "disables previous link if on first page" do
       html =
         render_cursor_pagination(
-          meta: build(:meta_with_cursors, has_previous_page?: false)
+          meta:
+            build(
+              :meta_with_cursors,
+              has_previous_page?: false
+            )
         )
 
       previous_link = Floki.find(html, "span:fl-contains('Previous')")
@@ -1642,9 +1649,13 @@ defmodule Flop.PhoenixTest do
             ],
             opts: [
               tbody_tr_attrs: fn item ->
+                class =
+                  item.occupation
+                  |> String.downcase()
+                  |> String.replace(" ", "-")
+
                 [
-                  class:
-                    String.downcase(item.occupation) |> String.replace(" ", "-")
+                  class: class
                 ]
               end
             ]
@@ -1665,8 +1676,9 @@ defmodule Flop.PhoenixTest do
               %{name: "Bart Harley-Jarvis", age: 1}
             ],
             opts: [
-              # this key is used in the test for readability/passage via assigns,
-              # but it is passed to a component's :col slot's `attrs` in real-world calls.
+              # this key is used in the test for readability/passage via assigns
+              # but it is passed to a component's :col slot's `attrs` in
+              # real-world calls.
               col_slot_attrs: fn item ->
                 [class: if(item.age > 17, do: "adult", else: "child")]
               end
@@ -1877,7 +1889,9 @@ defmodule Flop.PhoenixTest do
 
       html =
         render_table(
-          meta: %Flop.Meta{flop: %Flop{order_by: [], order_directions: []}}
+          meta: %Flop.Meta{
+            flop: %Flop{order_by: [], order_directions: []}
+          }
         )
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
