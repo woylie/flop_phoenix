@@ -355,7 +355,7 @@ defmodule Flop.Phoenix do
         <.pagination
           meta={@meta}
           on_paginate={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("paginate")
           }
         />
 
@@ -365,8 +365,18 @@ defmodule Flop.Phoenix do
         <.pagination
           meta={@meta}
           path={~"/pets"}
-          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_paginate={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
+
+    With the above attributes in place, you can add the following JavaScript to
+    your application to scroll to the top of your table whenever a pagination
+    link is clicked:
+
+    ```js
+    window.addEventListener("my_app:scroll_to", (e) => {
+      e.target.scrollIntoView();
+    });
+    ```
     """
 
   attr :event, :string,
@@ -676,7 +686,7 @@ defmodule Flop.Phoenix do
         <.cursor_pagination
           meta={@meta}
           on_paginate={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("paginate")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("paginate")
           }
         />
 
@@ -686,8 +696,18 @@ defmodule Flop.Phoenix do
         <.cursor_pagination
           meta={@meta}
           path={~"/pets"}
-          on_paginate={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_paginate={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
+
+    With the above attributes in place, you can add the following JavaScript to
+    your application to scroll to the top of your table whenever a pagination
+    link is clicked:
+
+    ```js
+    window.addEventListener("my_app:scroll_to", (e) => {
+      e.target.scrollIntoView();
+    });
+    ```
     """
 
   attr :event, :string,
@@ -896,7 +916,7 @@ defmodule Flop.Phoenix do
           items={@items}
           meta={@meta}
           on_sort={
-            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("sort")
+            JS.dispatch("my_app:scroll_to", to: "#pets-table") |> JS.push("sort")
           }
         />
 
@@ -906,7 +926,7 @@ defmodule Flop.Phoenix do
         <.table
           meta={@meta}
           path={~"/pets"}
-          on_sort={JS.dispatch("scroll-to", to: "#pets-table")}
+          on_sort={JS.dispatch("my_app:scroll_to", to: "#pets-table")}
         />
     """
 
