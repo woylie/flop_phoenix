@@ -81,7 +81,8 @@ defmodule Flop.Phoenix do
 
   ## Pagination and sorting with JS commands
 
-  You can pass a `Phoenix.LiveView.JS` command as the `on_paginate` attribute.
+  You can pass a `Phoenix.LiveView.JS` command as `on_paginate` and `on_sort`
+  attributes.
 
   If used with the `path` attribute, a `patch` command to the new URL will be
   appended to the given command.
@@ -91,6 +92,13 @@ defmodule Flop.Phoenix do
 
   You can set a different target by assigning a `:target`. The value
   will be used as the `phx-target` attribute.
+
+      <Flop.Phoenix.table
+        items={@items}
+        meta={@meta}
+        on_sort={JS.push("sort-pets")}
+        target={@myself}
+      />
 
       <Flop.Phoenix.pagination
         meta={@meta}
@@ -111,7 +119,7 @@ defmodule Flop.Phoenix do
         end
       end
 
-      def handle_event("order_pets", %{"order" => order}, socket) do
+      def handle_event("sort-pets", %{"order" => order}, socket) do
         flop = Flop.push_order(socket.assigns.meta.flop, order)
 
         with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
@@ -866,13 +874,40 @@ defmodule Flop.Phoenix do
   attr :path, :any,
     default: nil,
     doc: """
-    Either a URI string (Phoenix verified route), an MFA or FA tuple (Phoenix
-    route helper), or a 1-ary path builder function. See
-    `Flop.Phoenix.build_path/3` for details. If set, links will be
-    rendered with `Phoenix.Components.link/1` with the `patch` attribute. In a
-    LiveView, the parameters will have to be handled in the `handle_params/3`
-    callback of the LiveView module. Alternatively, set `:event`, if you don't
-    want the parameters to appear in the URL.
+    If set, the current view is patched with updated query parameters when a
+    header link for sorting is clicked. In case the `on_sort` attribute is
+    set as well, the `patch` command is appended to the `on_sort` command.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
+    """
+
+  attr :on_sort, JS,
+    default: nil,
+    doc: """
+    A `Phoenix.LiveView.JS` command that is triggered when a header link for
+    sorting is clicked.
+
+    If used without the `path` attribute, you should include a `push` operation
+    to handle the event with the `handle_event` callback.
+
+        <.table
+          items={@items}
+          meta={@meta}
+          on_sort={
+            JS.dispatch("scroll-to", to: "#pets-table") |> JS.push("sort")
+          }
+        />
+
+    If used with the `path` attribute, a `patch` command is appended to the
+    given JS command.
+
+        <.table
+          meta={@meta}
+          path={~"/pets"}
+          on_sort={JS.dispatch("scroll-to", to: "#pets-table")}
+        />
     """
 
   attr :event, :string,
@@ -880,6 +915,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
     Alternatively, set `:path`, if you want the parameters to appear in the URL.
+    Deprecated in favor of `on_sort`.
     """
 
   attr :target, :string,
@@ -1043,6 +1079,7 @@ defmodule Flop.Phoenix do
             caption={@caption}
             col={@col}
             foot={@foot}
+            on_sort={@on_sort}
             event={@event}
             id={@id}
             items={@items}
@@ -1061,6 +1098,7 @@ defmodule Flop.Phoenix do
           caption={@caption}
           col={@col}
           foot={@foot}
+          on_sort={@on_sort}
           event={@event}
           id={@id}
           items={@items}

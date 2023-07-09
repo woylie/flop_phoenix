@@ -108,28 +108,6 @@ defmodule Flop.Phoenix.Misc do
   def click_cmd(on_paginate, path), do: JS.patch(on_paginate, path)
 
   @doc """
-  Validates that either a path helper in the right format or an event are
-  assigned, but not both.
-  """
-  def validate_path_or_event!(%{path: {module, function, args}, event: nil}, _)
-      when is_atom(module) and is_atom(function) and is_list(args),
-      do: :ok
-
-  def validate_path_or_event!(%{path: {function, args}, event: nil}, _)
-      when is_function(function) and is_list(args),
-      do: :ok
-
-  def validate_path_or_event!(%{path: path, event: nil}, _)
-      when is_binary(path) or is_function(path, 1),
-      do: :ok
-
-  def validate_path_or_event!(%{path: nil, event: event}, _)
-      when is_binary(event),
-      do: :ok
-
-  def validate_path_or_event!(_, error_msg), do: raise(ArgumentError, error_msg)
-
-  @doc """
   Validates that either a path attribute or an on_paginate attribute is set.
   """
   def validate_path_or_on_paginate!(%{path: {module, function, args}}, _)

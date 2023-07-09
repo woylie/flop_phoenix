@@ -57,6 +57,7 @@ defmodule Flop.PhoenixTest do
   end
 
   attr :caption, :string, default: nil
+  attr :on_sort, JS, default: nil
   attr :event, :string, default: nil
   attr :id, :string, default: nil
   attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
@@ -75,6 +76,7 @@ defmodule Flop.PhoenixTest do
     ~H"""
     <Flop.Phoenix.table
       caption={@caption}
+      on_sort={@on_sort}
       event={@event}
       id={@id}
       items={@items}
@@ -1906,6 +1908,46 @@ defmodule Flop.PhoenixTest do
              ]
     end
 
+    test "uses phx-click with on_sort without path" do
+      html =
+        render_table(
+          path: nil,
+          on_sort: JS.push("sort")
+        )
+
+      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+      assert Floki.attribute(a, "data-phx-link") == []
+      assert Floki.attribute(a, "data-phx-link-state") == []
+      assert Floki.attribute(a, "href") == ["#"]
+      assert Floki.attribute(a, "phx-value-order") == ["name"]
+      assert [phx_click] = Floki.attribute(a, "phx-click")
+      assert Jason.decode!(phx_click) == [["push", %{"event" => "sort"}]]
+    end
+
+    test "uses phx-click with on_paginate and path" do
+      html =
+        render_pagination(
+          meta: build(:meta_on_second_page),
+          path: "/pets",
+          on_paginate: JS.push("paginate")
+        )
+
+      link = Floki.find(html, "a:fl-contains('Previous')")
+      expected_path = "/pets?page_size=10"
+
+      assert Floki.attribute(link, "class") == ["pagination-previous"]
+      assert Floki.attribute(link, "data-phx-link") == []
+      assert Floki.attribute(link, "data-phx-link-state") == []
+      assert Floki.attribute(link, "href") == [expected_path]
+      assert Floki.attribute(link, "phx-value-page") == ["1"]
+      assert [phx_click] = Floki.attribute(link, "phx-click")
+
+      assert Jason.decode!(phx_click) == [
+               ["push", %{"event" => "paginate"}],
+               ["patch", %{"href" => "/pets?page_size=10", "replace" => false}]
+             ]
+    end
+
     test "supports a function/args tuple as path" do
       html = render_table(path: {&route_helper/3, @route_helper_opts})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
@@ -2346,7 +2388,7 @@ defmodule Flop.PhoenixTest do
 
     test "raises if neither path nor event are passed" do
       assert_raise ArgumentError,
-                   ~r/^the :path or :event option is required/,
+                   ~r/^path or on_sort attribute is required/,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
