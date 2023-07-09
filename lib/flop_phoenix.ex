@@ -79,7 +79,7 @@ defmodule Flop.Phoenix do
   params in the `c:Phoenix.LiveView.handle_params/3` callback of your LiveView
   module.
 
-  ## Pagination and sorting with JS commands
+  ## Using JS commands
 
   You can pass a `Phoenix.LiveView.JS` command as `on_paginate` and `on_sort`
   attributes.
