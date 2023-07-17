@@ -2865,7 +2865,7 @@ defmodule Flop.PhoenixTest do
   end
 
   defmodule TestBackend do
-    use Flop, default_limit: 41
+    use Flop, default_limit: 41, repo: MyApp.Repo
   end
 
   describe "build_path/3" do
