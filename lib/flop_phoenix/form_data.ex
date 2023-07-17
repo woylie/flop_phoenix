@@ -275,12 +275,9 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   defp ecto_type(module, field) do
-    case module |> struct() |> Flop.Schema.field_type(field) do
-      {:normal, _} -> module.__schema__(:type, field)
-      {:join, %{ecto_type: type}} -> type
-      {:custom, %{ecto_type: type}} -> type
-      {:compound, _} -> :string
-      _ -> :string
-    end
+    %Flop.FieldInfo{ecto_type: type} =
+      module |> struct() |> Flop.Schema.field_info(field)
+
+    type
   end
 end
