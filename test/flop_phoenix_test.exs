@@ -268,6 +268,26 @@ defmodule Flop.PhoenixTest do
     """
   end
 
+  defp test_table_with_custom_sort_directions(assigns) do
+    ~H"""
+    <Flop.Phoenix.table
+      id="metrics-table"
+      items={@items}
+      meta={@meta}
+      path="/navigations"
+    >
+      <:col
+        :let={navigation}
+        label="TTFB"
+        field={:ttfb}
+        directions={@ttfb_directions}
+      >
+        <%= navigation.ttfb %>
+      </:col>
+    </Flop.Phoenix.table>
+    """
+  end
+
   def route_helper(%{}, action, query) do
     URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
@@ -1926,6 +1946,41 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(a, "phx-value-order") == ["name"]
       assert [phx_click] = Floki.attribute(a, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "sort"}]]
+    end
+
+    test "application of custom sort directions per column" do
+      html =
+        render_table(
+          [
+            meta: %Flop.Meta{
+              flop: %Flop{
+                order_by: [:ttfb],
+                order_directions: [:desc_nulls_last]
+              }
+            },
+            items: [
+              %{
+                ttfb: 2
+              },
+              %{
+                ttfb: 1
+              },
+              %{
+                ttfb: nil
+              }
+            ],
+            ttfb_directions: {:asc_nulls_last, :desc_nulls_last}
+          ],
+          &test_table_with_custom_sort_directions/1
+        )
+
+      [ttfb_sort_href] =
+        Floki.find(html, "thead th a:fl-contains('TTFB')")
+        |> Floki.attribute("href")
+
+      # assert href representing opposite direction of initial table sort
+      assert ttfb_sort_href =~
+               "order_by[]=ttfb&order_directions[]=asc_nulls_last"
     end
 
     test "uses phx-click with on_paginate and path" do

@@ -1025,6 +1025,12 @@ defmodule Flop.Phoenix do
       will not be clickable.
       """
 
+    attr :directions, :any,
+      doc: """
+      An optional 2-element tuple used for custom ascending and descending sort
+      behavior for the column, i.e. `{:asc_nulls_last, :desc_nulls_first}`
+      """
+
     attr :show, :boolean,
       doc: """
       Boolean value to conditionally show the column. Defaults to `true`
