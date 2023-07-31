@@ -1975,7 +1975,8 @@ defmodule Flop.PhoenixTest do
         )
 
       [ttfb_sort_href] =
-        Floki.find(html, "thead th a:fl-contains('TTFB')")
+        html
+        |> Floki.find("thead th a:fl-contains('TTFB')")
         |> Floki.attribute("href")
 
       # assert href representing opposite direction of initial table sort
