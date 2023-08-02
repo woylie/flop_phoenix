@@ -1976,9 +1976,14 @@ defmodule Flop.PhoenixTest do
         |> Floki.find("thead th a:fl-contains('TTFB')")
         |> Floki.attribute("href")
 
+      %URI{query: query} = URI.parse(ttfb_sort_href)
+      decoded_query = Plug.Conn.Query.decode(query)
+
       # assert href representing opposite direction of initial table sort
-      assert ttfb_sort_href =~
-               "order_by[]=ttfb&order_directions[]=asc_nulls_last"
+      assert %{
+               "order_by" => ["ttfb"],
+               "order_directions" => ["asc_nulls_last"]
+             } = decoded_query
     end
 
     test "uses phx-click with on_paginate and path" do
