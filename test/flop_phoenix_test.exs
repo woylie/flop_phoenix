@@ -268,26 +268,6 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_custom_sort_directions(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      id="metrics-table"
-      items={@items}
-      meta={@meta}
-      path="/navigations"
-    >
-      <:col
-        :let={navigation}
-        label="TTFB"
-        field={:ttfb}
-        directions={@ttfb_directions}
-      >
-        <%= navigation.ttfb %>
-      </:col>
-    </Flop.Phoenix.table>
-    """
-  end
-
   def route_helper(%{}, action, query) do
     URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
@@ -1949,30 +1929,47 @@ defmodule Flop.PhoenixTest do
     end
 
     test "application of custom sort directions per column" do
+      assigns = %{
+        meta: %Flop.Meta{
+          flop: %Flop{
+            order_by: [:ttfb],
+            order_directions: [:desc_nulls_last]
+          }
+        },
+        items: [
+          %{
+            ttfb: 2
+          },
+          %{
+            ttfb: 1
+          },
+          %{
+            ttfb: nil
+          }
+        ],
+        ttfb_directions: {:asc_nulls_last, :desc_nulls_last}
+      }
+
       html =
-        render_table(
-          [
-            meta: %Flop.Meta{
-              flop: %Flop{
-                order_by: [:ttfb],
-                order_directions: [:desc_nulls_last]
-              }
-            },
-            items: [
-              %{
-                ttfb: 2
-              },
-              %{
-                ttfb: 1
-              },
-              %{
-                ttfb: nil
-              }
-            ],
-            ttfb_directions: {:asc_nulls_last, :desc_nulls_last}
-          ],
-          &test_table_with_custom_sort_directions/1
-        )
+        ~H"""
+        <Flop.Phoenix.table
+          id="metrics-table"
+          items={@items}
+          meta={@meta}
+          path="/navigations"
+        >
+          <:col
+            :let={navigation}
+            label="TTFB"
+            field={:ttfb}
+            directions={@ttfb_directions}
+          >
+            <%= navigation.ttfb %>
+          </:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
 
       [ttfb_sort_href] =
         html
