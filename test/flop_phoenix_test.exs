@@ -1977,7 +1977,7 @@ defmodule Flop.PhoenixTest do
         |> Floki.attribute("href")
 
       %URI{query: query} = URI.parse(ttfb_sort_href)
-      decoded_query = Plug.Conn.Query.decode(query)
+      decoded_query = Query.decode(query)
 
       # assert href representing opposite direction of initial table sort
       assert %{
