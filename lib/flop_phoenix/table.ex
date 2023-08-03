@@ -232,7 +232,7 @@ defmodule Flop.Phoenix.Table do
     assigns = assign(assigns, :order_direction, direction)
 
     sort_path_options =
-      if assigns[:directions], do: [directions: assigns[:directions]], else: []
+      if directions = assigns[:directions], do: [directions: directions], else: []
 
     sort_path =
       build_path(
