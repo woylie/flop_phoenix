@@ -471,7 +471,7 @@ defmodule Flop.Phoenix do
   attr :target, :string, required: true
   attr :opts, :list, required: true
 
-  def page_links(%{meta: meta} = assigns) do
+  defp page_links(%{meta: meta} = assigns) do
     max_pages =
       Pagination.max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
 
