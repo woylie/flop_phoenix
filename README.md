@@ -191,17 +191,10 @@ Now, you can render a filter form like so:
 ```
 
 You will need to handle the `update-filter` event with the `handle_event/3`
-callback function of your LiveView. Since we added a `name` attribute to the
-reset button, we can pattern match on the `target` parameter and go to page
-one whenever the filter form is reset.
+callback function of your LiveView.
 
 ```elixir
 @impl true
-def handle_event("update-filter", %{"_target" => ["reset"]} = params, socket) do
-  params = Map.drop(params, ["_target", "page"])
-  {:noreply, push_patch(socket, to: ~p"/pets?#{params}")}
-end
-
 def handle_event("update-filter", params, socket) do
   params = Map.delete(params, "_target")
   {:noreply, push_patch(socket, to: ~p"/pets?#{params}")}
