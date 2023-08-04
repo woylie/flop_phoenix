@@ -9,69 +9,6 @@ defmodule Flop.Phoenix.Table do
 
   require Logger
 
-  def path_on_sort_error_msg do
-    """
-    path or on_sort attribute is required
-
-    At least one of the mentioned attributes is required for the table
-    component. Combining them will both patch the URL and execute
-    the JS command.
-
-    The :path value can be a path as a string, a
-    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-    function.
-
-    ## Examples
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={~p"/pets"}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={{Routes, :pet_path, [@socket, :index]}}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={{&Routes.pet_path/3, [@socket, :index]}}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={&build_path/1}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          on_sort={JS.push("sort-table")}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={~p"/pets"}
-          on_sort={JS.dispatch("scroll-to", to: "#my-table")}
-        >
-    """
-  end
-
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [

@@ -413,7 +413,7 @@ defmodule Flop.Phoenix do
     """
 
   def pagination(%{path: nil, on_paginate: nil, event: nil}) do
-    raise ArgumentError, Pagination.path_on_paginate_error_msg()
+    raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
   def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
@@ -760,7 +760,7 @@ defmodule Flop.Phoenix do
     """
 
   def cursor_pagination(%{path: nil, on_paginate: nil, event: nil}) do
-    raise ArgumentError, CursorPagination.path_on_paginate_error_msg()
+    raise Flop.Phoenix.PathOrJSError, component: :cursor_pagination
   end
 
   def cursor_pagination(%{opts: opts} = assigns) do
@@ -1105,7 +1105,7 @@ defmodule Flop.Phoenix do
     """
 
   def table(%{path: nil, on_sort: nil, event: nil}) do
-    raise ArgumentError, Table.path_on_sort_error_msg()
+    raise Flop.Phoenix.PathOrJSError, component: :table
   end
 
   def table(%{meta: meta, opts: opts} = assigns) do
@@ -1334,15 +1334,7 @@ defmodule Flop.Phoenix do
         {field, opts}
 
       field ->
-        raise """
-        Invalid filter field config
-
-        Filters fields must be passed as a list of atoms or {atom, keyword} tuples.
-
-        Got:
-
-            #{inspect(field)}
-        """
+        raise Flop.Phoenix.InvalidFilterFieldConfigError, value: field
     end)
   end
 
@@ -1396,31 +1388,7 @@ defmodule Flop.Phoenix do
   # coveralls-ignore-end
 
   defp is_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
-
-  defp is_meta_form!(_) do
-    raise ArgumentError, """
-    must be used with a filter form
-
-    Example:
-
-        def filter_form(%{meta: meta} = assigns) do
-          assigns = assign(assigns, :form, Phoenix.Component.to_form(meta))
-
-          ~H\"""
-          <.form for={@form}>
-            <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
-              <.input
-                field={i.field}
-                label={i.label}
-                type={i.type}
-                {i.rest}
-              />
-            </.filter_fields>
-          </.form>
-          \"""
-        end
-    """
-  end
+  defp is_meta_form!(_), do: raise(Flop.Phoenix.NoMetaFormError)
 
   @doc """
   Renders hidden inputs for the given form.
