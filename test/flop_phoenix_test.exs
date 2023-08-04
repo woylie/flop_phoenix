@@ -861,8 +861,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path nor event nor on_paginate are passed" do
-      assert_raise ArgumentError,
-                   ~r/^path or on_paginate attribute is required/,
+      assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
                      render_component(&pagination/1,
                        __changed__: nil,
@@ -1512,8 +1511,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path nor event are passed" do
-      assert_raise ArgumentError,
-                   ~r/^path or on_paginate attribute is required/,
+      assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
                      render_component(&cursor_pagination/1,
                        __changed__: nil,
@@ -2390,8 +2388,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path nor event are passed" do
-      assert_raise ArgumentError,
-                   ~r/^path or on_sort attribute is required/,
+      assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
                      render_component(&table/1,
                        __changed__: nil,
@@ -2844,7 +2841,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises error if the form is not a form for meta" do
-      assert_raise ArgumentError, ~r/must be used with a filter form/, fn ->
+      assert_raise Flop.Phoenix.NoMetaFormError, fn ->
         render_component(&filter_fields/1, form: to_form(%{}))
       end
     end
@@ -2855,7 +2852,7 @@ defmodule Flop.PhoenixTest do
         fields: ["name"]
       }
 
-      assert_raise RuntimeError, ~r/Invalid filter field config/, fn ->
+      assert_raise Flop.Phoenix.InvalidFilterFieldConfigError, fn ->
         rendered_to_string(~H"""
         <Flop.Phoenix.filter_fields fields={@fields} form={@form}>
         </Flop.Phoenix.filter_fields>
