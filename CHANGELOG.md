@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added
+
+- Allow passing a function to the `attrs` option of table component's `:action`
+  slot. Before, this was only supported in the `:col` slot.
+
+### Changed
+
+- Improve some error messages and documentation examples.
+
+### Fixed
+
+- In the `:col` and `:action` slots of the table component, the `attrs` option
+  did not properly override the attributes set with the `:tbody_td_attrs`
+  option.
+
 ## [0.21.0] - 2023-07-17
 
 ### Changed

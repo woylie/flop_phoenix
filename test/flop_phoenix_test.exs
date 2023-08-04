@@ -1791,6 +1791,34 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.child")
     end
 
+    test "evaluates attrs function in action columns" do
+      assigns = %{
+        attrs_fun: fn item ->
+          [class: if(item.age > 17, do: "adult", else: "child")]
+        end
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table
+          items={[
+            %{name: "Mary Cratsworth-Shane", age: 99},
+            %{name: "Bart Harley-Jarvis", age: 1}
+          ]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+          on_sort={%JS{}}
+        >
+          <:col :let={u} label="Name"><%= u.name %></:col>
+          <:action label="Buttons" attrs={@attrs_fun}>some action</:action>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [_] = Floki.find(html, "td.adult")
+      assert [_] = Floki.find(html, "td.child")
+    end
+
     test "allows to set td class on action" do
       html =
         render_table(
@@ -1802,7 +1830,7 @@ defmodule Flop.PhoenixTest do
           &test_table_with_action/1
         )
 
-      assert [_, _, _, _, _, _] = Floki.find(html, "td.tolerance")
+      assert [_, _] = Floki.find(html, "td.tolerance")
     end
 
     test "adds additional attributes to td within action" do
@@ -1815,6 +1843,55 @@ defmodule Flop.PhoenixTest do
       html = render_table([], &test_table_with_column_attrs/1)
       assert [_, _] = Floki.find(html, "td.name-column")
       assert [_, _] = Floki.find(html, "td.age-column")
+    end
+
+    test "overrides table_td_attrs with td attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [tbody_td_attrs: [class: "default-td-class"]]
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} attrs={[class: "name-td-class"]}><%= i.name %></:col>
+          <:col :let={i}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [{"td", [{"class", "name-td-class"}], _}] =
+               Floki.find(html, "td:first-child")
+
+      assert [{"td", [{"class", "default-td-class"}], _}] =
+               Floki.find(html, "td:last-child")
+    end
+
+    test "overrides table_td_attrs with td attrs in action columns" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [tbody_td_attrs: [class: "default-td-class"]]
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i}><%= i.name %></:col>
+          <:action attrs={[class: "action-1-td-class"]}>action 1</:action>
+          <:action>action 2</:action>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      assert [{"td", [{"class", "action-1-td-class"}], _}] =
+               Floki.find(html, "td:nth-child(2)")
+
+      assert [{"td", [{"class", "default-td-class"}], _}] =
+               Floki.find(html, "td:last-child")
     end
 
     test "doesn't render table if items list is empty" do
