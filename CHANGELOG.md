@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.21.1] - 2023-08-05
+
 ### Added
 
 - Allow passing a function to the `attrs` option of table component's `:action`
