@@ -19,32 +19,6 @@ defmodule Flop.PhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
-  defp render_pagination(assigns) do
-    assigns =
-      Keyword.put_new(
-        assigns,
-        :path,
-        {__MODULE__, :route_helper, @route_helper_opts}
-      )
-
-    (&pagination/1)
-    |> render_component(assigns)
-    |> Floki.parse_fragment!()
-  end
-
-  defp render_cursor_pagination(assigns) do
-    assigns =
-      Keyword.put_new(
-        assigns,
-        :path,
-        {__MODULE__, :route_helper, @route_helper_opts}
-      )
-
-    (&cursor_pagination/1)
-    |> render_component(assigns)
-    |> Floki.parse_fragment!()
-  end
-
   defp render_table(assigns \\ [], component \\ &test_table/1) do
     assigns =
       assigns
@@ -96,62 +70,6 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_widths(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George", age: 8}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
-        <%= pet.name %>
-      </:col>
-      <:col :let={pet} label="Age" field={:age} col_style="width: 40%;">
-        <%= pet.age %>
-      </:col>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_column_attrs(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet} label="Name" field={:name} attrs={[class: "name-column"]}>
-        <%= pet.name %>
-      </:col>
-      <:col :let={pet} label="Age" field={:age} attrs={[class: "age-column"]}>
-        <%= pet.age %>
-      </:col>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_dynamically_generated_attrs(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      items={@items}
-      opts={@opts}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col
-        :let={user}
-        label="Name"
-        field={:name}
-        attrs={@opts[:col_slot_attrs] || []}
-      >
-        <%= user.name %>
-      </:col>
-    </Flop.Phoenix.table>
-    """
-  end
-
   defp test_table_with_action(assigns) do
     assigns =
       assigns
@@ -180,94 +98,6 @@ defmodule Flop.PhoenixTest do
     """
   end
 
-  defp test_table_with_action_and_with_widths(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George", id: 1}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
-        <%= pet.name %>
-      </:col>
-      <:action :let={pet} col_style="width: 40%;">
-        <.link navigate={"/show/pet/#{pet.name}"}>
-          Show Pet
-        </.link>
-      </:action>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_row_click_and_action(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George", id: 1}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-      row_click={&JS.navigate("/show/#{&1.id}")}
-    >
-      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:action :let={pet}>
-        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
-      </:action>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_action_header(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George"}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet}>
-        <%= pet.name %>
-      </:col>
-      <:action :let={pet} label={{:safe, "<span>Hello</span>"}}>
-        <%= pet.name %>
-      </:action>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_foot(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="user-table"
-      items={[%{name: "George"}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:foot>
-        <tr>
-          <td>snap</td>
-        </tr>
-      </:foot>
-    </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_html_header(assigns) do
-    ~H"""
-    <Flop.Phoenix.table
-      id="user-table"
-      event="sort"
-      items={[%{name: "George"}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-    >
-      <:col :let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
-        <%= pet.name %>
-      </:col>
-    </Flop.Phoenix.table>
-    """
-  end
-
   def route_helper(%{}, action, query) do
     URI.to_string(%URI{path: "/#{action}", query: Query.encode(query)})
   end
@@ -280,7 +110,13 @@ defmodule Flop.PhoenixTest do
 
   describe "pagination/1" do
     test "renders pagination wrapper" do
-      html = render_pagination(meta: build(:meta_on_first_page))
+      assigns = %{meta: build(:meta_on_first_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+        """)
+
       wrapper = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
@@ -289,21 +125,34 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not render anything if there is only one page" do
-      assert render_pagination(meta: build(:meta_one_page)) == []
+      assigns = %{meta: build(:meta_one_page)}
+
+      assert parse_heex(~H"""
+             <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+             """) == []
     end
 
     test "does not render anything if there are no results" do
-      assert render_pagination(meta: build(:meta_no_results)) == []
+      assigns = %{meta: build(:meta_no_results)}
+
+      assert parse_heex(~H"""
+             <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+             """) == []
     end
 
     test "allows to overwrite wrapper class" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_first_page),
-          opts: [wrapper_attrs: [class: "boo"]]
-        )
+      assigns = %{meta: build(:meta_on_first_page)}
 
-      wrapper = Floki.find(html, "nav")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={%JS{}}
+          opts={[wrapper_attrs: [class: "boo"]]}
+        />
+        """)
+
+      assert [wrapper] = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["boo"]
@@ -311,13 +160,18 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to add attributes to wrapper" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_first_page),
-          opts: [wrapper_attrs: [title: "paginate"]]
-        )
+      assigns = %{meta: build(:meta_on_first_page)}
 
-      wrapper = Floki.find(html, "nav")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={%JS{}}
+          opts={[wrapper_attrs: [title: "paginate"]]}
+        />
+        """)
+
+      assert [wrapper] = Floki.find(html, "nav")
 
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["pagination"]
@@ -326,8 +180,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders previous link" do
-      html = render_pagination(meta: build(:meta_on_second_page))
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
@@ -336,14 +196,17 @@ defmodule Flop.PhoenixTest do
     end
 
     test "uses phx-click with on_paginate without path" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path: nil,
-          on_paginate: JS.push("paginate")
-        )
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        on_paginate: JS.push("paginate")
+      }
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={@on_paginate} />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == []
@@ -355,66 +218,76 @@ defmodule Flop.PhoenixTest do
     end
 
     test "uses phx-click with on_paginate and path" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path: "/pets",
-          on_paginate: JS.push("paginate")
-        )
+      assigns = %{meta: build(:meta_on_second_page)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      expected_path = "/pets?page_size=10"
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          on_paginate={JS.push("paginate")}
+        />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == [expected_path]
+      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
-
-      assert Jason.decode!(phx_click) == [
-               ["push", %{"event" => "paginate"}]
-             ]
+      assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
     test "supports a function/args tuple as path" do
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        path: {&route_helper/3, @route_helper_opts}
+      }
+
       html =
-        render_pagination(
-          path: {&route_helper/3, @route_helper_opts},
-          meta: build(:meta_on_second_page)
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path={@path} />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
     test "supports a function as path" do
-      html =
-        render_pagination(
-          path: &path_func/1,
-          meta: build(:meta_on_first_page)
-        )
+      assigns = %{meta: build(:meta_on_first_page)}
 
-      link = Floki.find(html, "a:fl-contains('Next')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path={&path_func/1} />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(link, "href") == ["/pets/page/2?page_size=10"]
     end
 
     test "supports a URI string as path" do
-      html = render_pagination(path: "/pets", meta: build(:meta_on_second_page))
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
     end
 
     test "renders previous link when using click event handling" do
-      html =
-        render_pagination(
-          event: "paginate",
-          meta: build(:meta_on_second_page),
-          path: nil
-        )
+      assigns = %{meta: build(:meta_on_second_page)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
@@ -423,65 +296,71 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to previous link" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          event: "paginate",
-          meta: build(:meta_on_second_page),
-          path: nil,
-          target: "here"
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "merges query parameters into existing parameters" do
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        path: {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]}
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path:
-            {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]},
-          opts: []
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path={@path} />
+        """)
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
 
-      assert Floki.attribute(previous, "href") == [
-               "/pets?category=dinosaurs&page_size=10"
-             ]
+      assert [href] = Floki.attribute(previous, "href")
+      assert_urls_match(href, "/pets?category=dinosaurs&page_size=10")
     end
 
     test "merges query parameters into existing path query parameters" do
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        path: {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]}
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path: "/pets?category=dinosaurs",
-          opts: []
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets?category=dinosaurs" />
+        """)
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
 
-      assert Floki.attribute(previous, "href") == [
-               "/pets?page_size=10&category=dinosaurs"
-             ]
+      assert [href] = Floki.attribute(previous, "href")
+      assert_urls_match(href, "/pets?page_size=10&category=dinosaurs")
     end
 
     test "allows to overwrite previous link attributes and content" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[
             previous_link_attrs: [class: "prev", title: "p-p-previous"],
             previous_link_content: tag(:i, class: "fas fa-chevron-left")
-          ]
-        )
+          ]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[title='p-p-previous']")
       assert Floki.attribute(link, "class") == ["prev"]
@@ -494,8 +373,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "disables previous link if on first page" do
-      html = render_pagination(meta: build(:meta_on_first_page))
-      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+      assigns = %{meta: build(:meta_on_first_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == [
                "pagination-previous disabled"
@@ -503,14 +388,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "disables previous link if on first page when using click handlers" do
-      html =
-        render_pagination(
-          event: "e",
-          meta: build(:meta_on_first_page),
-          path: nil
-        )
+      assigns = %{meta: build(:meta_on_first_page)}
 
-      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == [
                "pagination-previous disabled"
@@ -518,16 +403,21 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite previous link class and content if disabled" do
+      assigns = %{meta: build(:meta_on_first_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page),
-          opts: [
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[
             previous_link_attrs: [class: "prev", title: "no"],
             previous_link_content: "Prev"
-          ]
-        )
+          ]}
+        />
+        """)
 
-      previous_link = Floki.find(html, "span:fl-contains('Prev')")
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Prev')")
 
       assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
@@ -535,22 +425,31 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders next link" do
-      link =
-        [meta: build(:meta_on_second_page)]
-        |> render_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=3&page_size=10")
     end
 
     test "renders next link when using click event handling" do
-      link =
-        [event: "paginate", meta: build(:meta_on_second_page), path: nil]
-        |> render_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
 
       assert Floki.attribute(link, "class") == ["pagination-next"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
@@ -559,77 +458,96 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to next link" do
-      link =
-        [
-          event: "paginate",
-          meta: build(:meta_on_second_page),
-          path: nil,
-          target: "here"
-        ]
-        |> render_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_on_second_page)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "allows to overwrite next link attributes and content" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[
             next_link_attrs: [class: "next", title: "n-n-next"],
             next_link_content: tag(:i, class: "fas fa-chevron-right")
-          ]
-        )
+          ]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[title='n-n-next']")
       assert Floki.attribute(link, "class") == ["next"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=3&page_size=10")
 
       assert link |> Floki.children() |> Floki.raw_html() ==
                "<i class=\"fas fa-chevron-right\"></i>"
     end
 
     test "disables next link if on last page" do
-      next =
-        [meta: build(:meta_on_last_page)]
-        |> render_pagination()
-        |> Floki.find("span:fl-contains('Next')")
+      assigns = %{meta: build(:meta_on_last_page)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [next] = Floki.find(html, "span:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
     test "renders next link on last page when using click event handling" do
-      next =
-        [event: "paginate", meta: build(:meta_on_last_page), path: nil]
-        |> render_pagination()
-        |> Floki.find("span:fl-contains('Next')")
+      assigns = %{meta: build(:meta_on_last_page)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [next] = Floki.find(html, "span:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
     test "allows to overwrite next link attributes and content when disabled" do
-      next_link =
-        [
-          meta: build(:meta_on_last_page),
-          opts: [
+      assigns = %{meta: build(:meta_on_last_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[
             next_link_attrs: [class: "next", title: "no"],
             next_link_content: "N-n-next"
-          ]
-        ]
-        |> render_pagination()
-        |> Floki.find("span:fl-contains('N-n-next')")
+          ]}
+        />
+        """)
 
+      assert [next_link] = Floki.find(html, "span:fl-contains('N-n-next')")
       assert Floki.attribute(next_link, "class") == ["next disabled"]
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
     test "renders page links" do
-      html = render_pagination(meta: build(:meta_on_second_page))
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
 
       assert [_] = Floki.find(html, "ul[class='pagination-links']")
 
@@ -644,24 +562,26 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=2&page_size=10")
       assert String.trim(Floki.text(link)) == "2"
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 3']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=3&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=3&page_size=10")
       assert String.trim(Floki.text(link)) == "3"
     end
 
     test "renders page links when using click event handling" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          event: "paginate",
-          meta: build(:meta_on_second_page),
-          path: nil
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "href") == ["#"]
@@ -671,55 +591,70 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to page link" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path: nil,
-          event: "paginate",
-          target: "here"
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        """)
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "doesn't render pagination links if set to hide" do
+      assigns = %{meta: build(:meta_on_second_page), opts: [page_links: :hide]}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [page_links: :hide]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert Floki.find(html, ".pagination-links") == []
     end
 
     test "doesn't render pagination links if set to hide when passing event" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [page_links: :hide, event: "paginate"]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          event="paginate"
+          opts={[page_links: :hide]}
+        />
+        """)
 
       assert Floki.find(html, ".pagination-links") == []
     end
 
     test "allows to overwrite pagination list attributes" do
+      assigns = %{meta: build(:meta_on_first_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page),
-          opts: [pagination_list_attrs: [class: "p-list", title: "boop"]]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[pagination_list_attrs: [class: "p-list", title: "boop"]]}
+        />
+        """)
 
       assert [list] = Floki.find(html, "ul.p-list")
       assert Floki.attribute(list, "title") == ["boop"]
     end
 
     test "allows to overwrite pagination link attributes" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [pagination_link_attrs: [class: "p-link", beep: "boop"]]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[pagination_link_attrs: [class: "p-link", beep: "boop"]]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "beep") == ["boop"]
@@ -732,11 +667,16 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite current attributes" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [current_link_attrs: [class: "link is-active", beep: "boop"]]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[current_link_attrs: [class: "link is-active", beep: "boop"]]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -750,16 +690,22 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "class") == ["link is-active"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=2&page_size=10")
       assert String.trim(Floki.text(link)) == "2"
     end
 
     test "allows to overwrite pagination link aria label" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          opts: [pagination_link_aria_label: &"On to page #{&1}"]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[pagination_link_aria_label: &"On to page #{&1}"]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[aria-label='On to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
@@ -772,69 +718,81 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page=2&page_size=10"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?page=2&page_size=10")
       assert String.trim(Floki.text(link)) == "2"
     end
 
     test "adds order parameters to links" do
+      assigns = %{
+        meta:
+          build(
+            :meta_on_second_page,
+            flop: %Flop{
+              order_by: [:fur_length, :curiosity],
+              order_directions: [:asc, :desc],
+              page: 2,
+              page_size: 10
+            }
+          )
+      }
+
       html =
-        render_pagination(
-          meta:
-            build(
-              :meta_on_second_page,
-              flop: %Flop{
-                order_by: [:fur_length, :curiosity],
-                order_directions: [:asc, :desc],
-                page: 2,
-                page_size: 10
-              }
-            )
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
 
-      expected_url = fn page ->
-        default =
-          ~s(order_directions[]=asc&order_directions[]=desc&) <>
-            ~s(order_by[]=fur_length&order_by[]=curiosity&) <>
-            ~s(page_size=10)
+      default_query = [
+        page_size: 10,
+        order_directions: ["asc", "desc"],
+        order_by: ["fur_length", "curiosity"]
+      ]
 
-        if page == 1,
-          do: "/pets?" <> default,
-          else: ~s(/pets?page=#{page}&) <> default
+      expected_query = fn
+        1 -> default_query
+        page -> Keyword.put(default_query, :page, page)
       end
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(previous, "href") == [expected_url.(1)]
+      assert [href] = Floki.attribute(previous, "href")
+      assert_urls_match(href, "/pets", expected_query.(1))
 
       assert [one] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(one, "class") == ["pagination-link"]
       assert Floki.attribute(one, "data-phx-link") == ["patch"]
       assert Floki.attribute(one, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(one, "href") == [expected_url.(1)]
+      assert [href] = Floki.attribute(one, "href")
+      assert_urls_match(href, "/pets", expected_query.(1))
 
       assert [next] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next"]
       assert Floki.attribute(next, "data-phx-link") == ["patch"]
       assert Floki.attribute(next, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(next, "href") == [expected_url.(3)]
+      assert [href] = Floki.attribute(next, "href")
+      assert_urls_match(href, "/pets", expected_query.(3))
     end
 
     test "hides default order and limit" do
+      assigns = %{
+        meta:
+          build(
+            :meta_on_second_page,
+            flop: %Flop{
+              page_size: 20,
+              order_by: [:name],
+              order_directions: [:asc]
+            },
+            schema: Pet
+          )
+      }
+
       html =
-        render_pagination(
-          meta:
-            build(
-              :meta_on_second_page,
-              flop: %Flop{
-                page_size: 20,
-                order_by: [:name],
-                order_directions: [:asc]
-              },
-              schema: Pet
-            )
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
 
       assert [prev] = Floki.find(html, "a:fl-contains('Previous')")
       assert [href] = Floki.attribute(prev, "href")
@@ -845,15 +803,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not require path when passing event" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       html =
-        render_pagination(
-          event: "paginate",
-          meta: build(:meta_on_second_page),
-          path: nil
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
@@ -861,109 +818,124 @@ defmodule Flop.PhoenixTest do
     end
 
     test "raises if neither path nor event nor on_paginate are passed" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
       assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
-                     render_component(&pagination/1,
-                       __changed__: nil,
-                       meta: build(:meta_on_second_page)
-                     )
+                     rendered_to_string(~H"""
+                     <Flop.Phoenix.pagination meta={@meta} />
+                     """)
                    end
     end
 
     test "adds filter parameters to links" do
+      assigns = %{
+        meta:
+          build(
+            :meta_on_second_page,
+            flop: %Flop{
+              page: 2,
+              page_size: 10,
+              filters: [
+                %Flop.Filter{field: :fur_length, op: :>=, value: 5},
+                %Flop.Filter{
+                  field: :curiosity,
+                  op: :in,
+                  value: [:a_lot, :somewhat]
+                }
+              ]
+            }
+          )
+      }
+
       html =
-        render_pagination(
-          meta:
-            build(
-              :meta_on_second_page,
-              flop: %Flop{
-                page: 2,
-                page_size: 10,
-                filters: [
-                  %Flop.Filter{field: :fur_length, op: :>=, value: 5},
-                  %Flop.Filter{
-                    field: :curiosity,
-                    op: :in,
-                    value: [:a_lot, :somewhat]
-                  }
-                ]
-              }
-            )
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
 
-      expected_query = fn page ->
-        default_query = %{
-          "filters[0][field]" => "fur_length",
-          "filters[0][op]" => ">=",
-          "filters[0][value]" => "5",
-          "filters[1][field]" => "curiosity",
-          "filters[1][op]" => "in",
-          "filters[1][value][]" => "somewhat",
-          "page_size" => "10"
+      default_query = [
+        page_size: 10,
+        filters: %{
+          "0" => %{
+            field: "fur_length",
+            op: ">=",
+            value: "5"
+          },
+          "1" => %{
+            field: "curiosity",
+            op: "in",
+            value: ["a_lot", "somewhat"]
+          }
         }
+      ]
 
-        if page == 1,
-          do: default_query,
-          else: Map.put(default_query, "page", to_string(page))
+      expected_query = fn
+        1 -> default_query
+        page -> Keyword.put(default_query, :page, page)
       end
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
-      [href] = Floki.attribute(previous, "href")
-      uri = URI.parse(href)
-      assert uri.path == "/pets"
-      assert URI.decode_query(uri.query) == expected_query.(1)
+      assert [href] = Floki.attribute(previous, "href")
+      assert_urls_match(href, "/pets", expected_query.(1))
 
       assert [one] = Floki.find(html, "a[aria-label='Go to page 1']")
       assert Floki.attribute(one, "class") == ["pagination-link"]
       assert Floki.attribute(one, "data-phx-link") == ["patch"]
       assert Floki.attribute(one, "data-phx-link-state") == ["push"]
-      [href] = Floki.attribute(one, "href")
-      uri = URI.parse(href)
-      assert uri.path == "/pets"
-      assert URI.decode_query(uri.query) == expected_query.(1)
+      assert [href] = Floki.attribute(one, "href")
+      assert_urls_match(href, "/pets", expected_query.(1))
 
       assert [next] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next"]
       assert Floki.attribute(next, "data-phx-link") == ["patch"]
       assert Floki.attribute(next, "data-phx-link-state") == ["push"]
-      [href] = Floki.attribute(next, "href")
-      uri = URI.parse(href)
-      assert uri.path == "/pets"
-      assert URI.decode_query(uri.query) == expected_query.(3)
+      assert [href] = Floki.attribute(next, "href")
+      assert_urls_match(href, "/pets", expected_query.(3))
     end
 
     test "does not render ellipsis if total pages <= max pages" do
       # max pages smaller than total pages
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        opts: [page_links: {:ellipsis, 50}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          page_links: {:ellipsis, 50}
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
       assert html |> Floki.find(".pagination-link") |> length() == 5
 
       # max pages equal to total pages
+      assigns = %{
+        meta: build(:meta_on_second_page),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          page_links: {:ellipsis, 5}
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
       assert html |> Floki.find(".pagination-link") |> length() == 5
     end
 
     test "renders end ellipsis and last page link when on page 1" do
-      # current page == 1
+      assigns = %{
+        meta: build(:meta_on_first_page, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -976,12 +948,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders start ellipsis and first page link when on last page" do
-      # current page == last page
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 20, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 20, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -994,11 +969,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders ellipses when on even page with even number of max pages" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
+        opts: [page_links: {:ellipsis, 6}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
-          opts: [page_links: {:ellipsis, 6}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
@@ -1012,11 +991,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders ellipses when on odd page with odd number of max pages" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -1030,11 +1013,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders ellipses when on even page with odd number of max pages" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -1048,11 +1035,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders ellipses when on odd page with even number of max pages" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
@@ -1066,11 +1057,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders end ellipsis when on page close to the beginning" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 2, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 2, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -1083,11 +1078,15 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders start ellipsis when on page close to the end" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 18, total_pages: 20),
+        opts: [page_links: {:ellipsis, 5}]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 18, total_pages: 20),
-          opts: [page_links: {:ellipsis, 5}]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
@@ -1100,28 +1099,36 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite ellipsis attributes and content" do
+      assigns = %{
+        meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
+        opts: [
+          page_links: {:ellipsis, 5},
+          ellipsis_attrs: [class: "dotdotdot", title: "dot"],
+          ellipsis_content: "dot dot dot"
+        ]
+      }
+
       html =
-        render_pagination(
-          meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
-          opts: [
-            page_links: {:ellipsis, 5},
-            ellipsis_attrs: [class: "dotdotdot", title: "dot"],
-            ellipsis_content: "dot dot dot"
-          ]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
       assert el |> Floki.text() |> String.trim() == "dot dot dot"
     end
 
     test "always uses page/page_size" do
+      assigns = %{
+        meta:
+          build(:meta_on_second_page,
+            flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
+          )
+      }
+
       html =
-        render_pagination(
-          meta:
-            build(:meta_on_second_page,
-              flop: %Flop{limit: 2, page: 2, page_size: nil, offset: 3}
-            )
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
 
       assert [a | _] = Floki.find(html, "a")
       assert [href] = Floki.attribute(a, "href")
@@ -1133,43 +1140,58 @@ defmodule Flop.PhoenixTest do
     @tag capture_log: true
     test "does not render anything if meta has errors" do
       {:error, meta} = Flop.validate(%{page: 0})
-      assert render_pagination(meta: meta) == []
+      assigns = %{meta: meta}
+
+      assert parse_heex(~H"""
+             <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+             """) == []
     end
   end
 
   describe "cursor_pagination/1" do
     test "renders pagination wrapper" do
-      html = render_cursor_pagination(meta: build(:meta_with_cursors))
-      wrapper = Floki.find(html, "nav")
+      assigns = %{meta: build(:meta_with_cursors)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [wrapper] = Floki.find(html, "nav")
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["pagination"]
       assert Floki.attribute(wrapper, "role") == ["navigation"]
     end
 
     test "allows to overwrite wrapper class" do
+      assigns = %{
+        meta: build(:meta_with_cursors),
+        opts: [wrapper_attrs: [class: "boo"]]
+      }
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          opts: [wrapper_attrs: [class: "boo"]]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
-      wrapper = Floki.find(html, "nav")
-
+      assert [wrapper] = Floki.find(html, "nav")
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["boo"]
       assert Floki.attribute(wrapper, "role") == ["navigation"]
     end
 
     test "allows to add attributes to wrapper" do
+      assigns = %{
+        meta: build(:meta_with_cursors),
+        opts: [wrapper_attrs: [title: "paginate"]]
+      }
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          opts: [wrapper_attrs: [title: "paginate"]]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
-      wrapper = Floki.find(html, "nav")
-
+      assert [wrapper] = Floki.find(html, "nav")
       assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
       assert Floki.attribute(wrapper, "class") == ["pagination"]
       assert Floki.attribute(wrapper, "role") == ["navigation"]
@@ -1177,25 +1199,30 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders previous link" do
-      html = render_cursor_pagination(meta: build(:meta_with_cursors))
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      assigns = %{meta: build(:meta_with_cursors)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
     end
 
     test "uses phx-click with on_paginate without path" do
+      assigns = %{meta: build(:meta_with_cursors), js: JS.push("paginate")}
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          path: nil,
-          on_paginate: JS.push("paginate")
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={@js} />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == []
       assert Floki.attribute(link, "data-phx-link-state") == []
@@ -1206,82 +1233,81 @@ defmodule Flop.PhoenixTest do
     end
 
     test "uses phx-click with on_paginate and path" do
-      html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          path: "/pets",
-          on_paginate: JS.push("paginate")
-        )
+      assigns = %{meta: build(:meta_with_cursors)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      expected_path = "/pets"
-      expected_query = %{"before" => "B", "last" => "10"}
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path="/pets"
+          on_paginate={JS.push("paginate")}
+        />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
 
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert [href] = Floki.attribute(link, "href")
-
-      uri = URI.parse(href)
-      assert uri.path == expected_path
-      assert URI.decode_query(uri.query) == expected_query
+      assert_urls_match(href, "/pets?before=B&last=10")
 
       assert Floki.attribute(link, "phx-value-to") == ["previous"]
       assert [phx_click] = Floki.attribute(link, "phx-click")
-
       assert [["push", %{"event" => "paginate"}]] = Jason.decode!(phx_click)
-
-      uri = URI.parse(href)
-      assert uri.path == expected_path
-      assert URI.decode_query(uri.query) == expected_query
     end
 
     test "supports a function/args tuple as path" do
-      html =
-        render_cursor_pagination(
-          path: {&route_helper/3, @route_helper_opts},
-          meta: build(:meta_with_cursors)
-        )
+      assigns = %{
+        meta: build(:meta_with_cursors),
+        path: {&route_helper/3, @route_helper_opts}
+      }
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
     end
 
     test "supports a function as path" do
-      html =
-        render_cursor_pagination(
-          path: &path_func/1,
-          meta: build(:meta_with_cursors)
-        )
+      assigns = %{meta: build(:meta_with_cursors)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path={&path_func/1} />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
     end
 
     test "supports a URI string as path" do
-      html =
-        render_cursor_pagination(
-          path: "/pets",
-          meta: build(:meta_with_cursors)
-        )
+      assigns = %{meta: build(:meta_with_cursors)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      [href] = Floki.attribute(link, "href")
-      uri = URI.parse(href)
-      assert uri.path == "/pets"
-      assert URI.decode_query(uri.query) == %{"before" => "B", "last" => "10"}
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?before=B&last=10")
     end
 
     test "renders previous link when using click event handling" do
+      assigns = %{meta: build(:meta_with_cursors)}
+
       html =
-        render_cursor_pagination(
-          event: "paginate",
-          meta: build(:meta_with_cursors),
-          path: nil
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "class") == ["pagination-previous"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-to") == ["previous"]
@@ -1289,91 +1315,102 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to previous link" do
-      html =
-        render_cursor_pagination(
-          event: "paginate",
-          meta: build(:meta_with_cursors),
-          path: nil,
-          target: "here"
-        )
+      assigns = %{meta: build(:meta_with_cursors)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "switches next and previous link" do
-      # default
-      html = render_cursor_pagination(meta: build(:meta_with_cursors))
+      assigns = %{meta: build(:meta_with_cursors)}
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
-      link = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+      # default
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?first=10&after=C")
 
       # reverse
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          reverse: true
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" reverse={true} />
+        """)
 
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?first=10&after=C")
 
-      link = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
     end
 
     test "merges query parameters into existing parameters" do
+      assigns = %{
+        meta: build(:meta_with_cursors),
+        path: {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]}
+      }
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          path:
-            {&route_helper/3, @route_helper_opts ++ [[category: "dinosaurs"]]},
-          opts: []
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
+        """)
 
       assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
       assert Floki.attribute(previous, "class") == ["pagination-previous"]
       assert Floki.attribute(previous, "data-phx-link") == ["patch"]
       assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
 
-      assert Floki.attribute(previous, "href") == [
-               "/pets?category=dinosaurs&last=10&before=B"
-             ]
+      assert [href] = Floki.attribute(previous, "href")
+      assert_urls_match(href, "/pets?category=dinosaurs&last=10&before=B")
     end
 
     test "allows to overwrite previous link attributes and content" do
+      assigns = %{
+        meta: build(:meta_with_cursors),
+        opts: [
+          previous_link_attrs: [class: "prev", title: "p-p-previous"],
+          previous_link_content: tag(:i, class: "fas fa-chevron-left")
+        ]
+      }
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          opts: [
-            previous_link_attrs: [class: "prev", title: "p-p-previous"],
-            previous_link_content: tag(:i, class: "fas fa-chevron-left")
-          ]
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        """)
 
       assert [link] = Floki.find(html, "a[title='p-p-previous']")
       assert Floki.attribute(link, "class") == ["prev"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?last=10&before=B"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?last=10&before=B")
 
       assert link |> Floki.children() |> Floki.raw_html() ==
                "<i class=\"fas fa-chevron-left\"></i>"
     end
 
     test "disables previous link if on first page" do
-      html =
-        render_cursor_pagination(
-          meta:
-            build(
-              :meta_with_cursors,
-              has_previous_page?: false
-            )
-        )
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
 
-      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == [
                "pagination-previous disabled"
@@ -1381,14 +1418,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "disables previous link if on first page when using click handlers" do
-      html =
-        render_cursor_pagination(
-          event: "e",
-          meta: build(:meta_with_cursors, has_previous_page?: false),
-          path: nil
-        )
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
 
-      previous_link = Floki.find(html, "span:fl-contains('Previous')")
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
 
       assert Floki.attribute(previous_link, "class") == [
                "pagination-previous disabled"
@@ -1396,40 +1433,51 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite previous link class and content if disabled" do
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors, has_previous_page?: false),
-          opts: [
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          event="paginate"
+          opts={[
             previous_link_attrs: [class: "prev", title: "no"],
             previous_link_content: "Prev"
-          ]
-        )
+          ]}
+        />
+        """)
 
-      previous_link = Floki.find(html, "span:fl-contains('Prev')")
-
+      assert [previous_link] = Floki.find(html, "span:fl-contains('Prev')")
       assert Floki.attribute(previous_link, "class") == ["prev disabled"]
       assert Floki.attribute(previous_link, "title") == ["no"]
       assert String.trim(Floki.text(previous_link)) == "Prev"
     end
 
     test "renders next link" do
-      link =
-        [meta: build(:meta_with_cursors)]
-        |> render_cursor_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_with_cursors)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(link, "class") == ["pagination-next"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?first=10&after=C")
     end
 
     test "renders next link when using click event handling" do
-      link =
-        [event: "paginate", meta: build(:meta_with_cursors), path: nil]
-        |> render_cursor_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_with_cursors)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(link, "class") == ["pagination-next"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-to") == ["next"]
@@ -1437,93 +1485,108 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to next link" do
-      link =
-        [
-          event: "paginate",
-          meta: build(:meta_with_cursors),
-          path: nil,
-          target: "here"
-        ]
-        |> render_cursor_pagination()
-        |> Floki.find("a:fl-contains('Next')")
+      assigns = %{meta: build(:meta_with_cursors)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
+        """)
+
+      assert [link] = Floki.find(html, "a:fl-contains('Next')")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
     test "allows to overwrite next link attributes and content" do
+      assigns = %{meta: build(:meta_with_cursors)}
+
       html =
-        render_cursor_pagination(
-          meta: build(:meta_with_cursors),
-          opts: [
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          path="/pets"
+          opts={[
             next_link_attrs: [class: "next", title: "n-n-next"],
             next_link_content: tag(:i, class: "fas fa-chevron-right")
-          ]
-        )
+          ]}
+        />
+        """)
 
       assert [link] = Floki.find(html, "a[title='n-n-next']")
       assert Floki.attribute(link, "class") == ["next"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?first=10&after=C"]
+      assert [href] = Floki.attribute(link, "href")
+      assert_urls_match(href, "/pets?first=10&after=C")
 
       assert link |> Floki.children() |> Floki.raw_html() ==
                "<i class=\"fas fa-chevron-right\"></i>"
     end
 
     test "disables next link if on last page" do
-      next =
-        [meta: build(:meta_with_cursors, has_next_page?: false)]
-        |> render_cursor_pagination()
-        |> Floki.find("span:fl-contains('Next')")
+      assigns = %{meta: build(:meta_with_cursors, has_next_page?: false)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        """)
+
+      assert [next] = Floki.find(html, "span:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
     test "renders next link on last page when using click event handling" do
-      next =
-        [
-          event: "paginate",
-          meta: build(:meta_with_cursors, has_next_page?: false),
-          path: nil
-        ]
-        |> render_cursor_pagination()
-        |> Floki.find("span:fl-contains('Next')")
+      assigns = %{meta: build(:meta_with_cursors, has_next_page?: false)}
 
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        """)
+
+      assert [next] = Floki.find(html, "span:fl-contains('Next')")
       assert Floki.attribute(next, "class") == ["pagination-next disabled"]
       assert Floki.attribute(next, "href") == []
     end
 
     test "allows to overwrite next link attributes and content when disabled" do
-      next_link =
-        [
-          meta: build(:meta_with_cursors, has_next_page?: false),
-          opts: [
+      assigns = %{meta: build(:meta_with_cursors, has_next_page?: false)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          event="paginate"
+          opts={[
             next_link_attrs: [class: "next", title: "no"],
             next_link_content: "N-n-next"
-          ]
-        ]
-        |> render_cursor_pagination()
-        |> Floki.find("span:fl-contains('N-n-next')")
+          ]}
+        />
+        """)
 
+      assert [next_link] = Floki.find(html, "span:fl-contains('N-n-next')")
       assert Floki.attribute(next_link, "class") == ["next disabled"]
       assert Floki.attribute(next_link, "title") == ["no"]
     end
 
     test "raises if neither path nor event are passed" do
+      assigns = %{meta: build(:meta_with_cursors)}
+
       assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
-                     render_component(&cursor_pagination/1,
-                       __changed__: nil,
-                       meta: build(:meta_with_cursors)
-                     )
+                     rendered_to_string(~H"""
+                     <Flop.Phoenix.cursor_pagination meta={@meta} />
+                     """)
                    end
     end
 
     @tag capture_log: true
     test "does not render anything if meta has errors" do
       {:error, meta} = Flop.validate(%{first: 1, last: 1})
-      assert render_cursor_pagination(meta: meta) == []
+      assigns = %{meta: meta}
+
+      assert parse_heex(~H"""
+             <Flop.Phoenix.cursor_pagination meta={@meta} path="/path" />
+             """) == []
     end
   end
 
@@ -1599,34 +1662,30 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
           <:col></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [_] = Floki.find(html, "table#pet-table")
       assert [_] = Floki.find(html, "tbody#pet-table-tbody")
     end
 
     test "sets default ID without schema module" do
-      assigns = %{
-        meta: %Flop.Meta{flop: %Flop{}},
-        event: "sort-table",
-        items: ["George"],
-        opts: [container: true]
-      }
+      assigns = %{}
 
       html =
-        ~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} opts={@opts} event="sort">
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          items={["George"]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+          opts={[container: true]}
+          event="sort"
+        >
           <:col></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [_] =
                Floki.find(html, "div.table-container#sortable-table-container")
@@ -1643,13 +1702,11 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
           <:col></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [tr] = Floki.find(html, "tbody tr")
       assert Floki.attribute(tr, "id") == []
@@ -1664,13 +1721,11 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} row_id={@row_id} event="sort">
           <:col></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
       assert Floki.attribute(tr_1, "id") == ["pets-George"]
@@ -1684,13 +1739,11 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@stream} meta={@meta} event="sort">
           <:col></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
       assert Floki.attribute(tr_1, "id") == ["pets-1"]
@@ -1705,7 +1758,7 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table
           items={@items}
           meta={@meta}
@@ -1714,9 +1767,7 @@ defmodule Flop.PhoenixTest do
         >
           <:col :let={p}><%= p.name %></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [td] = Floki.find(html, "tbody td")
       assert Floki.text(td) =~ "GEORGE"
@@ -1739,53 +1790,58 @@ defmodule Flop.PhoenixTest do
       assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
     end
 
-    test "support of functions for supplying dynamic tr attrs based on row data" do
-      html =
-        render_table(
-          [
-            items: [
-              %{name: "Bruce Wayne", age: 42, occupation: "Superhero"},
-              %{name: "April O'Neil", age: 39, occupation: "Crime Reporter"}
-            ],
-            opts: [
-              tbody_tr_attrs: fn item ->
-                class =
-                  item.occupation
-                  |> String.downcase()
-                  |> String.replace(" ", "-")
+    test "evaluates attrs function for tr" do
+      assigns = %{}
 
-                [
-                  class: class
-                ]
-              end
-            ]
-          ],
-          &test_table_with_dynamically_generated_attrs/1
-        )
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[
+            %{name: "Bruce Wayne", age: 42, occupation: "Superhero"},
+            %{name: "April O'Neil", age: 39, occupation: "Crime Reporter"}
+          ]}
+          opts={[
+            tbody_tr_attrs: fn item ->
+              class =
+                item.occupation
+                |> String.downcase()
+                |> String.replace(" ", "-")
+
+              [class: class]
+            end
+          ]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col></:col>
+        </Flop.Phoenix.table>
+        """)
 
       assert [_] = Floki.find(html, "tr.superhero")
       assert [_] = Floki.find(html, "tr.crime-reporter")
     end
 
-    test "support of functions for supplying dynamic td attrs based on row data" do
+    test "evaluates attrs function for col slot / td" do
+      assigns = %{}
+
       html =
-        render_table(
-          [
-            items: [
-              %{name: "Mary Cratsworth-Shane", age: 99},
-              %{name: "Bart Harley-Jarvis", age: 1}
-            ],
-            opts: [
-              # this key is used in the test for readability/passage via assigns
-              # but it is passed to a component's :col slot's `attrs` in
-              # real-world calls.
-              col_slot_attrs: fn item ->
-                [class: if(item.age > 17, do: "adult", else: "child")]
-              end
-            ]
-          ],
-          &test_table_with_dynamically_generated_attrs/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[
+            %{name: "Mary Cratsworth-Shane", age: 99},
+            %{name: "Bart Harley-Jarvis", age: 1}
+          ]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col attrs={
+            fn item ->
+              [class: if(item.age > 17, do: "adult", else: "child")]
+            end
+          }>
+          </:col>
+        </Flop.Phoenix.table>
+        """)
 
       assert [_] = Floki.find(html, "td.adult")
       assert [_] = Floki.find(html, "td.child")
@@ -1799,7 +1855,7 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table
           items={[
             %{name: "Mary Cratsworth-Shane", age: 99},
@@ -1811,38 +1867,56 @@ defmodule Flop.PhoenixTest do
           <:col :let={u} label="Name"><%= u.name %></:col>
           <:action label="Buttons" attrs={@attrs_fun}>some action</:action>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [_] = Floki.find(html, "td.adult")
       assert [_] = Floki.find(html, "td.child")
     end
 
     test "allows to set td class on action" do
+      assigns = %{}
+
       html =
-        render_table(
-          [
-            opts: [
-              tbody_td_attrs: [class: "tolerance"]
-            ]
-          ],
-          &test_table_with_action/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+          opts={[tbody_td_attrs: [class: "tolerance"]]}
+        >
+          <:col></:col>
+          <:action>action</:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [_, _] = Floki.find(html, "td.tolerance")
     end
 
-    test "adds additional attributes to td within action" do
-      html = render_table([opts: []], &test_table_with_action/1)
-      assert [_, _] = Floki.find(html, "td.name-column")
-      assert [_, _] = Floki.find(html, "td.age-column")
-    end
-
     test "adds additional attributes to td" do
-      html = render_table([], &test_table_with_column_attrs/1)
-      assert [_, _] = Floki.find(html, "td.name-column")
-      assert [_, _] = Floki.find(html, "td.age-column")
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{name: "George", age: 8}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} attrs={[class: "name-column"]}>
+            <%= pet.name %>
+          </:col>
+          <:col :let={pet} attrs={[class: "age-column"]}>
+            <%= pet.age %>
+          </:col>
+          <:action :let={pet} attrs={[class: "action-column"]}>
+            <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [_] = Floki.find(html, "td.name-column")
+      assert [_] = Floki.find(html, "td.age-column")
+      assert [_] = Floki.find(html, "td.action-column")
     end
 
     test "overrides table_td_attrs with td attrs" do
@@ -1853,14 +1927,12 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i} attrs={[class: "name-td-class"]}><%= i.name %></:col>
           <:col :let={i}><%= i.age %></:col>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [{"td", [{"class", "name-td-class"}], _}] =
                Floki.find(html, "td:first-child")
@@ -1877,15 +1949,13 @@ defmodule Flop.PhoenixTest do
       }
 
       html =
-        ~H"""
+        parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i}><%= i.name %></:col>
           <:action attrs={[class: "action-1-td-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
-        """
-        |> rendered_to_string()
-        |> Floki.parse_fragment!()
+        """)
 
       assert [{"td", [{"class", "action-1-td-class"}], _}] =
                Floki.find(html, "td:nth-child(2)")
@@ -1982,9 +2052,8 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(a, "data-phx-link") == ["patch"]
       assert Floki.attribute(a, "data-phx-link-state") == ["push"]
 
-      assert Floki.attribute(a, "href") == [
-               "/pets?order_directions[]=asc&order_by[]=name"
-             ]
+      assert [href] = Floki.attribute(a, "href")
+      assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "uses phx-click with on_sort without path" do
@@ -2003,45 +2072,19 @@ defmodule Flop.PhoenixTest do
       assert Jason.decode!(phx_click) == [["push", %{"event" => "sort"}]]
     end
 
-    test "uses phx-click with on_paginate and path" do
-      html =
-        render_pagination(
-          meta: build(:meta_on_second_page),
-          path: "/pets",
-          on_paginate: JS.push("paginate")
-        )
-
-      link = Floki.find(html, "a:fl-contains('Previous')")
-      expected_path = "/pets?page_size=10"
-
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == [expected_path]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert [phx_click] = Floki.attribute(link, "phx-click")
-
-      assert Jason.decode!(phx_click) == [
-               ["push", %{"event" => "paginate"}]
-             ]
-    end
-
     test "supports a function/args tuple as path" do
       html = render_table(path: {&route_helper/3, @route_helper_opts})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-
-      assert Floki.attribute(a, "href") == [
-               "/pets?order_directions[]=asc&order_by[]=name"
-             ]
+      assert [href] = Floki.attribute(a, "href")
+      assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a function as path" do
       html = render_table(path: &path_func/1)
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
-      assert Floki.attribute(a, "href") == [
-               "/pets?order_directions[]=asc&order_by[]=name"
-             ]
+      assert [href] = Floki.attribute(a, "href")
+      assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a URI string as path" do
@@ -2059,13 +2102,46 @@ defmodule Flop.PhoenixTest do
     end
 
     test "displays headers with safe HTML values in action col" do
-      html = render_table([], &test_table_with_action_header/1)
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          event="sort"
+          id="user-table"
+          items={[%{name: "George"}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet}>
+            <%= pet.name %>
+          </:col>
+          <:action :let={pet} label={{:safe, "<span>Hello</span>"}}>
+            <%= pet.name %>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
       assert [span] = Floki.find(html, "th span")
       assert Floki.text(span) == "Hello"
     end
 
     test "displays headers with safe HTML values" do
-      html = render_table([], &test_table_with_html_header/1)
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          id="user-table"
+          event="sort"
+          items={[%{name: "George"}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
+            <%= pet.name %>
+          </:col>
+        </Flop.Phoenix.table>
+        """)
+
       assert [span] = Floki.find(html, "th a span")
       assert Floki.text(span) == "Hello"
     end
@@ -2313,15 +2389,25 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders row_click" do
-      html = render_table([], &test_table_with_row_click_and_action/1)
+      assigns = %{}
 
-      assert [
-               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
-                [
-                  {"thead", _, _},
-                  {"tbody", _, rows}
-                ]}
-             ] = html
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          event="sort"
+          id="user-table"
+          items={[%{name: "George", id: 1}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+          row_click={&JS.navigate("/show/#{&1.id}")}
+        >
+          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+          <:action :let={pet}>
+            <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"table", _, [{"thead", _, _}, {"tbody", _, rows}]}] = html
 
       # two columns in total, second one is for action
       assert [_, _] = Floki.find(rows, "td")
@@ -2374,10 +2460,27 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders table foot" do
-      html = render_table([], &test_table_with_foot/1)
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          event="sort"
+          id="user-table"
+          items={[%{name: "George"}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+          <:foot>
+            <tr>
+              <td>snap</td>
+            </tr>
+          </:foot>
+        </Flop.Phoenix.table>
+        """)
 
       assert [
-               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"thead", _, _},
                   {"tbody", _, _},
@@ -2387,8 +2490,27 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders colgroup" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          event="sort"
+          id="user-table"
+          items={[%{name: "George", age: 8}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
+            <%= pet.name %>
+          </:col>
+          <:col :let={pet} label="Age" field={:age} col_style="width: 40%;">
+            <%= pet.age %>
+          </:col>
+        </Flop.Phoenix.table>
+        """)
+
       assert [
-               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"colgroup", _,
                    [
@@ -2398,22 +2520,57 @@ defmodule Flop.PhoenixTest do
                   {"thead", _, _},
                   {"tbody", _, _}
                 ]}
-             ] = render_table([], &test_table_with_widths/1)
+             ] = html
     end
 
     test "does not render a colgroup if no style attribute is set" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{name: "George", age: 8}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+          <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
       assert [
-               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"thead", _, _},
                   {"tbody", _, _}
                 ]}
-             ] = render_table([], &test_table/1)
+             ] = html
     end
 
     test "renders colgroup on action col" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          event="sort"
+          id="user-table"
+          items={[%{name: "George", id: 1}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
+            <%= pet.name %>
+          </:col>
+          <:action :let={pet} col_style="width: 40%;">
+            <.link navigate={"/show/pet/#{pet.name}"}>
+              Show Pet
+            </.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
       assert [
-               {"table", [{"id", "user-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"colgroup", _,
                    [
@@ -2423,7 +2580,7 @@ defmodule Flop.PhoenixTest do
                   {"thead", _, _},
                   {"tbody", _, _}
                 ]}
-             ] = render_table([], &test_table_with_action_and_with_widths/1)
+             ] = html
     end
 
     test "does not render colgroup on action col if no style attribute is set" do
