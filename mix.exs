@@ -25,7 +25,8 @@ defmodule FlopPhoenix.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
-        plt_file: {:no_warn, ".plts/dialyzer.plt"}
+        plt_file: {:no_warn, ".plts/dialyzer.plt"},
+        plt_add_apps: [:ex_unit]
       ],
       name: "Flop Phoenix",
       source_url: @source_url,
