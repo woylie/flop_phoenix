@@ -9,69 +9,6 @@ defmodule Flop.Phoenix.Table do
 
   require Logger
 
-  def path_on_sort_error_msg do
-    """
-    path or on_sort attribute is required
-
-    At least one of the mentioned attributes is required for the table
-    component. Combining them will both patch the URL and execute
-    the JS command.
-
-    The :path value can be a path as a string, a
-    {module, function_name, args} tuple, a {function, args} tuple, or an 1-ary
-    function.
-
-    ## Examples
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={~p"/pets"}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={{Routes, :pet_path, [@socket, :index]}}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={{&Routes.pet_path/3, [@socket, :index]}}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={&build_path/1}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          on_sort={JS.push("sort-table")}
-        >
-
-    or
-
-        <Flop.Phoenix.table
-          items={@pets}
-          meta={@meta}
-          path={~p"/pets"}
-          on_sort={JS.dispatch("scroll-to", to: "#my-table")}
-        >
-    """
-  end
-
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
@@ -182,16 +119,14 @@ defmodule Flop.Phoenix.Table do
           <td
             :for={col <- @col}
             :if={show_column?(col)}
-            {@opts[:tbody_td_attrs]}
-            {maybe_invoke_options_callback(Map.get(col, :attrs, []), item)}
+            {merge_td_attrs(@opts[:tbody_td_attrs], col, item)}
             phx-click={@row_click && @row_click.(item)}
           >
             <%= render_slot(col, @row_item.(item)) %>
           </td>
           <td
             :for={action <- @action}
-            {@opts[:tbody_td_attrs]}
-            {Map.get(action, :attrs, [])}
+            {merge_td_attrs(@opts[:tbody_td_attrs], action, item)}
           >
             <%= render_slot(action, @row_item.(item)) %>
           </td>
@@ -202,8 +137,14 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
-  defp maybe_invoke_options_callback(option, item) when is_function(option),
-    do: option.(item)
+  defp merge_td_attrs(tbody_td_attrs, col, item) do
+    attrs = col |> Map.get(:attrs, []) |> maybe_invoke_options_callback(item)
+    Keyword.merge(tbody_td_attrs, attrs)
+  end
+
+  defp maybe_invoke_options_callback(option, item) when is_function(option) do
+    option.(item)
+  end
 
   defp maybe_invoke_options_callback(option, _item), do: option
 

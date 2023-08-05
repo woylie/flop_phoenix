@@ -17,7 +17,7 @@ application.
 ```elixir
 def deps do
   [
-    {:flop_phoenix, "~> 0.21.0"}
+    {:flop_phoenix, "~> 0.21.1"}
   ]
 end
 ```
@@ -143,7 +143,6 @@ straightforward way to render a filter form is through the
 attr :meta, Flop.Meta, required: true
 attr :id, :string, default: nil
 attr :on_change, :string, default: "update-filter"
-attr :on_reset, :string, default: "reset-filter"
 attr :target, :string, default: nil
 
 def filter_form(%{meta: meta} = assigns) do
@@ -167,9 +166,7 @@ def filter_form(%{meta: meta} = assigns) do
       />
     </.filter_fields>
 
-    <a href="#" class="button" phx-target={@target} phx-click={@on_reset}>
-      reset
-    </a>
+    <button class="button" name="reset">reset</button>
   </.form>
   """
 end
@@ -193,20 +190,14 @@ Now, you can render a filter form like so:
 />
 ```
 
-You will need to handle the `update-filter` and `reset-filter` events with the
-`handle_event/3` callback function of your LiveView.
+You will need to handle the `update-filter` event with the `handle_event/3`
+callback function of your LiveView.
 
 ```elixir
 @impl true
 def handle_event("update-filter", params, socket) do
+  params = Map.delete(params, "_target")
   {:noreply, push_patch(socket, to: ~p"/pets?#{params}")}
-end
-
-@impl true
-def handle_event("reset-filter", _, %{assigns: assigns} = socket) do
-  flop = assigns.meta.flop |> Flop.set_page(1) |> Flop.reset_filters()
-  path = Flop.Phoenix.build_path(~p"/pets", flop, backend: assigns.meta.backend)
-  {:noreply, push_patch(socket, to: path)}
 end
 ```
 

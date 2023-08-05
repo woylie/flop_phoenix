@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.21.0"
+  @version "0.21.1"
 
   def project do
     [
@@ -25,7 +25,8 @@ defmodule FlopPhoenix.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
-        plt_file: {:no_warn, ".plts/dialyzer.plt"}
+        plt_file: {:no_warn, ".plts/dialyzer.plt"},
+        plt_add_apps: [:ex_unit]
       ],
       name: "Flop Phoenix",
       source_url: @source_url,
