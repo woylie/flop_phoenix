@@ -1863,13 +1863,13 @@ defmodule Flop.PhoenixTest do
           items={[%{name: "George", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col :let={pet} th_attrs={[class: "name-header"]}>
+          <:col :let={pet} thead_th_attrs={[class: "name-header"]}>
             <%= pet.name %>
           </:col>
-          <:col :let={pet} th_attrs={[class: "age-header"]}>
+          <:col :let={pet} thead_th_attrs={[class: "age-header"]}>
             <%= pet.age %>
           </:col>
-          <:action :let={pet} th_attrs={[class: "action-header"]}>
+          <:action :let={pet} thead_th_attrs={[class: "action-header"]}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
           </:action>
         </Flop.Phoenix.table>
@@ -1907,7 +1907,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.action-column")
     end
 
-    test "overrides table_th_attrs with th_attrs" do
+    test "overrides table_th_attrs with thead_th_attrs in col" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
@@ -1917,7 +1917,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} th_attrs={[class: "name-th-class"]}><%= i.name %></:col>
+          <:col :let={i} thead_th_attrs={[class: "name-th-class"]}><%= i.name %></:col>
           <:col :let={i}><%= i.age %></:col>
         </Flop.Phoenix.table>
         """)
@@ -2002,7 +2002,7 @@ defmodule Flop.PhoenixTest do
                Floki.find(html, "td:last-child")
     end
 
-    test "overrides table_th_attrs with th_attrs in action columns" do
+    test "overrides table_th_attrs with thead_th_attrs in action columns" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
@@ -2013,7 +2013,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i}><%= i.name %></:col>
-          <:action th_attrs={[class: "action-1-th-class"]}>action 1</:action>
+          <:action thead_th_attrs={[class: "action-1-th-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
         """)

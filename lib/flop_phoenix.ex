@@ -1045,11 +1045,11 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :th_attrs, :list,
+    attr :thead_th_attrs, :list,
       doc: """
       Additional attributes to pass to the `<th>` element as a static keyword
       list. Note that these attributes will override any conflicting
-      `tbody_th_attrs` that are set at the table level.
+      `thead_th_attrs` that are set at the table level.
       """
 
     attr :th_wrapper_attrs, :list,
@@ -1098,7 +1098,7 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :th_attrs, :list,
+    attr :thead_th_attrs, :list,
       doc: """
       Any additional attributes to pass to the `<th>` as a keyword list.
       """
