@@ -1929,6 +1929,57 @@ defmodule Flop.PhoenixTest do
                Floki.find(html, "th:last-child")
     end
 
+    test "evaluates table th_wrapper_attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} field={:name}><%= i.name %></:col>
+          <:col :let={i}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [
+               {"th", [],
+                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
+             ] = Floki.find(html, "th:first-child")
+    end
+
+    test "overrides th_wrapper_attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col
+            :let={i}
+            field={:name}
+            th_wrapper_attrs={[class: "name-th-wrapper-class"]}
+          >
+            <%= i.name %>
+          </:col>
+          <:col :let={i} field={:age}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [], [{"span", [{"class", "name-th-wrapper-class"}], _}]}] =
+               Floki.find(html, "th:first-child")
+
+      assert [
+               {"th", [],
+                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
+             ] = Floki.find(html, "th:last-child")
+    end
+
     test "overrides table_td_attrs with td_attrs" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},

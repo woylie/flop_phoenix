@@ -1052,6 +1052,14 @@ defmodule Flop.Phoenix do
       `tbody_th_attrs` that are set at the table level.
       """
 
+    attr :th_wrapper_attrs, :list,
+      doc: """
+      Additional attributes for the `<span>` element that wraps the
+      header link and the order direction symbol. Note that these attributes
+      will override any conflicting `th_wrapper_attrs` that are set at the table
+      level.
+      """
+
     attr :td_attrs, :any,
       doc: """
       Additional attributes to pass to the `<td>` element. May be provided as a
