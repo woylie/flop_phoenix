@@ -144,7 +144,9 @@ defmodule Flop.Phoenix.Table do
   end
 
   defp merge_td_attrs(tbody_td_attrs, col, item) do
-    attrs = col |> Map.get(:td_attrs, []) |> maybe_invoke_options_callback(item)
+    attrs =
+      col |> Map.get(:tbody_td_attrs, []) |> maybe_invoke_options_callback(item)
+
     Keyword.merge(tbody_td_attrs, attrs)
   end
 
