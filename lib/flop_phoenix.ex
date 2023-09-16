@@ -1045,7 +1045,7 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :attrs, :any,
+    attr :td_attrs, :any,
       doc: """
       Additional attributes to pass to the `<td>` element. May be provided as a
       static keyword list, or as a 1-arity function to dynamically generate the
@@ -1083,7 +1083,7 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
-    attr :attrs, :any,
+    attr :td_attrs, :any,
       doc: """
       Any additional attributes to pass to the `<td>`. Can be a keyword list or
       a function that takes the current row item as an argument and returns a

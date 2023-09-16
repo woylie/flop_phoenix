@@ -1782,7 +1782,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "tr.crime-reporter")
     end
 
-    test "evaluates attrs function for col slot / td" do
+    test "evaluates td_attrs function for col slot / td" do
       assigns = %{}
 
       html =
@@ -1795,7 +1795,7 @@ defmodule Flop.PhoenixTest do
           ]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col attrs={
+          <:col td_attrs={
             fn item ->
               [class: if(item.age > 17, do: "adult", else: "child")]
             end
@@ -1808,7 +1808,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.child")
     end
 
-    test "evaluates attrs function in action columns" do
+    test "evaluates td_attrs function in action columns" do
       assigns = %{
         attrs_fun: fn item ->
           [class: if(item.age > 17, do: "adult", else: "child")]
@@ -1826,7 +1826,7 @@ defmodule Flop.PhoenixTest do
           on_sort={%JS{}}
         >
           <:col :let={u} label="Name"><%= u.name %></:col>
-          <:action label="Buttons" attrs={@attrs_fun}>some action</:action>
+          <:action label="Buttons" td_attrs={@attrs_fun}>some action</:action>
         </Flop.Phoenix.table>
         """)
 
@@ -1863,13 +1863,13 @@ defmodule Flop.PhoenixTest do
           items={[%{name: "George", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col :let={pet} attrs={[class: "name-column"]}>
+          <:col :let={pet} td_attrs={[class: "name-column"]}>
             <%= pet.name %>
           </:col>
-          <:col :let={pet} attrs={[class: "age-column"]}>
+          <:col :let={pet} td_attrs={[class: "age-column"]}>
             <%= pet.age %>
           </:col>
-          <:action :let={pet} attrs={[class: "action-column"]}>
+          <:action :let={pet} td_attrs={[class: "action-column"]}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
           </:action>
         </Flop.Phoenix.table>
@@ -1890,7 +1890,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} attrs={[class: "name-td-class"]}><%= i.name %></:col>
+          <:col :let={i} td_attrs={[class: "name-td-class"]}><%= i.name %></:col>
           <:col :let={i}><%= i.age %></:col>
         </Flop.Phoenix.table>
         """)
@@ -1913,7 +1913,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i}><%= i.name %></:col>
-          <:action attrs={[class: "action-1-td-class"]}>action 1</:action>
+          <:action td_attrs={[class: "action-1-td-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
         """)
