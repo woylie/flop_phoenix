@@ -1045,6 +1045,13 @@ defmodule Flop.Phoenix do
       of a column this way.
       """
 
+    attr :th_attrs, :list,
+      doc: """
+      Additional attributes to pass to the `<th>` element as a static keyword
+      list. Note that these attributes will override any conflicting
+      `tbody_th_attrs` that are set at the table level.
+      """
+
     attr :td_attrs, :any,
       doc: """
       Additional attributes to pass to the `<td>` element. May be provided as a
@@ -1081,6 +1088,11 @@ defmodule Flop.Phoenix do
       `col_style` assign is set as `style` attribute for the `<col>` element of
       the respective column. You can set the `width`, `background` and `border`
       of a column this way.
+      """
+
+    attr :th_attrs, :list,
+      doc: """
+      Any additional attributes to pass to the `<th>` as a keyword list.
       """
 
     attr :td_attrs, :any,

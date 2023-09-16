@@ -82,7 +82,7 @@ defmodule Flop.Phoenix.Table do
             label={col[:label]}
             sortable={sortable?(col[:field], @meta.schema)}
             meta={@meta}
-            thead_th_attrs={@opts[:thead_th_attrs]}
+            thead_th_attrs={merge_th_attrs(@opts[:thead_th_attrs], col)}
             symbol_asc={@opts[:symbol_asc]}
             symbol_desc={@opts[:symbol_desc]}
             symbol_unsorted={@opts[:symbol_unsorted]}
@@ -99,7 +99,7 @@ defmodule Flop.Phoenix.Table do
             label={action[:label]}
             sortable={false}
             meta={@meta}
-            thead_th_attrs={@opts[:thead_th_attrs]}
+            thead_th_attrs={merge_th_attrs(@opts[:thead_th_attrs], action)}
             path={nil}
             target={@event}
           />
@@ -134,6 +134,11 @@ defmodule Flop.Phoenix.Table do
       <tfoot :if={@foot != []}><%= render_slot(@foot) %></tfoot>
     </table>
     """
+  end
+
+  defp merge_th_attrs(tbody_th_attrs, col) do
+    attrs = col |> Map.get(:th_attrs, [])
+    Keyword.merge(tbody_th_attrs, attrs)
   end
 
   defp merge_td_attrs(tbody_td_attrs, col, item) do

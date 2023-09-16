@@ -1853,6 +1853,33 @@ defmodule Flop.PhoenixTest do
       assert [_, _] = Floki.find(html, "td.tolerance")
     end
 
+    test "adds additional attributes to th" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{name: "George", age: 8}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} th_attrs={[class: "name-header"]}>
+            <%= pet.name %>
+          </:col>
+          <:col :let={pet} th_attrs={[class: "age-header"]}>
+            <%= pet.age %>
+          </:col>
+          <:action :let={pet} th_attrs={[class: "action-header"]}>
+            <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [_] = Floki.find(html, "th.name-header")
+      assert [_] = Floki.find(html, "th.age-header")
+      assert [_] = Floki.find(html, "th.action-header")
+    end
+
     test "adds additional attributes to td" do
       assigns = %{}
 
@@ -1880,7 +1907,29 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.action-column")
     end
 
-    test "overrides table_td_attrs with td attrs" do
+    test "overrides table_th_attrs with th_attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [thead_th_attrs: [class: "default-th-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} th_attrs={[class: "name-th-class"]}><%= i.name %></:col>
+          <:col :let={i}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [{"class", "name-th-class"}], _}] =
+               Floki.find(html, "th:first-child")
+
+      assert [{"th", [{"class", "default-th-class"}], _}] =
+               Floki.find(html, "th:last-child")
+    end
+
+    test "overrides table_td_attrs with td_attrs" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
@@ -1902,7 +1951,30 @@ defmodule Flop.PhoenixTest do
                Floki.find(html, "td:last-child")
     end
 
-    test "overrides table_td_attrs with td attrs in action columns" do
+    test "overrides table_th_attrs with th_attrs in action columns" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [thead_th_attrs: [class: "default-th-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i}><%= i.name %></:col>
+          <:action th_attrs={[class: "action-1-th-class"]}>action 1</:action>
+          <:action>action 2</:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [{"class", "action-1-th-class"}], _}] =
+               Floki.find(html, "th:nth-child(2)")
+
+      assert [{"th", [{"class", "default-th-class"}], _}] =
+               Floki.find(html, "th:last-child")
+    end
+
+    test "overrides table_td_attrs with td_attrs in action columns" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
