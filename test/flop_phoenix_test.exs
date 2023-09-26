@@ -2176,6 +2176,64 @@ defmodule Flop.PhoenixTest do
       assert Jason.decode!(phx_click) == [["push", %{"event" => "sort"}]]
     end
 
+    test "application of custom sort directions per column" do
+      assigns = %{
+        meta: %Flop.Meta{
+          flop: %Flop{
+            order_by: [:ttfb],
+            order_directions: [:desc_nulls_last]
+          }
+        },
+        items: [
+          %{
+            ttfb: 2
+          },
+          %{
+            ttfb: 1
+          },
+          %{
+            ttfb: nil
+          }
+        ],
+        ttfb_directions: {:asc_nulls_last, :desc_nulls_last}
+      }
+
+      html =
+        ~H"""
+        <Flop.Phoenix.table
+          id="metrics-table"
+          items={@items}
+          meta={@meta}
+          path="/navigations"
+        >
+          <:col
+            :let={navigation}
+            label="TTFB"
+            field={:ttfb}
+            directions={@ttfb_directions}
+          >
+            <%= navigation.ttfb %>
+          </:col>
+        </Flop.Phoenix.table>
+        """
+        |> rendered_to_string()
+        |> Floki.parse_fragment!()
+
+      [ttfb_sort_href] =
+        html
+        |> Floki.find("thead th a:fl-contains('TTFB')")
+        |> Floki.attribute("href")
+
+      %URI{query: query} = URI.parse(ttfb_sort_href)
+      decoded_query = Query.decode(query)
+
+      # assert href representing opposite direction of initial table sort
+      assert %{
+               "order_by" => ["ttfb"],
+               "order_directions" => ["asc_nulls_last"]
+             } = decoded_query
+    end
+
     test "supports a function/args tuple as path" do
       html = render_table(%{path: {&route_helper/3, @route_helper_opts}})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")

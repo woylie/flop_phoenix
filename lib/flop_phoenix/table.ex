@@ -81,6 +81,7 @@ defmodule Flop.Phoenix.Table do
             field={col[:field]}
             label={col[:label]}
             sortable={sortable?(col[:field], @meta.schema)}
+            directions={col[:directions]}
             meta={@meta}
             thead_th_attrs={
               merge_attrs(@opts[:thead_th_attrs], col, :thead_th_attrs)
@@ -173,6 +174,7 @@ defmodule Flop.Phoenix.Table do
   attr :target, :string, required: true
   attr :sortable, :boolean, required: true
   attr :thead_th_attrs, :list, required: true
+  attr :directions, :any
   attr :symbol_asc, :any
   attr :symbol_desc, :any
   attr :symbol_unsorted, :any
@@ -183,11 +185,26 @@ defmodule Flop.Phoenix.Table do
     direction = order_direction(assigns.meta.flop, assigns.field)
     assigns = assign(assigns, :order_direction, direction)
 
+    sort_path_options =
+      if directions = assigns[:directions],
+        do: [directions: directions],
+        else: []
+
+    sort_path =
+      build_path(
+        assigns[:path],
+        assigns[:meta],
+        assigns[:field],
+        sort_path_options
+      )
+
+    assigns = assign(assigns, :sort_path, sort_path)
+
     ~H"""
     <th {@thead_th_attrs} aria-sort={aria_sort(@order_direction)}>
       <span {@th_wrapper_attrs}>
         <.sort_link
-          path={build_path(@path, @meta, @field)}
+          path={@sort_path}
           on_sort={@on_sort}
           event={@event}
           field={@field}
@@ -295,12 +312,17 @@ defmodule Flop.Phoenix.Table do
     field in (module |> struct() |> Flop.Schema.sortable())
   end
 
-  defp build_path(nil, _, _), do: nil
+  defp build_path(nil, _, _, _), do: nil
 
-  defp build_path(path, meta, field) do
+  defp build_path(
+         path,
+         meta,
+         field,
+         opts
+       ) do
     Flop.Phoenix.build_path(
       path,
-      Flop.push_order(meta.flop, field),
+      Flop.push_order(meta.flop, field, opts),
       backend: meta.backend,
       for: meta.schema
     )
