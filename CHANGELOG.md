@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.22.0] - 2023-09-26
+
 ### Added
 
 - Added `directions` attribute to the `col` slot of the table component. This
