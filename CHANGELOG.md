@@ -4,13 +4,16 @@
 
 ### Added
 
+- Added `directions` attribute to the `col` slot of the table component. This
+  allows you to override the default sort directions, e.g. to specify
+  nulls-first or nulls-last.
 - Added `thead_th_attrs` and `th_wrapper_attrs` attributes to the `col` slot
   of the table component.
 - Added `thead_th_attrs` attribute to the `action` slot of the table component.
 
 ### Changed
 
-- Renamed `attrs` attribute on the `col` and `action` slots of the table
+- Renamed `attrs` mattribute on the `col` and `action` slots of the table
   component to `tbody_td_attrs` in order to match the naming of the global
   table options.
 
