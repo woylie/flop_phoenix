@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Support `phoenix_liveview ~> 0.20`.
+
 ## [0.21.1] - 2023-08-05
 
 ### Added
