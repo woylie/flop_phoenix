@@ -15,7 +15,7 @@
 
 ### Changed
 
-- Renamed `attrs` mattribute on the `col` and `action` slots of the table
+- Renamed `attrs` attribute on the `col` and `action` slots of the table
   component to `tbody_td_attrs` in order to match the naming of the global
   table options.
 
