@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+### Added
+
+- Added `thead_th_attrs` and `th_wrapper_attrs` attributes to the `col` slot
+  of the table component.
+- Added `thead_th_attrs` attribute to the `action` slot of the table component.
+
+### Changed
+
+- Renamed `attrs` attribute on the `col` and `action` slots of the table
+  component to `tbody_td_attrs` in order to match the naming of the global
+  table options.
+
+### Upgrade guide
+
+Rename the `attrs` attribute to `tbody_td_attrs` in both the `col` slot and the
+`action` slot:
+
+```diff
+<Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
+-  <:col :let={p} attrs={[class="my-class"]}><%= p.id %></:col>
+-  <:action :let={p} attrs={[class="my-class"]}>button</:col>
++  <:col :let={p} tbody_td_attrs={[class="my-class"]}><%= p.id %></:col>
++  <:action :let={p} tbody_td_attrs={[class="my-class"]}>button</:col>
+</Flop.Phoenix.table>
+```
+
 ## [0.21.2] - 2023-09-26
 
 ### Changed
