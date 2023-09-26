@@ -17,7 +17,7 @@ application.
 ```elixir
 def deps do
   [
-    {:flop_phoenix, "~> 0.21.1"}
+    {:flop_phoenix, "~> 0.21.2"}
   ]
 end
 ```

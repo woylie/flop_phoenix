@@ -83,12 +83,16 @@ defmodule Flop.Phoenix.Table do
             sortable={sortable?(col[:field], @meta.schema)}
             directions={col[:directions]}
             meta={@meta}
-            thead_th_attrs={@opts[:thead_th_attrs]}
+            thead_th_attrs={
+              merge_attrs(@opts[:thead_th_attrs], col, :thead_th_attrs)
+            }
             symbol_asc={@opts[:symbol_asc]}
             symbol_desc={@opts[:symbol_desc]}
             symbol_unsorted={@opts[:symbol_unsorted]}
             symbol_attrs={@opts[:symbol_attrs]}
-            th_wrapper_attrs={@opts[:th_wrapper_attrs]}
+            th_wrapper_attrs={
+              merge_attrs(@opts[:th_wrapper_attrs], col, :th_wrapper_attrs)
+            }
             path={@path}
             target={@target}
           />
@@ -100,7 +104,9 @@ defmodule Flop.Phoenix.Table do
             label={action[:label]}
             sortable={false}
             meta={@meta}
-            thead_th_attrs={@opts[:thead_th_attrs]}
+            thead_th_attrs={
+              merge_attrs(@opts[:thead_th_attrs], action, :thead_th_attrs)
+            }
             path={nil}
             target={@event}
           />
@@ -137,8 +143,15 @@ defmodule Flop.Phoenix.Table do
     """
   end
 
+  defp merge_attrs(base_attrs, col, key) when is_atom(key) do
+    attrs = Map.get(col, key, [])
+    Keyword.merge(base_attrs, attrs)
+  end
+
   defp merge_td_attrs(tbody_td_attrs, col, item) do
-    attrs = col |> Map.get(:attrs, []) |> maybe_invoke_options_callback(item)
+    attrs =
+      col |> Map.get(:tbody_td_attrs, []) |> maybe_invoke_options_callback(item)
+
     Keyword.merge(tbody_td_attrs, attrs)
   end
 

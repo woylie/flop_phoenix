@@ -19,21 +19,10 @@ defmodule Flop.PhoenixTest do
 
   @route_helper_opts [%{}, :pets]
 
-  defp render_table(assigns \\ [], component \\ &test_table/1) do
-    assigns =
-      assigns
-      |> Keyword.put(:__changed__, nil)
-      |> Keyword.put_new(:id, "some-table")
-
-    component
-    |> render_component(assigns)
-    |> Floki.parse_fragment!()
-  end
-
   attr :caption, :string, default: nil
   attr :on_sort, JS, default: nil
   attr :event, :string, default: nil
-  attr :id, :string, default: nil
+  attr :id, :string, default: "some-table"
   attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
   attr :opts, :list, default: []
   attr :target, :string, default: nil
@@ -46,8 +35,8 @@ defmodule Flop.PhoenixTest do
       %{name: "George", email: "george@george.pet", age: 8, species: "dog"}
     ]
 
-  defp test_table(assigns) do
-    ~H"""
+  defp render_table(assigns) do
+    parse_heex(~H"""
     <Flop.Phoenix.table
       caption={@caption}
       on_sort={@on_sort}
@@ -67,35 +56,7 @@ defmodule Flop.PhoenixTest do
       <:col :let={pet} label="Species" field={:species}><%= pet.species %></:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
-    """
-  end
-
-  defp test_table_with_action(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:hide_action, fn -> false end)
-      |> assign_new(:show_action, fn -> true end)
-      |> assign_new(:opts, fn -> [] end)
-
-    ~H"""
-    <Flop.Phoenix.table
-      event="sort"
-      id="some-table"
-      items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
-      meta={%Flop.Meta{flop: %Flop{}}}
-      opts={@opts}
-    >
-      <:col :let={pet} label="Name" field={:name} attrs={[class: "name-column"]}>
-        <%= pet.name %>
-      </:col>
-      <:col :let={pet} label="Age" field={:age} attrs={[class: "age-column"]}>
-        <%= pet.age %>
-      </:col>
-      <:action :let={pet} hide={@hide_action} show={@show_action} label="Buttons">
-        <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
-      </:action>
-    </Flop.Phoenix.table>
-    """
+    """)
   end
 
   def route_helper(%{}, action, query) do
@@ -1593,31 +1554,31 @@ defmodule Flop.PhoenixTest do
   describe "table/1" do
     test "allows to set table attributes" do
       # attribute from global config
-      html = render_table(opts: [])
+      html = render_table(%{opts: []})
       assert [table] = Floki.find(html, "table")
       assert Floki.attribute(table, "class") == ["sortable-table"]
 
-      html = render_table(opts: [table_attrs: [class: "funky-table"]])
+      html = render_table(%{opts: [table_attrs: [class: "funky-table"]]})
       assert [table] = Floki.find(html, "table")
       assert Floki.attribute(table, "class") == ["funky-table"]
     end
 
     test "optionally adds a table container" do
-      html = render_table(opts: [])
+      html = render_table(%{opts: []})
       assert Floki.find(html, ".table-container") == []
 
-      html = render_table(opts: [container: true])
+      html = render_table(%{opts: [container: true]})
       assert [_] = Floki.find(html, ".table-container")
     end
 
     test "allows to set container attributes" do
       html =
-        render_table(
+        render_table(%{
           opts: [
             container_attrs: [class: "container", data_some: "thing"],
             container: true
           ]
-        )
+        })
 
       assert [container] = Floki.find(html, "div.container")
       assert Floki.attribute(container, "data_some") == ["thing"]
@@ -1625,30 +1586,30 @@ defmodule Flop.PhoenixTest do
 
     test "allows to set tbody attributes" do
       html =
-        render_table(
+        render_table(%{
           opts: [
             tbody_attrs: [class: "mango_body"],
             container: true
           ]
-        )
+        })
 
       assert [_] = Floki.find(html, "tbody.mango_body")
     end
 
     test "setting thead attributes" do
       html =
-        render_table(
+        render_table(%{
           opts: [
             thead_attrs: [class: "text-left text-zinc-500 leading-6"],
             container: true
           ]
-        )
+        })
 
       assert [_] = Floki.find(html, "thead.text-left.text-zinc-500.leading-6")
     end
 
     test "allows to set id on table, tbody and container" do
-      html = render_table(id: "some-id", opts: [container: true])
+      html = render_table(%{id: "some-id", opts: [container: true]})
       assert [_] = Floki.find(html, "div#some-id-container")
       assert [_] = Floki.find(html, "table#some-id")
       assert [_] = Floki.find(html, "tbody#some-id-tbody")
@@ -1775,14 +1736,14 @@ defmodule Flop.PhoenixTest do
 
     test "allows to set tr and td classes via keyword lists" do
       html =
-        render_table(
+        render_table(%{
           opts: [
             thead_tr_attrs: [class: "mungo"],
             thead_th_attrs: [class: "bean"],
             tbody_tr_attrs: [class: "salt"],
             tbody_td_attrs: [class: "tolerance"]
           ]
-        )
+        })
 
       assert [_] = Floki.find(html, "tr.mungo")
       assert [_, _, _, _, _] = Floki.find(html, "th.bean")
@@ -1821,7 +1782,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "tr.crime-reporter")
     end
 
-    test "evaluates attrs function for col slot / td" do
+    test "evaluates tbody_td_attrs function for col slot / td" do
       assigns = %{}
 
       html =
@@ -1834,7 +1795,7 @@ defmodule Flop.PhoenixTest do
           ]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col attrs={
+          <:col tbody_td_attrs={
             fn item ->
               [class: if(item.age > 17, do: "adult", else: "child")]
             end
@@ -1847,7 +1808,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.child")
     end
 
-    test "evaluates attrs function in action columns" do
+    test "evaluates tbody_td_attrs function in action columns" do
       assigns = %{
         attrs_fun: fn item ->
           [class: if(item.age > 17, do: "adult", else: "child")]
@@ -1865,7 +1826,7 @@ defmodule Flop.PhoenixTest do
           on_sort={%JS{}}
         >
           <:col :let={u} label="Name"><%= u.name %></:col>
-          <:action label="Buttons" attrs={@attrs_fun}>some action</:action>
+          <:action label="Buttons" tbody_td_attrs={@attrs_fun}>some action</:action>
         </Flop.Phoenix.table>
         """)
 
@@ -1892,6 +1853,33 @@ defmodule Flop.PhoenixTest do
       assert [_, _] = Floki.find(html, "td.tolerance")
     end
 
+    test "adds additional attributes to th" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{name: "George", age: 8}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:col :let={pet} thead_th_attrs={[class: "name-header"]}>
+            <%= pet.name %>
+          </:col>
+          <:col :let={pet} thead_th_attrs={[class: "age-header"]}>
+            <%= pet.age %>
+          </:col>
+          <:action :let={pet} thead_th_attrs={[class: "action-header"]}>
+            <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [_] = Floki.find(html, "th.name-header")
+      assert [_] = Floki.find(html, "th.age-header")
+      assert [_] = Floki.find(html, "th.action-header")
+    end
+
     test "adds additional attributes to td" do
       assigns = %{}
 
@@ -1902,13 +1890,13 @@ defmodule Flop.PhoenixTest do
           items={[%{name: "George", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col :let={pet} attrs={[class: "name-column"]}>
+          <:col :let={pet} tbody_td_attrs={[class: "name-column"]}>
             <%= pet.name %>
           </:col>
-          <:col :let={pet} attrs={[class: "age-column"]}>
+          <:col :let={pet} tbody_td_attrs={[class: "age-column"]}>
             <%= pet.age %>
           </:col>
-          <:action :let={pet} attrs={[class: "action-column"]}>
+          <:action :let={pet} tbody_td_attrs={[class: "action-column"]}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
           </:action>
         </Flop.Phoenix.table>
@@ -1919,7 +1907,80 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "td.action-column")
     end
 
-    test "overrides table_td_attrs with td attrs" do
+    test "overrides table_th_attrs with thead_th_attrs in col" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [thead_th_attrs: [class: "default-th-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} thead_th_attrs={[class: "name-th-class"]}><%= i.name %></:col>
+          <:col :let={i}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [{"class", "name-th-class"}], _}] =
+               Floki.find(html, "th:first-child")
+
+      assert [{"th", [{"class", "default-th-class"}], _}] =
+               Floki.find(html, "th:last-child")
+    end
+
+    test "evaluates table th_wrapper_attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} field={:name}><%= i.name %></:col>
+          <:col :let={i}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [
+               {"th", [],
+                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
+             ] = Floki.find(html, "th:first-child")
+    end
+
+    test "overrides th_wrapper_attrs" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col
+            :let={i}
+            field={:name}
+            th_wrapper_attrs={[class: "name-th-wrapper-class"]}
+          >
+            <%= i.name %>
+          </:col>
+          <:col :let={i} field={:age}><%= i.age %></:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [], [{"span", [{"class", "name-th-wrapper-class"}], _}]}] =
+               Floki.find(html, "th:first-child")
+
+      assert [
+               {"th", [],
+                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
+             ] = Floki.find(html, "th:last-child")
+    end
+
+    test "overrides table_td_attrs with tbody_td_attrs in col" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
@@ -1929,7 +1990,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} attrs={[class: "name-td-class"]}><%= i.name %></:col>
+          <:col :let={i} tbody_td_attrs={[class: "name-td-class"]}><%= i.name %></:col>
           <:col :let={i}><%= i.age %></:col>
         </Flop.Phoenix.table>
         """)
@@ -1941,7 +2002,30 @@ defmodule Flop.PhoenixTest do
                Floki.find(html, "td:last-child")
     end
 
-    test "overrides table_td_attrs with td attrs in action columns" do
+    test "overrides table_th_attrs with thead_th_attrs in action columns" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [thead_th_attrs: [class: "default-th-class"]]
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i}><%= i.name %></:col>
+          <:action thead_th_attrs={[class: "action-1-th-class"]}>action 1</:action>
+          <:action>action 2</:action>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [{"th", [{"class", "action-1-th-class"}], _}] =
+               Floki.find(html, "th:nth-child(2)")
+
+      assert [{"th", [{"class", "default-th-class"}], _}] =
+               Floki.find(html, "th:last-child")
+    end
+
+    test "overrides table_td_attrs with tbody_td_attrs in action columns" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
@@ -1952,7 +2036,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i}><%= i.name %></:col>
-          <:action attrs={[class: "action-1-td-class"]}>action 1</:action>
+          <:action tbody_td_attrs={[class: "action-1-td-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
         """)
@@ -1965,88 +2049,108 @@ defmodule Flop.PhoenixTest do
     end
 
     test "doesn't render table if items list is empty" do
-      assert [{"p", [], ["No results."]}] = render_table(items: [])
+      assert [{"p", [], ["No results."]}] = render_table(%{items: []})
     end
 
     test "displays headers for action col" do
-      html = render_table([], &test_table_with_action/1)
+      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons"></:action>
+        </Flop.Phoenix.table>
+        """)
+
       assert [th] = Floki.find(html, "th:fl-contains('Buttons')")
       assert Floki.children(th, include_text: false) == []
     end
 
     test "displays headers without sorting function" do
-      html = render_table()
+      html = render_table(%{})
       assert [th] = Floki.find(html, "th:fl-contains('Age')")
       assert Floki.children(th, include_text: false) == []
     end
 
     test "conditionally hides a column" do
-      html = render_table()
+      html = render_table(%{})
       assert [_] = Floki.find(html, "th:fl-contains('Age')")
       assert [_] = Floki.find(html, "td:fl-contains('8')")
 
-      html = render_table(hide_age: false, show_age: true)
+      html = render_table(%{hide_age: false, show_age: true})
       assert [_] = Floki.find(html, "th:fl-contains('Age')")
       assert [_] = Floki.find(html, "td:fl-contains('8')")
 
-      html = render_table(hide_age: true, show_age: true)
+      html = render_table(%{hide_age: true, show_age: true})
       assert [] = Floki.find(html, "th:fl-contains('Age')")
       assert [] = Floki.find(html, "td:fl-contains('8')")
 
-      html = render_table(hide_age: false, show_age: false)
+      html = render_table(%{hide_age: false, show_age: false})
       assert [] = Floki.find(html, "th:fl-contains('Age')")
       assert [] = Floki.find(html, "td:fl-contains('8')")
 
-      html = render_table(hide_age: true, show_age: false)
+      html = render_table(%{hide_age: true, show_age: false})
       assert [] = Floki.find(html, "th:fl-contains('Age')")
       assert [] = Floki.find(html, "td:fl-contains('8')")
     end
 
     test "conditionally hides an action column" do
-      html = render_table([], &test_table_with_action/1)
+      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons"><a href="#">Show Pet</a></:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
-      assert [_, _] = Floki.find(html, "a:fl-contains('Show Pet')")
 
       html =
-        render_table(
-          [hide_action: false, show_action: true],
-          &test_table_with_action/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons" show={true} hide={false}></:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
-      assert [_, _] = Floki.find(html, "a:fl-contains('Show Pet')")
 
       html =
-        render_table(
-          [hide_action: true, show_action: true],
-          &test_table_with_action/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons" show={true} hide={true}></:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
 
       html =
-        render_table(
-          [hide_action: true, show_action: false],
-          &test_table_with_action/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons" show={false} hide={true}></:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
 
       html =
-        render_table(
-          [hide_action: false, show_action: false],
-          &test_table_with_action/1
-        )
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action label="Buttons" show={false} hide={false}></:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-      assert [] = Floki.find(html, "td:fl-contains('Show Pet')")
     end
 
     test "displays headers with sorting function" do
-      html = render_table()
+      html = render_table(%{})
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "data-phx-link") == ["patch"]
@@ -2058,10 +2162,10 @@ defmodule Flop.PhoenixTest do
 
     test "uses phx-click with on_sort without path" do
       html =
-        render_table(
+        render_table(%{
           path: nil,
           on_sort: JS.push("sort")
-        )
+        })
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "data-phx-link") == []
@@ -2131,14 +2235,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a function/args tuple as path" do
-      html = render_table(path: {&route_helper/3, @route_helper_opts})
+      html = render_table(%{path: {&route_helper/3, @route_helper_opts}})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert [href] = Floki.attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a function as path" do
-      html = render_table(path: &path_func/1)
+      html = render_table(%{path: &path_func/1})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
       assert [href] = Floki.attribute(a, "href")
@@ -2146,7 +2250,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "supports a URI string as path" do
-      html = render_table(path: "/pets")
+      html = render_table(%{path: "/pets"})
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
 
       [href] = Floki.attribute(a, "href")
@@ -2206,14 +2310,14 @@ defmodule Flop.PhoenixTest do
 
     test "adds aria-sort attribute to first ordered field" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{
               order_by: [:email, :name],
               order_directions: [:asc, :desc]
             }
           }
-        )
+        })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == []
@@ -2222,14 +2326,14 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(th_species, "aria-sort") == []
 
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{
               order_by: [:name, :email],
               order_directions: [:desc, :asc]
             }
           }
-        )
+        })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == ["descending"]
@@ -2238,11 +2342,11 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(th_species, "aria-sort") == []
 
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [], order_directions: []}
           }
-        )
+        })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
       assert Floki.attribute(th_name, "aria-sort") == []
@@ -2252,7 +2356,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders links with click handler" do
-      html = render_table(event: "sort", path: nil)
+      html = render_table(%{event: "sort", path: nil})
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -2266,7 +2370,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "adds phx-target to header links" do
-      html = render_table(event: "sort", path: nil, target: "here")
+      html = render_table(%{event: "sort", path: nil, target: "here"})
 
       assert [a] = Floki.find(html, "th a:fl-contains('Name')")
       assert Floki.attribute(a, "href") == ["#"]
@@ -2277,13 +2381,13 @@ defmodule Flop.PhoenixTest do
 
     test "checks for sortability if for option is set" do
       # without :for option
-      html = render_table()
+      html = render_table(%{})
 
       assert [_] = Floki.find(html, "a:fl-contains('Name')")
       assert [_] = Floki.find(html, "a:fl-contains('Species')")
 
       # with :for assign
-      html = render_table(meta: %Flop.Meta{flop: %Flop{}, schema: Pet})
+      html = render_table(%{meta: %Flop.Meta{flop: %Flop{}, schema: Pet}})
 
       assert [_] = Floki.find(html, "a:fl-contains('Name')")
       assert [] = Floki.find(html, "a:fl-contains('Species')")
@@ -2291,7 +2395,7 @@ defmodule Flop.PhoenixTest do
 
     test "hides default order and limit" do
       html =
-        render_table(
+        render_table(%{
           meta:
             build(
               :meta_on_second_page,
@@ -2302,7 +2406,7 @@ defmodule Flop.PhoenixTest do
               },
               schema: Pet
             )
-        )
+        })
 
       assert [link] = Floki.find(html, "a:fl-contains('Name')")
       assert [href] = Floki.attribute(link, "href")
@@ -2314,11 +2418,11 @@ defmodule Flop.PhoenixTest do
 
     test "renders order direction symbol" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:asc]}
           }
-        )
+        })
 
       assert Floki.find(
                html,
@@ -2326,11 +2430,11 @@ defmodule Flop.PhoenixTest do
              ) == []
 
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:email], order_directions: [:asc]}
           }
-        )
+        })
 
       assert [span] =
                Floki.find(
@@ -2341,11 +2445,11 @@ defmodule Flop.PhoenixTest do
       assert span |> Floki.text() |> String.trim() == "▴"
 
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:email], order_directions: [:desc]}
           }
-        )
+        })
 
       assert [span] =
                Floki.find(
@@ -2358,14 +2462,14 @@ defmodule Flop.PhoenixTest do
 
     test "only renders order direction symbol for first order field" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{
               order_by: [:name, :email],
               order_directions: [:asc, :asc]
             }
           }
-        )
+        })
 
       assert [span] =
                Floki.find(
@@ -2383,35 +2487,35 @@ defmodule Flop.PhoenixTest do
 
     test "allows to set symbol class" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:asc]}
           },
           opts: [symbol_attrs: [class: "other-class"]]
-        )
+        })
 
       assert [_] = Floki.find(html, "span.other-class")
     end
 
     test "allows to override default symbols" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:asc]}
           },
           opts: [symbol_asc: "asc"]
-        )
+        })
 
       assert [span] = Floki.find(html, "span.order-direction")
       assert span |> Floki.text() |> String.trim() == "asc"
 
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:desc]}
           },
           opts: [symbol_desc: "desc"]
-        )
+        })
 
       assert [span] = Floki.find(html, "span.order-direction")
       assert span |> Floki.text() |> String.trim() == "desc"
@@ -2419,12 +2523,12 @@ defmodule Flop.PhoenixTest do
 
     test "allows to set indicator for unsorted column" do
       html =
-        render_table(
+        render_table(%{
           meta: %Flop.Meta{
             flop: %Flop{order_by: [:name], order_directions: [:asc]}
           },
           opts: [symbol_unsorted: "random"]
-        )
+        })
 
       assert [span] =
                Floki.find(
@@ -2436,14 +2540,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders notice if item list is empty" do
-      assert [{"p", [], ["No results."]}] = render_table(items: [])
+      assert [{"p", [], ["No results."]}] = render_table(%{items: []})
     end
 
     test "allows to set no_results_content" do
-      assert render_table(
+      assert render_table(%{
                items: [],
                opts: [no_results_content: content_tag(:div, do: "Nothing!")]
-             ) == [{"div", [], ["Nothing!"]}]
+             }) == [{"div", [], ["Nothing!"]}]
     end
 
     test "renders row_click" do
@@ -2475,7 +2579,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not render row_click if not set" do
-      html = render_table([])
+      html = render_table(%{})
 
       assert [
                {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
@@ -2489,10 +2593,24 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders table action" do
-      html = render_table([opts: []], &test_table_with_action/1)
+      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          path="/pets"
+          items={[%{name: "George", age: 8}, %{name: "Mary", age: 10}]}
+          meta={@meta}
+        >
+          <:col></:col>
+          <:action :let={pet} label="Buttons">
+            <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
+          </:action>
+        </Flop.Phoenix.table>
+        """)
 
       assert [
-               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"thead", _, _},
                   {"tbody", _, rows}
@@ -2504,7 +2622,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not render action column if option is not set" do
-      html = render_table([])
+      html = render_table(%{})
 
       assert [
                {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
@@ -2641,14 +2759,24 @@ defmodule Flop.PhoenixTest do
              ] = html
     end
 
-    test "does not render colgroup on action col if no style attribute is set" do
+    test "doesn't render colgroup on action col if no style attribute is set" do
+      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
+          <:col></:col>
+          <:action></:action>
+        </Flop.Phoenix.table>
+        """)
+
       assert [
-               {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
+               {"table", _,
                 [
                   {"thead", _, _},
                   {"tbody", _, _}
                 ]}
-             ] = render_table([], &test_table_with_action/1)
+             ] = html
     end
 
     test "renders caption" do
@@ -2659,11 +2787,11 @@ defmodule Flop.PhoenixTest do
                   {"thead", _, _},
                   {"tbody", _, _}
                 ]}
-             ] = render_table(caption: "some caption")
+             ] = render_table(%{caption: "some caption"})
     end
 
     test "does not render table foot if option is not set" do
-      html = render_table()
+      html = render_table(%{})
 
       assert [
                {"table", [{"id", "some-table"}, {"class", "sortable-table"}],
@@ -2672,7 +2800,7 @@ defmodule Flop.PhoenixTest do
     end
 
     test "does not require path when passing event" do
-      html = render_table(event: "sort-table", path: nil)
+      html = render_table(%{event: "sort-table", path: nil})
 
       assert [link] = Floki.find(html, "a:fl-contains('Name')")
       assert Floki.attribute(link, "phx-click") == ["sort-table"]
@@ -2694,7 +2822,7 @@ defmodule Flop.PhoenixTest do
     @tag capture_log: true
     test "does not crash if meta has errors" do
       {:error, meta} = Flop.validate(%{page: 0})
-      render_table(meta: meta)
+      render_table(%{meta: meta})
     end
   end
 
