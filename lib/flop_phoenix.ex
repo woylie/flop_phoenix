@@ -1014,7 +1014,7 @@ defmodule Flop.Phoenix do
     Any additional assigns will be added as attributes to the `<td>` elements.
 
     """ do
-    attr :label, :string, doc: "The content for the header column."
+    attr :label, :any, doc: "The content for the header column."
 
     attr :field, :atom,
       doc: """
