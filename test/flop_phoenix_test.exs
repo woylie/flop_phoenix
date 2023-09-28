@@ -101,6 +101,22 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
+    test "does not render next and previous links if user specifies not to" do
+      assigns = %{meta: build(:meta_on_first_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={%JS{}}
+          opts={[render_next_and_previous_links: false]}
+        />
+        """)
+
+      assert [] = Floki.find(html, ".pagination-next")
+      assert [] = Floki.find(html, ".pagination-previous")
+    end
+
     test "allows to overwrite wrapper class" do
       assigns = %{meta: build(:meta_on_first_page)}
 
@@ -3023,8 +3039,7 @@ defmodule Flop.PhoenixTest do
       assert [
                {"div", [{"data-test-id", "thead-label-component"}],
                 ["\n  Custom\n"]}
-             ] =
-               Floki.find(html, ~s([data-test-id="thead-label-component"]))
+             ] = Floki.find(html, ~s([data-test-id="thead-label-component"]))
     end
 
     test "renders multiple inputs for the same field", %{

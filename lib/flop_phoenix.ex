@@ -186,7 +186,8 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:wrapper_attrs])}`.
   """
   @type pagination_option ::
-          {:current_link_attrs, keyword}
+          {:render_next_and_previous_links, boolean()}
+          | {:current_link_attrs, keyword}
           | {:disabled_class, String.t()}
           | {:ellipsis_attrs, keyword}
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
@@ -429,6 +430,7 @@ defmodule Flop.Phoenix do
     ~H"""
     <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>
       <.pagination_link
+        :if={@opts[:render_next_and_previous_links]}
         disabled={!@meta.has_previous_page?}
         disabled_class={@opts[:disabled_class]}
         event={@event}
@@ -441,6 +443,7 @@ defmodule Flop.Phoenix do
         <%= @opts[:previous_link_content] %>
       </.pagination_link>
       <.pagination_link
+        :if={@opts[:render_next_and_previous_links]}
         disabled={!@meta.has_next_page?}
         disabled_class={@opts[:disabled_class]}
         event={@event}
