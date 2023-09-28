@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.22.1] - 2023-09-28
+
 ### Changed
 
 - Allow to use `t:Phoenix.HTML.safe/0` as a label attribute in table headers.
