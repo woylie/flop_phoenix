@@ -2997,6 +2997,36 @@ defmodule Flop.PhoenixTest do
       assert Floki.attribute(input, "type") == ["tel"]
     end
 
+    test "it overrides label when passed Phoenix.HTML.Safe" do
+      assigns = %{
+        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
+        items: [%{name: "George", age: 8}],
+        opts: [],
+        thead_label_component: fn assigns ->
+          ~H"""
+          <div data-test-id="thead-label-component">
+            Custom
+          </div>
+          """
+        end
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+          <:col :let={i} label={@thead_label_component.(%{})}>
+            <%= i.name %>
+          </:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [
+               {"div", [{"data-test-id", "thead-label-component"}],
+                ["\n  Custom\n"]}
+             ] =
+               Floki.find(html, ~s([data-test-id="thead-label-component"]))
+    end
+
     test "renders multiple inputs for the same field", %{
       meta: meta
     } do

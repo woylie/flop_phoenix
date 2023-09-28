@@ -167,7 +167,7 @@ defmodule Flop.Phoenix.Table do
 
   attr :meta, Flop.Meta, required: true
   attr :field, :atom, required: true
-  attr :label, :string, required: true
+  attr :label, :any, required: true
   attr :path, :any, required: true
   attr :on_sort, JS
   attr :event, :string, required: true
