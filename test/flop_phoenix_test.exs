@@ -544,7 +544,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "href") == ["#"]
       assert Floki.attribute(link, "phx-click") == ["paginate"]
       assert Floki.attribute(link, "phx-value-page") == ["1"]
@@ -559,7 +559,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "phx-target") == ["here"]
     end
 
@@ -617,12 +617,12 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "beep") == ["boop"]
       assert Floki.attribute(link, "class") == ["p-link"]
 
       # current link attributes are unchanged
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "beep") == []
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
     end
@@ -639,14 +639,14 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
       assert String.trim(Floki.text(link)) == "1"
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "beep") == ["boop"]
       assert Floki.attribute(link, "class") == ["link is-active"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
@@ -721,7 +721,7 @@ defmodule Flop.PhoenixTest do
       assert [href] = Floki.attribute(previous, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [one] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [one] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(one, "class") == ["pagination-link"]
       assert Floki.attribute(one, "data-phx-link") == ["patch"]
       assert Floki.attribute(one, "data-phx-link-state") == ["push"]
@@ -842,7 +842,7 @@ defmodule Flop.PhoenixTest do
       assert [href] = Floki.attribute(previous, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [one] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [one] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(one, "class") == ["pagination-link"]
       assert Floki.attribute(one, "data-phx-link") == ["patch"]
       assert Floki.attribute(one, "data-phx-link-state") == ["push"]
@@ -898,13 +898,13 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
-      assert html |> Floki.find(".pagination-link") |> length() == 6
+      assert html |> Floki.find("li .pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find("li .pagination-link") |> length() == 6
 
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 1..5 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -922,10 +922,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
 
       for i <- 16..20 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -943,11 +943,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 10..15 do
-        assert Floki.find(html, ".a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -965,11 +965,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 9..13 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -987,11 +987,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 8..12 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1009,11 +1009,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 9..13 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1031,10 +1031,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "a[aria-label='Go to page 20']")
+      assert Floki.find(html, "li a[aria-label='Go to page 20']")
 
       for i <- 1..5 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1052,10 +1052,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "a[aria-label='Go to page 1']")
+      assert Floki.find(html, "li a[aria-label='Go to page 1']")
 
       for i <- 16..20 do
-        assert Floki.find(html, "a[aria-label='Go to page #{i}']")
+        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
