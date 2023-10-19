@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.22.2] - 2023-10-19
+
+### Fixed
+
+- Numbered pagination links were not wrapped in `li` elements.
+
 ## [0.22.1] - 2023-09-28
 
 ### Changed
