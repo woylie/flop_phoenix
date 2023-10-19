@@ -512,14 +512,14 @@ defmodule Flop.PhoenixTest do
 
       assert [_] = Floki.find(html, "ul[class='pagination-links']")
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 1']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
       assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
       assert String.trim(Floki.text(link)) == "1"
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 2']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
       assert Floki.attribute(link, "class") == ["pagination-link is-current"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
@@ -527,7 +527,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?page=2&page_size=10")
       assert String.trim(Floki.text(link)) == "2"
 
-      assert [link] = Floki.find(html, "a[aria-label='Go to page 3']")
+      assert [link] = Floki.find(html, "li a[aria-label='Go to page 3']")
       assert Floki.attribute(link, "class") == ["pagination-link"]
       assert Floki.attribute(link, "data-phx-link") == ["patch"]
       assert Floki.attribute(link, "data-phx-link-state") == ["push"]
