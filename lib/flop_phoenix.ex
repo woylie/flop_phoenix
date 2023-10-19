@@ -503,17 +503,18 @@ defmodule Flop.Phoenix do
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
       </li>
 
-      <.pagination_link
-        :for={page <- @range}
-        event={@event}
-        target={@target}
-        page={page}
-        path={@page_link_helper.(page)}
-        on_paginate={@on_paginate}
-        {Pagination.attrs_for_page_link(page, @meta, @opts)}
-      >
-        <%= page %>
-      </.pagination_link>
+      <li :for={page <- @range}>
+        <.pagination_link
+          event={@event}
+          target={@target}
+          page={page}
+          path={@page_link_helper.(page)}
+          on_paginate={@on_paginate}
+          {Pagination.attrs_for_page_link(page, @meta, @opts)}
+        >
+          <%= page %>
+        </.pagination_link>
+      </li>
 
       <li :if={@last < @meta.total_pages - 1}>
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
