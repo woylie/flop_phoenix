@@ -1502,27 +1502,64 @@ defmodule Flop.Phoenix do
 
   @doc """
   Converts a Flop struct into a keyword list that can be used as a query with
-  Phoenix route helper functions.
+  Phoenix verified routes or route helper functions.
 
-  Default limits and default order parameters are omitted.
+  ## Default parameters
 
-  The defaults are determined by calling `Flop.get_option/3`, which means you
-  can pass `default_limit` and `default_order` directly, you can pass the `:for`
-  option to pick up the default options from a schema module deriving
-  `Flop.Schema`, and you can pass the `backend` option, so that Flop can fall
-  back to the your backend options. If the defaults are set at neither of these
-  places, it will fall back to the options set in the application environment.
+  Default parameters for the limit and order parameters are omitted. The
+  defaults are determined by calling `Flop.get_option/3`.
+
+  - Pass the `:for` option to pick up the default values from a schema module
+    deriving `Flop.Schema`.
+  - Pass the `:backend` option to pick up the default values from your backend
+    configuration.
+  - If neither the schema module nor the backend module have default options
+    set, the function will fall back to the application environment.
+
+  ## Encoding queries
+
+  To encode the returned query as a string, you will need to use
+  `Plug.Conn.Query.encode/1`. `URI.encode_query/1` does not support bracket
+  notation for arrays and maps.
+
+  ## Date and time filters
+
+  If you use the result of this function directly with
+  `Phoenix.VerifiedRoutes.sigil_p/2` for verified routes or in a route helper
+  function, all cast filter values need to be able to be converted to a string
+  using the `Phoenix.Param` protocol.
+
+  This protocol is implemented by default for integers, binaries, atoms, and
+  structs. For structs, Phoenix's default behavior is to fetch the id field.
+
+  If you have filters with `Date`, `DateTime`, `NaiveDateTime`,
+  `Time` values, or any other custom structs (e.g. structs that represent
+  composite types like a range column), you will need to implement the protocol
+  for these specific structs in your application.
+
+      defimpl Phoenix.Param, for: Date do
+        def to_param(%Date{} = d), do: to_string(d)
+      end
+
+      defimpl Phoenix.Param, for: DateTime do
+        def to_param(%DateTime{} = dt), do: to_string(dt)
+      end
+
+      defimpl Phoenix.Param, for: NaiveDateTime do
+        def to_param(%NaiveDateTime{} = dt), do: to_string(dt)
+      end
+
+      defimpl Phoenix.Param, for: Time do
+        def to_param(%Time{} = t), do: to_string(t)
+      end
+
+  It is important that the chosen string representation can be cast back into
+  the Ecto type.
 
   ## Examples
 
       iex> to_query(%Flop{})
       []
-
-      iex> f = %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
-      iex> to_query(f)
-      [order_directions: [:desc, :asc], order_by: [:name, :age]]
-      iex> f |> to_query |> Plug.Conn.Query.encode()
-      "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
 
       iex> f = %Flop{page: 5, page_size: 20}
       iex> to_query(f)
@@ -1552,9 +1589,13 @@ defmodule Flop.Phoenix do
       iex> to_query(f, default_limit: 20)
       [page: 5]
 
-  Note that you will need to use `Plug.Conn.Query.encode/1` to encode the query
-  as a string, since `URI.encode_query/1` does not support bracket notation
-  for arrays and maps.
+  Encoding the query as a string:
+
+      iex> f = %Flop{order_by: [:name, :age], order_directions: [:desc, :asc]}
+      iex> to_query(f)
+      [order_directions: [:desc, :asc], order_by: [:name, :age]]
+      iex> f |> to_query |> Plug.Conn.Query.encode()
+      "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
   """
   @doc since: "0.6.0"
   @doc section: :miscellaneous
@@ -1600,6 +1641,12 @@ defmodule Flop.Phoenix do
   pick up the default parameters from the backend module, you need to pass the
   `:backend` option. If you pass a `Flop.Meta` struct as the second argument,
   these options are retrieved from the struct automatically.
+
+  > #### Date and Time Filters {: .info}
+  >
+  > When using filters on `Date`, `DateTime`, `NaiveDateTime` or `Time` fields,
+  > you may need to implement the `Phoenix.Param` protocol for these structs.
+  > See the documentation for `to_query/2`.
 
   ## Examples
 
