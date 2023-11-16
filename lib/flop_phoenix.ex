@@ -487,9 +487,8 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
-      <li>
+      <li :if={@first > 1}>
         <.pagination_link
-          :if={@first > 1}
           event={@event}
           target={@target}
           page={1}
@@ -522,9 +521,8 @@ defmodule Flop.Phoenix do
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
       </li>
 
-      <li>
+      <li :if={@last < @meta.total_pages}>
         <.pagination_link
-          :if={@last < @meta.total_pages}
           event={@event}
           target={@target}
           page={@meta.total_pages}
