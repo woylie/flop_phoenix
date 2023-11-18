@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Don't render `li` element if a pagination link is not rendered.
+
 ## [0.22.3] - 2023-11-14
 
 ### Changed
