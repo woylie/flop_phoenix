@@ -15,6 +15,7 @@ defmodule Flop.Phoenix.Table do
       container: false,
       container_attrs: [class: "table-container"],
       no_results_content: HTML.Tag.content_tag(:p, do: "No results."),
+      no_results_attrs: [class: "hidden only:table-row"],
       symbol_asc: "▴",
       symbol_attrs: [class: "order-direction"],
       symbol_desc: "▾",
@@ -135,6 +136,14 @@ defmodule Flop.Phoenix.Table do
             {merge_td_attrs(@opts[:tbody_td_attrs], action, item)}
           >
             <%= render_slot(action, @row_item.(item)) %>
+          </td>
+        </tr>
+        <tr id={@id <> "-empty-tr"} {@opts[:no_results_attrs]}>
+          <td
+            colspan={length(@col) + length(@action || 0)}
+            {@opts[:tbody_td_attrs] |> Keyword.update(:class, "", & "#{&1} text-center")}
+          >
+            <%= @opts[:no_results_content] %>
           </td>
         </tr>
       </tbody>
