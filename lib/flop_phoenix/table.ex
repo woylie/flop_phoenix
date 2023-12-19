@@ -4,7 +4,6 @@ defmodule Flop.Phoenix.Table do
   use Phoenix.Component
 
   alias Flop.Phoenix.Misc
-  alias Phoenix.HTML
   alias Phoenix.LiveView.JS
 
   require Logger
@@ -14,7 +13,8 @@ defmodule Flop.Phoenix.Table do
     [
       container: false,
       container_attrs: [class: "table-container"],
-      no_results_content: HTML.Tag.content_tag(:p, do: "No results."),
+      no_results_content:
+        PhoenixHTMLHelpers.Tag.content_tag(:p, do: "No results."),
       symbol_asc: "▴",
       symbol_attrs: [class: "order-direction"],
       symbol_desc: "▾",

@@ -132,12 +132,12 @@ defmodule Flop.Phoenix do
 
   import Phoenix.HTML.Form,
     only: [
-      humanize: 1,
       input_id: 2,
       input_name: 2,
-      input_type: 2,
       input_value: 2
     ]
+
+  import PhoenixHTMLHelpers.Form, only: [humanize: 1]
 
   alias Flop.Meta
   alias Flop.Phoenix.CursorPagination
@@ -1385,7 +1385,7 @@ defmodule Flop.Phoenix do
 
   defp input_type_as_string(form) do
     form
-    |> input_type(:value)
+    |> PhoenixHTMLHelpers.Form.input_type(:value)
     |> to_html_input_type()
   end
 
