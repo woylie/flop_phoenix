@@ -1,16 +1,17 @@
 defmodule Flop.PhoenixTest do
   use ExUnit.Case
   use Phoenix.Component
-  use Phoenix.HTML
 
   import Flop.Phoenix
   import Flop.Phoenix.Factory
   import Flop.Phoenix.TestHelpers
+  import Phoenix.HTML
   import Phoenix.LiveViewTest
+  import PhoenixHTMLHelpers.Form
+  import PhoenixHTMLHelpers.Tag
 
   alias Flop.Filter
   alias MyApp.Pet
-  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.LiveStream
   alias Plug.Conn.Query
@@ -3273,7 +3274,7 @@ defmodule Flop.PhoenixTest do
     } do
       html =
         meta
-        |> Form.form_for("/", fn f ->
+        |> PhoenixHTMLHelpers.Form.form_for("/", fn f ->
           inputs_for(f, :filters, [fields: fields, offset: 5], fn fo ->
             render_component(&hidden_inputs_for_filter/1, form: fo)
           end)

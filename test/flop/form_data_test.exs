@@ -3,6 +3,7 @@ defmodule Flop.Phoenix.FormDataTest do
 
   import Flop.Phoenix.Factory
   import Phoenix.HTML.Form
+  import PhoenixHTMLHelpers.Form
 
   alias Flop.Filter
   alias MyApp.Pet
@@ -20,7 +21,6 @@ defmodule Flop.Phoenix.FormDataTest do
       assert form.params == %{}
       assert form.errors == meta.errors
       assert form.index == nil
-      assert form.action == nil
     end
 
     test "with :as" do
@@ -115,7 +115,6 @@ defmodule Flop.Phoenix.FormDataTest do
       assert filter_form.params == %{}
       assert filter_form.errors == []
       assert filter_form.index == 0
-      assert filter_form.action == nil
     end
 
     @tag capture_log: true
