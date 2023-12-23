@@ -1324,7 +1324,7 @@ defmodule Flop.Phoenix do
     """
 
   def filter_fields(assigns) do
-    is_meta_form!(assigns.form)
+    ensure_meta_form!(assigns.form)
     fields = normalize_filter_fields(assigns[:fields] || [])
     field_opts = match_field_opts(assigns, fields)
     inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
@@ -1416,8 +1416,8 @@ defmodule Flop.Phoenix do
 
   # coveralls-ignore-end
 
-  defp is_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
-  defp is_meta_form!(_), do: raise(Flop.Phoenix.NoMetaFormError)
+  defp ensure_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
+  defp ensure_meta_form!(_), do: raise(Flop.Phoenix.NoMetaFormError)
 
   @doc """
   Renders hidden inputs for the given form.
