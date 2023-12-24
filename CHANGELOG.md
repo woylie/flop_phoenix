@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.22.5] - 2023-12-24
+
 ### Changed
 
 - Requires `phoenix_html ~> 4.0`.
