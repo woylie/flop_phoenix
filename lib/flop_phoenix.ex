@@ -1425,8 +1425,8 @@ defmodule Flop.Phoenix do
   You can use this for convenience if you have a complex form layout that cannot
   be accomplished with `Flop.Phoenix.filter_fields/1`. Put it as a direct child
   of the `form` component to render the hidden inputs for pagination and order
-  parameters. Then use `Phoenix.HTML.Form.inputs_for/3` to render a single
-  filter field, and place this component within the `do` block to render the
+  parameters. Then use `PhoenixHTMLHelpers.Form.inputs_for/3` to render a single
+  filter field, and place this component within the anonymous function to render the
   hidden inputs for the filter field and operator.
 
   Since the filters are represented as an array in the params, make sure to
@@ -1439,13 +1439,13 @@ defmodule Flop.Phoenix do
 
         <div class="field-group">
           <div class="field">
-            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [:name]) do %>
+            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [:name]], fn ff -> %>
               <.hidden_inputs_for_filter form={ff} />
               <.input label="Name" type="text" field={{ff, :value}} />
             <% end %>
           </div>
           <div class="field">
-            <%= for ff <- Phoenix.HTML.Form.inputs_for(f, :filters, fields: [{:email, op: :ilike}], offset: 1) do %>
+            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1] fn ff -> %>
               <.hidden_inputs_for_filter form={ff} />
               <.input label="E-mail" type="email" field={{ff, :value}} />
             <% end %>
