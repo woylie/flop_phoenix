@@ -193,6 +193,7 @@ defmodule Flop.Phoenix do
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
+          | {:pagination_list_item_attrs, keyword}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
@@ -487,7 +488,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
-      <li :if={@first > 1}>
+      <li :if={@first > 1} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           event={@event}
           target={@target}
@@ -500,11 +501,11 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
 
-      <li :if={@first > 2}>
+      <li :if={@first > 2} {@opts[:pagination_list_item_attrs]}>
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
       </li>
 
-      <li :for={page <- @range}>
+      <li :for={page <- @range} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           event={@event}
           target={@target}
@@ -517,11 +518,11 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
 
-      <li :if={@last < @meta.total_pages - 1}>
+      <li :if={@last < @meta.total_pages - 1} {@opts[:pagination_list_item_attrs]}>
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
       </li>
 
-      <li :if={@last < @meta.total_pages}>
+      <li :if={@last < @meta.total_pages} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           event={@event}
           target={@target}
