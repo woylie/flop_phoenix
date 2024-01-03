@@ -13,8 +13,7 @@ defmodule Flop.Phoenix.Table do
     [
       container: false,
       container_attrs: [class: "table-container"],
-      no_results_content:
-        PhoenixHTMLHelpers.Tag.content_tag(:p, do: "No results."),
+      no_results_content: Phoenix.HTML.raw("<p>No results.</p>"),
       symbol_asc: "▴",
       symbol_attrs: [class: "order-direction"],
       symbol_desc: "▾",

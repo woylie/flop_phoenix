@@ -18,7 +18,7 @@ defmodule Flop.Phoenix do
   are deep-merged into the default options.
 
       defmodule MyAppWeb.CoreComponents do
-        import Phoenix.HTML.Tag
+        use Phoenix.Component
 
         def pagination_opts do
            [
@@ -34,20 +34,36 @@ defmodule Flop.Phoenix do
         end
 
         defp next_icon do
-          tag :i, class: "fas fa-chevron-right"
+          assigns = %{}
+
+          ~H\"""
+          <i class="fas fa-chevron-right"/>
+          \"""
         end
 
         defp previous_icon do
-          tag :i, class: "fas fa-chevron-left"
+          assigns = %{}
+
+          ~H\"""
+          <i class="fas fa-chevron-left"/>
+          \"""
         end
 
         def table_opts do
           [
             container: true,
             container_attrs: [class: "table-container"],
-            no_results_content: content_tag(:p, do: "Nothing found."),
+            no_results_content: no_results_content(),
             table_attrs: [class: "table"]
           ]
+        end
+
+        defp no_results_content do
+          assigns = %{}
+
+          ~H\"""
+          <p>Nothing found.</p>
+          \"""
         end
       end
 
@@ -1317,8 +1333,7 @@ defmodule Flop.Phoenix do
     The options passed to the inner block are:
 
     - `field` - A `Phoenix.HTML.FormField` struct.
-    - `type` - The input type as a string. This is _not_ the value returned
-      by `Phoenix.HTML.Form.input_type/2`.
+    - `type` - The input type as a string.
     - `label` - The label text as a string.
     - `rest` - Any additional options passed in the field options.
     """
