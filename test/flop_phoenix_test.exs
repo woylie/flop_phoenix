@@ -8,7 +8,6 @@ defmodule Flop.PhoenixTest do
   import Phoenix.HTML
   import Phoenix.LiveViewTest
   import PhoenixHTMLHelpers.Form
-  import PhoenixHTMLHelpers.Tag
 
   alias Flop.Filter
   alias MyApp.Pet
@@ -319,7 +318,8 @@ defmodule Flop.PhoenixTest do
           path="/pets"
           opts={[
             previous_link_attrs: [class: "prev", title: "p-p-previous"],
-            previous_link_content: tag(:i, class: "fas fa-chevron-left")
+            previous_link_content:
+              Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />))
           ]}
         />
         """)
@@ -441,7 +441,7 @@ defmodule Flop.PhoenixTest do
           path="/pets"
           opts={[
             next_link_attrs: [class: "next", title: "n-n-next"],
-            next_link_content: tag(:i, class: "fas fa-chevron-right")
+            next_link_content: Phoenix.HTML.raw(~s("<i class="fas fa-chevron-right" />))
           ]}
         />
         """)
@@ -453,8 +453,7 @@ defmodule Flop.PhoenixTest do
       assert [href] = Floki.attribute(link, "href")
       assert_urls_match(href, "/pets?page=3&page_size=10")
 
-      assert link |> Floki.children() |> Floki.raw_html() ==
-               "<i class=\"fas fa-chevron-right\"></i>"
+      assert Floki.attribute(link, "i", "class") == ["fas fa-chevron-right"]
     end
 
     test "disables next link if on last page" do
@@ -1344,7 +1343,8 @@ defmodule Flop.PhoenixTest do
         meta: build(:meta_with_cursors),
         opts: [
           previous_link_attrs: [class: "prev", title: "p-p-previous"],
-          previous_link_content: tag(:i, class: "fas fa-chevron-left")
+          previous_link_content:
+            Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />))
         ]
       }
 
@@ -1468,7 +1468,7 @@ defmodule Flop.PhoenixTest do
           path="/pets"
           opts={[
             next_link_attrs: [class: "next", title: "n-n-next"],
-            next_link_content: tag(:i, class: "fas fa-chevron-right")
+            next_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-right" />))
           ]}
         />
         """)
@@ -2547,7 +2547,9 @@ defmodule Flop.PhoenixTest do
     test "allows to set no_results_content" do
       assert render_table(%{
                items: [],
-               opts: [no_results_content: content_tag(:div, do: "Nothing!")]
+               opts: [
+                 no_results_content: custom_no_results_content()
+               ]
              }) == [{"div", [], ["Nothing!"]}]
     end
 
@@ -3343,5 +3345,13 @@ defmodule Flop.PhoenixTest do
       field(:age, :integer)
       field(:email, :string)
     end
+  end
+
+  defp custom_no_results_content do
+    assigns = %{}
+
+    ~H"""
+    <div>Nothing!</div>
+    """
   end
 end
