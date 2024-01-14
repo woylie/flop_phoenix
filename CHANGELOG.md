@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.22.6] - 2024-01-14
+
+### Changed
+
+- Support Flop 0.25.0.
+- Update documentation examples for filter forms.
+
 ## [0.22.5] - 2023-12-24
 
 ### Changed
