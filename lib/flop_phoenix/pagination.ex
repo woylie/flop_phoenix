@@ -8,6 +8,7 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
+      render_next_and_previous_links: true,
       current_link_attrs: [
         class: "pagination-link is-current",
         aria: [current: "page"]
