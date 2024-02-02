@@ -78,11 +78,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
         """)
 
-      wrapper = Floki.find(html, "nav")
+      nav = find_one(html, "nav:root")
 
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["pagination"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
+      assert attribute(nav, "aria-label") == "pagination"
+      assert attribute(nav, "class") == "pagination"
+      assert attribute(nav, "role") == "navigation"
     end
 
     test "does not render anything if there is only one page" do
@@ -113,11 +113,11 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [wrapper] = Floki.find(html, "nav")
+      nav = find_one(html, "nav:root")
 
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["boo"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
+      assert attribute(nav, "aria-label") == "pagination"
+      assert attribute(nav, "class") == "boo"
+      assert attribute(nav, "role") == "navigation"
     end
 
     test "allows to add attributes to wrapper" do
@@ -132,12 +132,12 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [wrapper] = Floki.find(html, "nav")
+      nav = find_one(html, "nav:root")
 
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["pagination"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
-      assert Floki.attribute(wrapper, "title") == ["paginate"]
+      assert attribute(nav, "aria-label") == "pagination"
+      assert attribute(nav, "class") == "pagination"
+      assert attribute(nav, "role") == "navigation"
+      assert attribute(nav, "title") == "paginate"
     end
 
     test "renders previous link" do
@@ -148,12 +148,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      a = find_one(html, "a:fl-contains('Previous')")
 
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "data-phx-link") == "patch"
+      assert attribute(a, "data-phx-link-state") == "push"
+      assert attribute(a, "href") == "/pets?page_size=10"
     end
 
     test "uses phx-click with on_paginate without path" do
@@ -167,14 +167,14 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={@on_paginate} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      a = find_one(html, "a:fl-contains('Previous')")
 
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == []
-      assert Floki.attribute(link, "data-phx-link-state") == []
-      assert Floki.attribute(link, "href") == ["#"]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "data-phx-link") == nil
+      assert attribute(a, "data-phx-link-state") == nil
+      assert attribute(a, "href") == "#"
+      assert attribute(a, "phx-value-page") == "1"
+      assert phx_click = attribute(a, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
@@ -190,14 +190,14 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      a = find_one(html, "a:fl-contains('Previous')")
 
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "data-phx-link") == "patch"
+      assert attribute(a, "data-phx-link-state") == "push"
+      assert attribute(a, "href") == "/pets?page_size=10"
+      assert attribute(a, "phx-value-page") == "1"
+      assert phx_click = attribute(a, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
@@ -212,8 +212,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path={@path} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert a = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(a, "href") == "/pets?page_size=10"
     end
 
     test "supports a function as path" do
@@ -224,8 +224,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path={&path_func/1} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "href") == ["/pets/page/2?page_size=10"]
+      assert a = find_one(html, "a:fl-contains('Next')")
+      assert attribute(a, "href") == "/pets/page/2?page_size=10"
     end
 
     test "supports a URI string as path" do
@@ -236,8 +236,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert a = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(a, "href") == "/pets?page_size=10"
     end
 
     test "renders previous link when using click event handling" do
@@ -248,12 +248,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert a = find_one(html, "a:fl-contains('Previous')")
 
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "phx-click") == "paginate"
+      assert attribute(a, "phx-value-page") == "1"
+      assert attribute(a, "href") == "#"
     end
 
     test "adds phx-target to previous link" do
@@ -264,8 +264,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "phx-target") == ["here"]
+      assert a = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(a, "phx-target") == "here"
     end
 
     test "merges query parameters into existing parameters" do
@@ -279,13 +279,13 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path={@path} />
         """)
 
-      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(previous, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
-      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
+      assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "data-phx-link") == "patch"
+      assert attribute(previous, "data-phx-link-state") == "push"
 
-      assert [href] = Floki.attribute(previous, "href")
-      assert_urls_match(href, "/pets?category=dinosaurs&page_size=10")
+      assert a = attribute(previous, "href")
+      assert_urls_match(a, "/pets?category=dinosaurs&page_size=10")
     end
 
     test "merges query parameters into existing path query parameters" do
@@ -299,12 +299,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets?category=dinosaurs" />
         """)
 
-      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(previous, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
-      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
+      assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "data-phx-link") == "patch"
+      assert attribute(previous, "data-phx-link-state") == "push"
 
-      assert [href] = Floki.attribute(previous, "href")
+      assert href = attribute(previous, "href")
       assert_urls_match(href, "/pets?page_size=10&category=dinosaurs")
     end
 
@@ -324,11 +324,11 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[title='p-p-previous']")
-      assert Floki.attribute(link, "class") == ["prev"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
+      assert link = find_one(html, "a[title='p-p-previous']")
+      assert attribute(link, "class") == "prev"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert attribute(link, "href") == "/pets?page_size=10"
 
       assert link |> Floki.children() |> Floki.raw_html() ==
                "<i class=\"fas fa-chevron-left\"></i>"
@@ -342,11 +342,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == [
+      assert attribute(previous_link, "class") ==
                "pagination-previous disabled"
-             ]
     end
 
     test "disables previous link if on first page when using click handlers" do
@@ -357,11 +356,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == [
+      assert attribute(previous_link, "class") ==
                "pagination-previous disabled"
-             ]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -379,11 +377,11 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Prev')")
+      assert previous_link = find_one(html, "span:fl-contains('Prev')")
 
-      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
-      assert Floki.attribute(previous_link, "title") == ["no"]
-      assert String.trim(Floki.text(previous_link)) == "Prev"
+      assert attribute(previous_link, "class") == "prev disabled"
+      assert attribute(previous_link, "title") == "no"
+      assert text(previous_link) == "Prev"
     end
 
     test "renders next link" do
@@ -394,12 +392,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
+      assert link = find_one(html, "a:fl-contains('Next')")
 
-      assert Floki.attribute(link, "class") == ["pagination-next"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=3&page_size=10")
     end
 
@@ -411,12 +409,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
+      assert link = find_one(html, "a:fl-contains('Next')")
 
-      assert Floki.attribute(link, "class") == ["pagination-next"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-page") == ["3"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-value-page") == "3"
+      assert attribute(link, "href") == "#"
     end
 
     test "adds phx-target to next link" do
@@ -427,8 +425,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "phx-target") == ["here"]
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert attribute(link, "phx-target") == "here"
     end
 
     test "allows to overwrite next link attributes and content" do
@@ -446,14 +444,14 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[title='n-n-next']")
-      assert Floki.attribute(link, "class") == ["next"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a[title='n-n-next']")
+      assert attribute(link, "class") == "next"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=3&page_size=10")
 
-      assert Floki.attribute(link, "i", "class") == ["fas fa-chevron-right"]
+      assert attribute(link, "i", "class") == "fas fa-chevron-right"
     end
 
     test "disables next link if on last page" do
@@ -464,9 +462,9 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [next] = Floki.find(html, "span:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
-      assert Floki.attribute(next, "href") == []
+      assert next = find_one(html, "span:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next disabled"
+      assert attribute(next, "href") == nil
     end
 
     test "renders next link on last page when using click event handling" do
@@ -477,9 +475,9 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [next] = Floki.find(html, "span:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
-      assert Floki.attribute(next, "href") == []
+      assert next = find_one(html, "span:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next disabled"
+      assert attribute(next, "href") == nil
     end
 
     test "allows to overwrite next link attributes and content when disabled" do
@@ -497,9 +495,9 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [next_link] = Floki.find(html, "span:fl-contains('N-n-next')")
-      assert Floki.attribute(next_link, "class") == ["next disabled"]
-      assert Floki.attribute(next_link, "title") == ["no"]
+      assert next_link = find_one(html, "span:fl-contains('N-n-next')")
+      assert attribute(next_link, "class") == "next disabled"
+      assert attribute(next_link, "title") == "no"
     end
 
     test "renders page links" do
@@ -510,30 +508,30 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [_] = Floki.find(html, "ul[class='pagination-links']")
+      assert find_one(html, "ul[class='pagination-links']")
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(link, "class") == ["pagination-link"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert String.trim(Floki.text(link)) == "1"
+      assert link = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(link, "class") == "pagination-link"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert attribute(link, "href") == "/pets?page_size=10"
+      assert text(link) == "1"
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
-      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "li a[aria-label='Go to page 2']")
+      assert attribute(link, "class") == "pagination-link is-current"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=2&page_size=10")
-      assert String.trim(Floki.text(link)) == "2"
+      assert text(link) == "2"
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 3']")
-      assert Floki.attribute(link, "class") == ["pagination-link"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "li a[aria-label='Go to page 3']")
+      assert attribute(link, "class") == "pagination-link"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=3&page_size=10")
-      assert String.trim(Floki.text(link)) == "3"
+      assert text(link) == "3"
     end
 
     test "renders page links when using click event handling" do
@@ -544,11 +542,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(link, "href") == ["#"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert Floki.text(link) =~ "1"
+      assert link = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(link, "href") == "#"
+      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-value-page") == "1"
+      assert text(link) =~ "1"
     end
 
     test "adds phx-target to page link" do
@@ -559,8 +557,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(link, "phx-target") == ["here"]
+      assert link = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(link, "phx-target") == "here"
     end
 
     test "doesn't render pagination links if set to hide" do
@@ -601,8 +599,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [list] = Floki.find(html, "ul.p-list")
-      assert Floki.attribute(list, "title") == ["boop"]
+      assert list = find_one(html, "ul.p-list")
+      assert attribute(list, "title") == "boop"
     end
 
     test "allows to overwrite pagination link attributes" do
@@ -617,14 +615,14 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(link, "beep") == ["boop"]
-      assert Floki.attribute(link, "class") == ["p-link"]
+      assert link = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(link, "beep") == "boop"
+      assert attribute(link, "class") == "p-link"
 
       # current link attributes are unchanged
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
-      assert Floki.attribute(link, "beep") == []
-      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
+      assert link = find_one(html, "li a[aria-label='Go to page 2']")
+      assert attribute(link, "beep") == nil
+      assert attribute(link, "class") == "pagination-link is-current"
     end
 
     test "allows to overwrite current attributes" do
@@ -639,21 +637,21 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(link, "class") == ["pagination-link"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert String.trim(Floki.text(link)) == "1"
+      assert link = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(link, "class") == "pagination-link"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert attribute(link, "href") == "/pets?page_size=10"
+      assert text(link) == "1"
 
-      assert [link] = Floki.find(html, "li a[aria-label='Go to page 2']")
-      assert Floki.attribute(link, "beep") == ["boop"]
-      assert Floki.attribute(link, "class") == ["link is-active"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "li a[aria-label='Go to page 2']")
+      assert attribute(link, "beep") == "boop"
+      assert attribute(link, "class") == "link is-active"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=2&page_size=10")
-      assert String.trim(Floki.text(link)) == "2"
+      assert text(link) == "2"
     end
 
     test "allows to overwrite pagination link aria label" do
@@ -668,20 +666,20 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[aria-label='On to page 1']")
-      assert Floki.attribute(link, "class") == ["pagination-link"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert Floki.attribute(link, "href") == ["/pets?page_size=10"]
-      assert String.trim(Floki.text(link)) == "1"
+      assert link = find_one(html, "a[aria-label='On to page 1']")
+      assert attribute(link, "class") == "pagination-link"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert attribute(link, "href") == "/pets?page_size=10"
+      assert text(link) == "1"
 
-      assert [link] = Floki.find(html, "a[aria-label='On to page 2']")
-      assert Floki.attribute(link, "class") == ["pagination-link is-current"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a[aria-label='On to page 2']")
+      assert attribute(link, "class") == "pagination-link is-current"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?page=2&page_size=10")
-      assert String.trim(Floki.text(link)) == "2"
+      assert text(link) == "2"
     end
 
     test "adds order parameters to links" do
@@ -714,25 +712,25 @@ defmodule Flop.PhoenixTest do
         page -> Keyword.put(default_query, :page, page)
       end
 
-      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(previous, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
-      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(previous, "href")
+      assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "data-phx-link") == "patch"
+      assert attribute(previous, "data-phx-link-state") == "push"
+      assert href = attribute(previous, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [one] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(one, "class") == ["pagination-link"]
-      assert Floki.attribute(one, "data-phx-link") == ["patch"]
-      assert Floki.attribute(one, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(one, "href")
+      assert one = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(one, "class") == "pagination-link"
+      assert attribute(one, "data-phx-link") == "patch"
+      assert attribute(one, "data-phx-link-state") == "push"
+      assert href = attribute(one, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [next] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "data-phx-link") == ["patch"]
-      assert Floki.attribute(next, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(next, "href")
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "data-phx-link") == "patch"
+      assert attribute(next, "data-phx-link-state") == "push"
+      assert href = attribute(next, "href")
       assert_urls_match(href, "/pets", expected_query.(3))
     end
 
@@ -755,8 +753,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert [prev] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(prev, "href")
+      assert prev = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(prev, "href")
 
       refute href =~ "page_size="
       refute href =~ "order_by[]="
@@ -771,11 +769,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-page") == ["1"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-value-page") == "1"
+      assert attribute(link, "href") == "#"
     end
 
     test "raises if neither path nor event nor on_paginate are passed" do
@@ -835,25 +833,25 @@ defmodule Flop.PhoenixTest do
         page -> Keyword.put(default_query, :page, page)
       end
 
-      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(previous, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
-      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(previous, "href")
+      assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "data-phx-link") == "patch"
+      assert attribute(previous, "data-phx-link-state") == "push"
+      assert href = attribute(previous, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [one] = Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.attribute(one, "class") == ["pagination-link"]
-      assert Floki.attribute(one, "data-phx-link") == ["patch"]
-      assert Floki.attribute(one, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(one, "href")
+      assert one = find_one(html, "li a[aria-label='Go to page 1']")
+      assert attribute(one, "class") == "pagination-link"
+      assert attribute(one, "data-phx-link") == "patch"
+      assert attribute(one, "data-phx-link-state") == "push"
+      assert href = attribute(one, "href")
       assert_urls_match(href, "/pets", expected_query.(1))
 
-      assert [next] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next"]
-      assert Floki.attribute(next, "data-phx-link") == ["patch"]
-      assert Floki.attribute(next, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(next, "href")
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "data-phx-link") == "patch"
+      assert attribute(next, "data-phx-link-state") == "push"
+      assert href = attribute(next, "href")
       assert_urls_match(href, "/pets", expected_query.(3))
     end
 
@@ -901,10 +899,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find("li .pagination-ellipsis") |> length() == 1
       assert html |> Floki.find("li .pagination-link") |> length() == 6
 
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 1..5 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -922,10 +920,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
 
       for i <- 16..20 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -943,11 +941,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 10..15 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -965,11 +963,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 9..13 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -987,11 +985,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 8..12 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1009,11 +1007,11 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 9..13 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1031,10 +1029,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "li a[aria-label='Go to page 20']")
+      assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 1..5 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1052,10 +1050,10 @@ defmodule Flop.PhoenixTest do
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
-      assert Floki.find(html, "li a[aria-label='Go to page 1']")
+      assert find_one(html, "li a[aria-label='Go to page 1']")
 
       for i <- 16..20 do
-        assert Floki.find(html, "li a[aria-label='Go to page #{i}']")
+        assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
     end
 
@@ -1075,7 +1073,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
-      assert el |> Floki.text() |> String.trim() == "dot dot dot"
+      assert text(el) == "dot dot dot"
     end
 
     test "always uses page/page_size" do
@@ -1092,7 +1090,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert [a | _] = Floki.find(html, "a")
-      assert [href] = Floki.attribute(a, "href")
+      assert href = attribute(a, "href")
       assert href =~ "page_size=2"
       refute href =~ "limit=2"
       refute href =~ "offset=3"
@@ -1118,10 +1116,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [wrapper] = Floki.find(html, "nav")
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["pagination"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
+      assert nav = find_one(html, "nav")
+      assert attribute(nav, "aria-label") == "pagination"
+      assert attribute(nav, "class") == "pagination"
+      assert attribute(nav, "role") == "navigation"
     end
 
     test "allows to overwrite wrapper class" do
@@ -1135,10 +1133,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
-      assert [wrapper] = Floki.find(html, "nav")
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["boo"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
+      assert wrapper = find_one(html, "nav")
+      assert attribute(wrapper, "aria-label") == "pagination"
+      assert attribute(wrapper, "class") == "boo"
+      assert attribute(wrapper, "role") == "navigation"
     end
 
     test "allows to add attributes to wrapper" do
@@ -1152,11 +1150,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
-      assert [wrapper] = Floki.find(html, "nav")
-      assert Floki.attribute(wrapper, "aria-label") == ["pagination"]
-      assert Floki.attribute(wrapper, "class") == ["pagination"]
-      assert Floki.attribute(wrapper, "role") == ["navigation"]
-      assert Floki.attribute(wrapper, "title") == ["paginate"]
+      assert wrapper = find_one(html, "nav")
+      assert attribute(wrapper, "aria-label") == "pagination"
+      assert attribute(wrapper, "class") == "pagination"
+      assert attribute(wrapper, "role") == "navigation"
+      assert attribute(wrapper, "title") == "paginate"
     end
 
     test "renders previous link" do
@@ -1167,11 +1165,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
     end
 
@@ -1183,13 +1181,13 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={@js} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == []
-      assert Floki.attribute(link, "data-phx-link-state") == []
-      assert Floki.attribute(link, "href") == ["#"]
-      assert Floki.attribute(link, "phx-value-to") == ["previous"]
-      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "data-phx-link") == nil
+      assert attribute(link, "data-phx-link-state") == nil
+      assert attribute(link, "href") == "#"
+      assert attribute(link, "phx-value-to") == "previous"
+      assert phx_click = attribute(link, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
@@ -1205,16 +1203,16 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
+      assert link = find_one(html, "a:fl-contains('Previous')")
 
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?before=B&last=10")
 
-      assert Floki.attribute(link, "phx-value-to") == ["previous"]
-      assert [phx_click] = Floki.attribute(link, "phx-click")
+      assert attribute(link, "phx-value-to") == "previous"
+      assert phx_click = attribute(link, "phx-click")
       assert [["push", %{"event" => "paginate"}]] = Jason.decode!(phx_click)
     end
 
@@ -1229,8 +1227,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
     end
 
@@ -1242,8 +1240,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path={&path_func/1} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
     end
 
@@ -1255,8 +1253,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?before=B&last=10")
     end
 
@@ -1268,11 +1266,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "class") == ["pagination-previous"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-to") == ["previous"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-value-to") == "previous"
+      assert attribute(link, "href") == "#"
     end
 
     test "adds phx-target to previous link" do
@@ -1283,8 +1281,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(link, "phx-target") == ["here"]
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(link, "phx-target") == "here"
     end
 
     test "switches next and previous link" do
@@ -1296,11 +1294,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?first=10&after=C")
 
       # reverse
@@ -1309,12 +1307,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" reverse={true} />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Previous')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Previous')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?first=10&after=C")
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
     end
 
@@ -1329,12 +1327,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
         """)
 
-      assert [previous] = Floki.find(html, "a:fl-contains('Previous')")
-      assert Floki.attribute(previous, "class") == ["pagination-previous"]
-      assert Floki.attribute(previous, "data-phx-link") == ["patch"]
-      assert Floki.attribute(previous, "data-phx-link-state") == ["push"]
+      assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "data-phx-link") == "patch"
+      assert attribute(previous, "data-phx-link-state") == "push"
 
-      assert [href] = Floki.attribute(previous, "href")
+      assert href = attribute(previous, "href")
       assert_urls_match(href, "/pets?category=dinosaurs&last=10&before=B")
     end
 
@@ -1353,11 +1351,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
-      assert [link] = Floki.find(html, "a[title='p-p-previous']")
-      assert Floki.attribute(link, "class") == ["prev"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a[title='p-p-previous']")
+      assert attribute(link, "class") == "prev"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?last=10&before=B")
 
       assert link |> Floki.children() |> Floki.raw_html() ==
@@ -1372,11 +1370,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == [
+      assert attribute(previous_link, "class") ==
                "pagination-previous disabled"
-             ]
     end
 
     test "disables previous link if on first page when using click handlers" do
@@ -1387,11 +1384,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "span:fl-contains('Previous')")
 
-      assert Floki.attribute(previous_link, "class") == [
+      assert attribute(previous_link, "class") ==
                "pagination-previous disabled"
-             ]
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -1409,10 +1405,10 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [previous_link] = Floki.find(html, "span:fl-contains('Prev')")
-      assert Floki.attribute(previous_link, "class") == ["prev disabled"]
-      assert Floki.attribute(previous_link, "title") == ["no"]
-      assert String.trim(Floki.text(previous_link)) == "Prev"
+      assert previous_link = find_one(html, "span:fl-contains('Prev')")
+      assert attribute(previous_link, "class") == "prev disabled"
+      assert attribute(previous_link, "title") == "no"
+      assert text(previous_link) == "Prev"
     end
 
     test "renders next link" do
@@ -1423,11 +1419,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "class") == ["pagination-next"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?first=10&after=C")
     end
 
@@ -1439,11 +1435,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "class") == ["pagination-next"]
-      assert Floki.attribute(link, "phx-click") == ["paginate"]
-      assert Floki.attribute(link, "phx-value-to") == ["next"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-value-to") == "next"
+      assert attribute(link, "href") == "#"
     end
 
     test "adds phx-target to next link" do
@@ -1454,8 +1450,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
         """)
 
-      assert [link] = Floki.find(html, "a:fl-contains('Next')")
-      assert Floki.attribute(link, "phx-target") == ["here"]
+      assert link = find_one(html, "a:fl-contains('Next')")
+      assert attribute(link, "phx-target") == "here"
     end
 
     test "allows to overwrite next link attributes and content" do
@@ -1473,11 +1469,11 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [link] = Floki.find(html, "a[title='n-n-next']")
-      assert Floki.attribute(link, "class") == ["next"]
-      assert Floki.attribute(link, "data-phx-link") == ["patch"]
-      assert Floki.attribute(link, "data-phx-link-state") == ["push"]
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a[title='n-n-next']")
+      assert attribute(link, "class") == "next"
+      assert attribute(link, "data-phx-link") == "patch"
+      assert attribute(link, "data-phx-link-state") == "push"
+      assert href = attribute(link, "href")
       assert_urls_match(href, "/pets?first=10&after=C")
 
       assert link |> Floki.children() |> Floki.raw_html() ==
@@ -1492,9 +1488,9 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
         """)
 
-      assert [next] = Floki.find(html, "span:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
-      assert Floki.attribute(next, "href") == []
+      assert next = find_one(html, "span:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next disabled"
+      assert attribute(next, "href") == nil
     end
 
     test "renders next link on last page when using click event handling" do
@@ -1505,9 +1501,9 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
         """)
 
-      assert [next] = Floki.find(html, "span:fl-contains('Next')")
-      assert Floki.attribute(next, "class") == ["pagination-next disabled"]
-      assert Floki.attribute(next, "href") == []
+      assert next = find_one(html, "span:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next disabled"
+      assert attribute(next, "href") == nil
     end
 
     test "allows to overwrite next link attributes and content when disabled" do
@@ -1525,9 +1521,9 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert [next_link] = Floki.find(html, "span:fl-contains('N-n-next')")
-      assert Floki.attribute(next_link, "class") == ["next disabled"]
-      assert Floki.attribute(next_link, "title") == ["no"]
+      assert next_link = find_one(html, "span:fl-contains('N-n-next')")
+      assert attribute(next_link, "class") == "next disabled"
+      assert attribute(next_link, "title") == "no"
     end
 
     test "raises if neither path nor event are passed" do
@@ -1556,12 +1552,12 @@ defmodule Flop.PhoenixTest do
     test "allows to set table attributes" do
       # attribute from global config
       html = render_table(%{opts: []})
-      assert [table] = Floki.find(html, "table")
-      assert Floki.attribute(table, "class") == ["sortable-table"]
+      assert table = find_one(html, "table")
+      assert attribute(table, "class") == "sortable-table"
 
       html = render_table(%{opts: [table_attrs: [class: "funky-table"]]})
-      assert [table] = Floki.find(html, "table")
-      assert Floki.attribute(table, "class") == ["funky-table"]
+      assert table = find_one(html, "table")
+      assert attribute(table, "class") == "funky-table"
     end
 
     test "optionally adds a table container" do
@@ -1569,7 +1565,7 @@ defmodule Flop.PhoenixTest do
       assert Floki.find(html, ".table-container") == []
 
       html = render_table(%{opts: [container: true]})
-      assert [_] = Floki.find(html, ".table-container")
+      assert find_one(html, ".table-container")
     end
 
     test "allows to set container attributes" do
@@ -1581,8 +1577,8 @@ defmodule Flop.PhoenixTest do
           ]
         })
 
-      assert [container] = Floki.find(html, "div.container")
-      assert Floki.attribute(container, "data_some") == ["thing"]
+      assert container = find_one(html, "div.container")
+      assert attribute(container, "data_some") == "thing"
     end
 
     test "allows to set tbody attributes" do
@@ -1594,7 +1590,7 @@ defmodule Flop.PhoenixTest do
           ]
         })
 
-      assert [_] = Floki.find(html, "tbody.mango_body")
+      assert find_one(html, "tbody.mango_body")
     end
 
     test "setting thead attributes" do
@@ -1606,14 +1602,14 @@ defmodule Flop.PhoenixTest do
           ]
         })
 
-      assert [_] = Floki.find(html, "thead.text-left.text-zinc-500.leading-6")
+      assert find_one(html, "thead.text-left.text-zinc-500.leading-6")
     end
 
     test "allows to set id on table, tbody and container" do
       html = render_table(%{id: "some-id", opts: [container: true]})
-      assert [_] = Floki.find(html, "div#some-id-container")
-      assert [_] = Floki.find(html, "table#some-id")
-      assert [_] = Floki.find(html, "tbody#some-id-tbody")
+      assert find_one(html, "div#some-id-container")
+      assert find_one(html, "table#some-id")
+      assert find_one(html, "tbody#some-id-tbody")
     end
 
     test "sets default ID based on schema module" do
@@ -1630,8 +1626,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "table#pet-table")
-      assert [_] = Floki.find(html, "tbody#pet-table-tbody")
+      assert find_one(html, "table#pet-table")
+      assert find_one(html, "tbody#pet-table-tbody")
     end
 
     test "sets default ID without schema module" do
@@ -1649,11 +1645,9 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] =
-               Floki.find(html, "div.table-container#sortable-table-container")
-
-      assert [_] = Floki.find(html, "table#sortable-table")
-      assert [_] = Floki.find(html, "tbody#sortable-table-tbody")
+      assert find_one(html, "div.table-container#sortable-table-container")
+      assert find_one(html, "table#sortable-table")
+      assert find_one(html, "tbody#sortable-table-tbody")
     end
 
     test "does not set row ID if items are not a stream" do
@@ -1670,8 +1664,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [tr] = Floki.find(html, "tbody tr")
-      assert Floki.attribute(tr, "id") == []
+      assert tr = find_one(html, "tbody tr")
+      assert attribute(tr, "id") == nil
     end
 
     test "allows to set row ID function" do
@@ -1690,8 +1684,8 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
-      assert Floki.attribute(tr_1, "id") == ["pets-George"]
-      assert Floki.attribute(tr_2, "id") == ["pets-Mary"]
+      assert attribute(tr_1, "id") == "pets-George"
+      assert attribute(tr_2, "id") == "pets-Mary"
     end
 
     test "uses default row ID function if items are a stream" do
@@ -1708,8 +1702,8 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
-      assert Floki.attribute(tr_1, "id") == ["pets-1"]
-      assert Floki.attribute(tr_2, "id") == ["pets-2"]
+      assert attribute(tr_1, "id") == "pets-1"
+      assert attribute(tr_2, "id") == "pets-2"
     end
 
     test "allows to override default row item function" do
@@ -1731,8 +1725,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [td] = Floki.find(html, "tbody td")
-      assert Floki.text(td) =~ "GEORGE"
+      assert td = find_one(html, "tbody td")
+      assert text(td) == "GEORGE"
     end
 
     test "allows to set tr and td classes via keyword lists" do
@@ -1746,9 +1740,9 @@ defmodule Flop.PhoenixTest do
           ]
         })
 
-      assert [_] = Floki.find(html, "tr.mungo")
+      assert find_one(html, "tr.mungo")
       assert [_, _, _, _, _] = Floki.find(html, "th.bean")
-      assert [_] = Floki.find(html, "tr.salt")
+      assert find_one(html, "tr.salt")
       assert [_, _, _, _, _] = Floki.find(html, "td.tolerance")
     end
 
@@ -1779,8 +1773,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "tr.superhero")
-      assert [_] = Floki.find(html, "tr.crime-reporter")
+      assert find_one(html, "tr.superhero")
+      assert find_one(html, "tr.crime-reporter")
     end
 
     test "evaluates tbody_td_attrs function for col slot / td" do
@@ -1805,8 +1799,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "td.adult")
-      assert [_] = Floki.find(html, "td.child")
+      assert find_one(html, "td.adult")
+      assert find_one(html, "td.child")
     end
 
     test "evaluates tbody_td_attrs function in action columns" do
@@ -1831,8 +1825,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "td.adult")
-      assert [_] = Floki.find(html, "td.child")
+      assert find_one(html, "td.adult")
+      assert find_one(html, "td.child")
     end
 
     test "allows to set td class on action" do
@@ -1876,9 +1870,9 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "th.name-header")
-      assert [_] = Floki.find(html, "th.age-header")
-      assert [_] = Floki.find(html, "th.action-header")
+      assert find_one(html, "th.name-header")
+      assert find_one(html, "th.age-header")
+      assert find_one(html, "th.action-header")
     end
 
     test "adds additional attributes to td" do
@@ -1903,9 +1897,9 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "td.name-column")
-      assert [_] = Floki.find(html, "td.age-column")
-      assert [_] = Floki.find(html, "td.action-column")
+      assert find_one(html, "td.name-column")
+      assert find_one(html, "td.age-column")
+      assert find_one(html, "td.action-column")
     end
 
     test "overrides table_th_attrs with thead_th_attrs in col" do
@@ -1923,11 +1917,11 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [{"th", [{"class", "name-th-class"}], _}] =
-               Floki.find(html, "th:first-child")
+      assert {"th", [{"class", "name-th-class"}], _} =
+               find_one(html, "th:first-child")
 
-      assert [{"th", [{"class", "default-th-class"}], _}] =
-               Floki.find(html, "th:last-child")
+      assert {"th", [{"class", "default-th-class"}], _} =
+               find_one(html, "th:last-child")
     end
 
     test "evaluates table th_wrapper_attrs" do
@@ -1945,10 +1939,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [
-               {"th", [],
-                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
-             ] = Floki.find(html, "th:first-child")
+      assert {"th", [], [{"span", [{"class", "default-th-wrapper-class"}], _}]} =
+               find_one(html, "th:first-child")
     end
 
     test "overrides th_wrapper_attrs" do
@@ -1972,13 +1964,11 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [{"th", [], [{"span", [{"class", "name-th-wrapper-class"}], _}]}] =
-               Floki.find(html, "th:first-child")
+      assert {"th", [], [{"span", [{"class", "name-th-wrapper-class"}], _}]} =
+               find_one(html, "th:first-child")
 
-      assert [
-               {"th", [],
-                [{"span", [{"class", "default-th-wrapper-class"}], _}]}
-             ] = Floki.find(html, "th:last-child")
+      assert {"th", [], [{"span", [{"class", "default-th-wrapper-class"}], _}]} =
+               find_one(html, "th:last-child")
     end
 
     test "overrides table_td_attrs with tbody_td_attrs in col" do
@@ -1996,11 +1986,11 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [{"td", [{"class", "name-td-class"}], _}] =
-               Floki.find(html, "td:first-child")
+      assert {"td", [{"class", "name-td-class"}], _} =
+               find_one(html, "td:first-child")
 
-      assert [{"td", [{"class", "default-td-class"}], _}] =
-               Floki.find(html, "td:last-child")
+      assert {"td", [{"class", "default-td-class"}], _} =
+               find_one(html, "td:last-child")
     end
 
     test "overrides table_th_attrs with thead_th_attrs in action columns" do
@@ -2019,11 +2009,11 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [{"th", [{"class", "action-1-th-class"}], _}] =
-               Floki.find(html, "th:nth-child(2)")
+      assert {"th", [{"class", "action-1-th-class"}], _} =
+               find_one(html, "th:nth-child(2)")
 
-      assert [{"th", [{"class", "default-th-class"}], _}] =
-               Floki.find(html, "th:last-child")
+      assert {"th", [{"class", "default-th-class"}], _} =
+               find_one(html, "th:last-child")
     end
 
     test "overrides table_td_attrs with tbody_td_attrs in action columns" do
@@ -2042,11 +2032,11 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [{"td", [{"class", "action-1-td-class"}], _}] =
-               Floki.find(html, "td:nth-child(2)")
+      assert {"td", [{"class", "action-1-td-class"}], _} =
+               find_one(html, "td:nth-child(2)")
 
-      assert [{"td", [{"class", "default-td-class"}], _}] =
-               Floki.find(html, "td:last-child")
+      assert {"td", [{"class", "default-td-class"}], _} =
+               find_one(html, "td:last-child")
     end
 
     test "doesn't render table if items list is empty" do
@@ -2064,24 +2054,24 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [th] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert th = find_one(html, "th:fl-contains('Buttons')")
       assert Floki.children(th, include_text: false) == []
     end
 
     test "displays headers without sorting function" do
       html = render_table(%{})
-      assert [th] = Floki.find(html, "th:fl-contains('Age')")
+      assert th = find_one(html, "th:fl-contains('Age')")
       assert Floki.children(th, include_text: false) == []
     end
 
     test "conditionally hides a column" do
       html = render_table(%{})
-      assert [_] = Floki.find(html, "th:fl-contains('Age')")
-      assert [_] = Floki.find(html, "td:fl-contains('8')")
+      assert find_one(html, "th:fl-contains('Age')")
+      assert find_one(html, "td:fl-contains('8')")
 
       html = render_table(%{hide_age: false, show_age: true})
-      assert [_] = Floki.find(html, "th:fl-contains('Age')")
-      assert [_] = Floki.find(html, "td:fl-contains('8')")
+      assert find_one(html, "th:fl-contains('Age')")
+      assert find_one(html, "td:fl-contains('8')")
 
       html = render_table(%{hide_age: true, show_age: true})
       assert [] = Floki.find(html, "th:fl-contains('Age')")
@@ -2107,7 +2097,7 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert find_one(html, "th:fl-contains('Buttons')")
 
       html =
         parse_heex(~H"""
@@ -2117,7 +2107,7 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [_] = Floki.find(html, "th:fl-contains('Buttons')")
+      assert find_one(html, "th:fl-contains('Buttons')")
 
       html =
         parse_heex(~H"""
@@ -2153,11 +2143,11 @@ defmodule Flop.PhoenixTest do
     test "displays headers with sorting function" do
       html = render_table(%{})
 
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-      assert Floki.attribute(a, "data-phx-link") == ["patch"]
-      assert Floki.attribute(a, "data-phx-link-state") == ["push"]
+      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert attribute(a, "data-phx-link") == "patch"
+      assert attribute(a, "data-phx-link-state") == "push"
 
-      assert [href] = Floki.attribute(a, "href")
+      assert href = attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
@@ -2168,12 +2158,12 @@ defmodule Flop.PhoenixTest do
           on_sort: JS.push("sort")
         })
 
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-      assert Floki.attribute(a, "data-phx-link") == []
-      assert Floki.attribute(a, "data-phx-link-state") == []
-      assert Floki.attribute(a, "href") == ["#"]
-      assert Floki.attribute(a, "phx-value-order") == ["name"]
-      assert [phx_click] = Floki.attribute(a, "phx-click")
+      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert attribute(a, "data-phx-link") == nil
+      assert attribute(a, "data-phx-link-state") == nil
+      assert attribute(a, "href") == "#"
+      assert attribute(a, "phx-value-order") == "name"
+      assert phx_click = attribute(a, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "sort"}]]
     end
 
@@ -2220,10 +2210,10 @@ defmodule Flop.PhoenixTest do
         |> rendered_to_string()
         |> Floki.parse_fragment!()
 
-      [ttfb_sort_href] =
+      ttfb_sort_href =
         html
-        |> Floki.find("thead th a:fl-contains('TTFB')")
-        |> Floki.attribute("href")
+        |> find_one("thead th a:fl-contains('TTFB')")
+        |> attribute("href")
 
       %URI{query: query} = URI.parse(ttfb_sort_href)
       decoded_query = Query.decode(query)
@@ -2237,24 +2227,24 @@ defmodule Flop.PhoenixTest do
 
     test "supports a function/args tuple as path" do
       html = render_table(%{path: {&route_helper/3, @route_helper_opts}})
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-      assert [href] = Floki.attribute(a, "href")
+      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert href = attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a function as path" do
       html = render_table(%{path: &path_func/1})
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:fl-contains('Name')")
 
-      assert [href] = Floki.attribute(a, "href")
+      assert href = attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a URI string as path" do
       html = render_table(%{path: "/pets"})
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:fl-contains('Name')")
 
-      [href] = Floki.attribute(a, "href")
+      href = attribute(a, "href")
       uri = URI.parse(href)
       assert uri.path == "/pets"
 
@@ -2284,8 +2274,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [span] = Floki.find(html, "th span")
-      assert Floki.text(span) == "Hello"
+      assert span = find_one(html, "th span")
+      assert text(span) == "Hello"
     end
 
     test "displays headers with safe HTML values" do
@@ -2305,8 +2295,8 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [span] = Floki.find(html, "th a span")
-      assert Floki.text(span) == "Hello"
+      assert span = find_one(html, "th a span")
+      assert text(span) == "Hello"
     end
 
     test "adds aria-sort attribute to first ordered field" do
@@ -2321,10 +2311,10 @@ defmodule Flop.PhoenixTest do
         })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
-      assert Floki.attribute(th_name, "aria-sort") == []
-      assert Floki.attribute(th_email, "aria-sort") == ["ascending"]
-      assert Floki.attribute(th_age, "aria-sort") == []
-      assert Floki.attribute(th_species, "aria-sort") == []
+      assert attribute(th_name, "aria-sort") == nil
+      assert attribute(th_email, "aria-sort") == "ascending"
+      assert attribute(th_age, "aria-sort") == nil
+      assert attribute(th_species, "aria-sort") == nil
 
       html =
         render_table(%{
@@ -2337,10 +2327,10 @@ defmodule Flop.PhoenixTest do
         })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
-      assert Floki.attribute(th_name, "aria-sort") == ["descending"]
-      assert Floki.attribute(th_email, "aria-sort") == []
-      assert Floki.attribute(th_age, "aria-sort") == []
-      assert Floki.attribute(th_species, "aria-sort") == []
+      assert attribute(th_name, "aria-sort") == "descending"
+      assert attribute(th_email, "aria-sort") == nil
+      assert attribute(th_age, "aria-sort") == nil
+      assert attribute(th_species, "aria-sort") == nil
 
       html =
         render_table(%{
@@ -2350,47 +2340,47 @@ defmodule Flop.PhoenixTest do
         })
 
       assert [th_name, th_email, th_age, th_species, _] = Floki.find(html, "th")
-      assert Floki.attribute(th_name, "aria-sort") == []
-      assert Floki.attribute(th_email, "aria-sort") == []
-      assert Floki.attribute(th_age, "aria-sort") == []
-      assert Floki.attribute(th_species, "aria-sort") == []
+      assert attribute(th_name, "aria-sort") == nil
+      assert attribute(th_email, "aria-sort") == nil
+      assert attribute(th_age, "aria-sort") == nil
+      assert attribute(th_species, "aria-sort") == nil
     end
 
     test "renders links with click handler" do
       html = render_table(%{event: "sort", path: nil})
 
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-      assert Floki.attribute(a, "href") == ["#"]
-      assert Floki.attribute(a, "phx-click") == ["sort"]
-      assert Floki.attribute(a, "phx-value-order") == ["name"]
+      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert attribute(a, "href") == "#"
+      assert attribute(a, "phx-click") == "sort"
+      assert attribute(a, "phx-value-order") == "name"
 
-      assert [a] = Floki.find(html, "th a:fl-contains('Email')")
-      assert Floki.attribute(a, "href") == ["#"]
-      assert Floki.attribute(a, "phx-click") == ["sort"]
-      assert Floki.attribute(a, "phx-value-order") == ["email"]
+      assert a = find_one(html, "th a:fl-contains('Email')")
+      assert attribute(a, "href") == "#"
+      assert attribute(a, "phx-click") == "sort"
+      assert attribute(a, "phx-value-order") == "email"
     end
 
     test "adds phx-target to header links" do
       html = render_table(%{event: "sort", path: nil, target: "here"})
 
-      assert [a] = Floki.find(html, "th a:fl-contains('Name')")
-      assert Floki.attribute(a, "href") == ["#"]
-      assert Floki.attribute(a, "phx-click") == ["sort"]
-      assert Floki.attribute(a, "phx-target") == ["here"]
-      assert Floki.attribute(a, "phx-value-order") == ["name"]
+      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert attribute(a, "href") == "#"
+      assert attribute(a, "phx-click") == "sort"
+      assert attribute(a, "phx-target") == "here"
+      assert attribute(a, "phx-value-order") == "name"
     end
 
     test "checks for sortability if for option is set" do
       # without :for option
       html = render_table(%{})
 
-      assert [_] = Floki.find(html, "a:fl-contains('Name')")
-      assert [_] = Floki.find(html, "a:fl-contains('Species')")
+      assert find_one(html, "a:fl-contains('Name')")
+      assert find_one(html, "a:fl-contains('Species')")
 
       # with :for assign
       html = render_table(%{meta: %Flop.Meta{flop: %Flop{}, schema: Pet}})
 
-      assert [_] = Floki.find(html, "a:fl-contains('Name')")
+      assert find_one(html, "a:fl-contains('Name')")
       assert [] = Floki.find(html, "a:fl-contains('Species')")
     end
 
@@ -2409,8 +2399,8 @@ defmodule Flop.PhoenixTest do
             )
         })
 
-      assert [link] = Floki.find(html, "a:fl-contains('Name')")
-      assert [href] = Floki.attribute(link, "href")
+      assert link = find_one(html, "a:fl-contains('Name')")
+      assert href = attribute(link, "href")
 
       refute href =~ "page_size="
       refute href =~ "order_by[]="
@@ -2437,13 +2427,13 @@ defmodule Flop.PhoenixTest do
           }
         })
 
-      assert [span] =
-               Floki.find(
+      assert span =
+               find_one(
                  html,
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert span |> Floki.text() |> String.trim() == "▴"
+      assert text(span) == "▴"
 
       html =
         render_table(%{
@@ -2452,13 +2442,13 @@ defmodule Flop.PhoenixTest do
           }
         })
 
-      assert [span] =
-               Floki.find(
+      assert span =
+               find_one(
                  html,
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert span |> Floki.text() |> String.trim() == "▾"
+      assert text(span) == "▾"
     end
 
     test "only renders order direction symbol for first order field" do
@@ -2472,13 +2462,13 @@ defmodule Flop.PhoenixTest do
           }
         })
 
-      assert [span] =
-               Floki.find(
+      assert span =
+               find_one(
                  html,
                  "th a:fl-contains('Name') + span.order-direction"
                )
 
-      assert span |> Floki.text() |> String.trim() == "▴"
+      assert text(span) == "▴"
 
       assert Floki.find(
                html,
@@ -2495,7 +2485,7 @@ defmodule Flop.PhoenixTest do
           opts: [symbol_attrs: [class: "other-class"]]
         })
 
-      assert [_] = Floki.find(html, "span.other-class")
+      assert find_one(html, "span.other-class")
     end
 
     test "allows to override default symbols" do
@@ -2507,8 +2497,8 @@ defmodule Flop.PhoenixTest do
           opts: [symbol_asc: "asc"]
         })
 
-      assert [span] = Floki.find(html, "span.order-direction")
-      assert span |> Floki.text() |> String.trim() == "asc"
+      assert span = find_one(html, "span.order-direction")
+      assert text(span) == "asc"
 
       html =
         render_table(%{
@@ -2518,8 +2508,8 @@ defmodule Flop.PhoenixTest do
           opts: [symbol_desc: "desc"]
         })
 
-      assert [span] = Floki.find(html, "span.order-direction")
-      assert span |> Floki.text() |> String.trim() == "desc"
+      assert span = find_one(html, "span.order-direction")
+      assert text(span) == "desc"
     end
 
     test "allows to set indicator for unsorted column" do
@@ -2531,13 +2521,13 @@ defmodule Flop.PhoenixTest do
           opts: [symbol_unsorted: "random"]
         })
 
-      assert [span] =
-               Floki.find(
+      assert span =
+               find_one(
                  html,
                  "th a:fl-contains('Email') + span.order-direction"
                )
 
-      assert span |> Floki.text() |> String.trim() == "random"
+      assert text(span) == "random"
     end
 
     test "renders notice if item list is empty" do
@@ -2578,7 +2568,7 @@ defmodule Flop.PhoenixTest do
       assert [_, _] = Floki.find(rows, "td")
 
       # only one column should have phx-click attribute
-      assert [_] = Floki.find(rows, "td[phx-click]")
+      assert find_one(rows, "td[phx-click]")
     end
 
     test "does not render row_click if not set" do
@@ -2620,8 +2610,8 @@ defmodule Flop.PhoenixTest do
                 ]}
              ] = html
 
-      assert [_] = Floki.find(rows, "a[href='/show/pet/Mary']")
-      assert [_] = Floki.find(rows, "a[href='/show/pet/George']")
+      assert find_one(rows, "a[href='/show/pet/Mary']")
+      assert find_one(rows, "a[href='/show/pet/George']")
     end
 
     test "does not render action column if option is not set" do
@@ -2805,9 +2795,9 @@ defmodule Flop.PhoenixTest do
     test "does not require path when passing event" do
       html = render_table(%{event: "sort-table", path: nil})
 
-      assert [link] = Floki.find(html, "a:fl-contains('Name')")
-      assert Floki.attribute(link, "phx-click") == ["sort-table"]
-      assert Floki.attribute(link, "href") == ["#"]
+      assert link = find_one(html, "a:fl-contains('Name')")
+      assert attribute(link, "phx-click") == "sort-table"
+      assert attribute(link, "href") == "#"
     end
 
     test "raises if neither path nor event are passed" do
@@ -2910,11 +2900,11 @@ defmodule Flop.PhoenixTest do
         |> render_component(form: form)
         |> Floki.parse_fragment!()
 
-      assert [input] = Floki.find(html, "input")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "id") == ["form_id"]
-      assert Floki.attribute(input, "name") == ["form[id]"]
-      assert Floki.attribute(input, "value") == ["1"]
+      assert input = find_one(html, "input")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "id") == "form_id"
+      assert attribute(input, "name") == "form[id]"
+      assert attribute(input, "value") == "1"
     end
 
     test "generates hidden fields for lists from the given form" do
@@ -2930,20 +2920,20 @@ defmodule Flop.PhoenixTest do
 
       assert [input_1, input_2, input_3] = Floki.find(html, "input")
 
-      assert Floki.attribute(input_1, "type") == ["hidden"]
-      assert Floki.attribute(input_1, "id") == ["a_field_0"]
-      assert Floki.attribute(input_1, "name") == ["a[field][]"]
-      assert Floki.attribute(input_1, "value") == ["a"]
+      assert attribute(input_1, "type") == "hidden"
+      assert attribute(input_1, "id") == "a_field_0"
+      assert attribute(input_1, "name") == "a[field][]"
+      assert attribute(input_1, "value") == "a"
 
-      assert Floki.attribute(input_2, "type") == ["hidden"]
-      assert Floki.attribute(input_2, "id") == ["a_field_1"]
-      assert Floki.attribute(input_2, "name") == ["a[field][]"]
-      assert Floki.attribute(input_2, "value") == ["b"]
+      assert attribute(input_2, "type") == "hidden"
+      assert attribute(input_2, "id") == "a_field_1"
+      assert attribute(input_2, "name") == "a[field][]"
+      assert attribute(input_2, "value") == "b"
 
-      assert Floki.attribute(input_3, "type") == ["hidden"]
-      assert Floki.attribute(input_3, "id") == ["a_field_2"]
-      assert Floki.attribute(input_3, "name") == ["a[field][]"]
-      assert Floki.attribute(input_3, "value") == ["c"]
+      assert attribute(input_3, "type") == "hidden"
+      assert attribute(input_3, "id") == "a_field_2"
+      assert attribute(input_3, "name") == "a[field][]"
+      assert attribute(input_3, "value") == "c"
     end
   end
 
@@ -2963,9 +2953,9 @@ defmodule Flop.PhoenixTest do
     test "renders the hidden inputs", %{fields: fields, meta: meta} do
       html = render_form(%{fields: fields, meta: meta})
 
-      assert [input] = Floki.find(html, "input[id='flop_page_size']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["10"]
+      assert input = find_one(html, "input[id='flop_page_size']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "10"
     end
 
     test "renders the labels and filter inputs", %{
@@ -2975,29 +2965,29 @@ defmodule Flop.PhoenixTest do
       html = render_form(%{fields: fields, meta: meta})
 
       # labels
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "E-mail"
-      assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "E-mail"
+      assert find_one(html, "label[for='flop_filters_1_value']")
 
       # field inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["phone"]
+      assert input = find_one(html, "input[id='flop_filters_0_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
+      assert input = find_one(html, "input[id='flop_filters_1_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "phone"
 
       # op input
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_op']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["ilike"]
+      assert input = find_one(html, "input[id='flop_filters_1_op']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "ilike"
 
       # value inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "class") == ["phone-input"]
-      assert Floki.attribute(input, "type") == ["tel"]
+      assert input = find_one(html, "input[id='flop_filters_0_value']")
+      assert attribute(input, "type") == "text"
+      assert input = find_one(html, "input[id='flop_filters_1_value']")
+      assert attribute(input, "class") == "phone-input"
+      assert attribute(input, "type") == "tel"
     end
 
     test "it overrides label when passed Phoenix.HTML.Safe" do
@@ -3023,11 +3013,9 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert [
-               {"div", [{"data-test-id", "thead-label-component"}],
-                ["\n  Custom\n"]}
-             ] =
-               Floki.find(html, ~s([data-test-id="thead-label-component"]))
+      assert {"div", [{"data-test-id", "thead-label-component"}],
+              ["\n  Custom\n"]} =
+               find_one(html, ~s([data-test-id="thead-label-component"]))
     end
 
     test "renders multiple inputs for the same field", %{
@@ -3060,42 +3048,42 @@ defmodule Flop.PhoenixTest do
       html = render_form(%{fields: fields, meta: meta})
 
       # labels
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "Minimum Age"
-      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert String.trim(Floki.text(label)) == "E-mail"
-      assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert String.trim(Floki.text(label)) == "Maximum Age"
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "Minimum Age"
+      assert label = find_one(html, "label[for='flop_filters_1_value']")
+      assert text(label) == "E-mail"
+      assert label = find_one(html, "label[for='flop_filters_2_value']")
+      assert text(label) == "Maximum Age"
 
       # field inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
+      assert input = find_one(html, "input[id='flop_filters_0_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "age"
+      assert input = find_one(html, "input[id='flop_filters_1_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
+      assert input = find_one(html, "input[id='flop_filters_2_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "age"
 
       # op inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == [">="]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_op']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["<="]
+      assert input = find_one(html, "input[id='flop_filters_0_op']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == ">="
+      assert input = find_one(html, "input[id='flop_filters_2_op']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "<="
 
       # value inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["number"]
-      assert Floki.attribute(input, "value") == ["8"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "type") == ["email"]
-      assert Floki.attribute(input, "value") == ["some@email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
-      assert Floki.attribute(input, "type") == ["number"]
-      assert Floki.attribute(input, "value") == ["14"]
+      assert input = find_one(html, "input[id='flop_filters_0_value']")
+      assert attribute(input, "type") == "number"
+      assert attribute(input, "value") == "8"
+      assert input = find_one(html, "input[id='flop_filters_1_value']")
+      assert attribute(input, "type") == "email"
+      assert attribute(input, "value") == "some@email"
+      assert input = find_one(html, "input[id='flop_filters_2_value']")
+      assert attribute(input, "type") == "number"
+      assert attribute(input, "value") == "14"
     end
 
     test "renders multiple inputs for the same field with omitted opts", %{
@@ -3128,34 +3116,34 @@ defmodule Flop.PhoenixTest do
       html = render_form(%{fields: fields, meta: meta})
 
       # labels
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "Email"
-      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert String.trim(Floki.text(label)) == "Minimum Age"
-      assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert String.trim(Floki.text(label)) == "Second E-mail"
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "Email"
+      assert label = find_one(html, "label[for='flop_filters_1_value']")
+      assert text(label) == "Minimum Age"
+      assert label = find_one(html, "label[for='flop_filters_2_value']")
+      assert text(label) == "Second E-mail"
 
       # field inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
+      assert input = find_one(html, "input[id='flop_filters_0_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
+      assert input = find_one(html, "input[id='flop_filters_1_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "age"
+      assert input = find_one(html, "input[id='flop_filters_2_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
 
       # value inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-      assert Floki.attribute(input, "value") == ["first@email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "type") == ["number"]
-      assert Floki.attribute(input, "value") == ["8"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
-      assert Floki.attribute(input, "type") == ["email"]
-      assert Floki.attribute(input, "value") == ["second@email"]
+      assert input = find_one(html, "input[id='flop_filters_0_value']")
+      assert attribute(input, "type") == "text"
+      assert attribute(input, "value") == "first@email"
+      assert input = find_one(html, "input[id='flop_filters_1_value']")
+      assert attribute(input, "type") == "number"
+      assert attribute(input, "value") == "8"
+      assert input = find_one(html, "input[id='flop_filters_2_value']")
+      assert attribute(input, "type") == "email"
+      assert attribute(input, "value") == "second@email"
     end
 
     @tag capture_log: true
@@ -3175,28 +3163,28 @@ defmodule Flop.PhoenixTest do
       html = render_form(%{fields: fields, meta: meta})
 
       # labels
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "E-mail"
-      assert [_] = Floki.find(html, "label[for='flop_filters_1_value']")
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "E-mail"
+      assert find_one(html, "label[for='flop_filters_1_value']")
 
       # field inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["phone"]
+      assert input = find_one(html, "input[id='flop_filters_0_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
+      assert input = find_one(html, "input[id='flop_filters_1_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "phone"
 
       # op input
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_op']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["ilike"]
+      assert input = find_one(html, "input[id='flop_filters_1_op']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "ilike"
 
       # value inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "type") == ["tel"]
+      assert input = find_one(html, "input[id='flop_filters_0_value']")
+      assert attribute(input, "type") == "text"
+      assert input = find_one(html, "input[id='flop_filters_1_value']")
+      assert attribute(input, "type") == "tel"
     end
 
     test "optionally only renders existing filters", %{
@@ -3206,8 +3194,8 @@ defmodule Flop.PhoenixTest do
       meta = %{meta | flop: %Flop{filters: [%Filter{field: :phone}]}}
       html = render_form(%{dynamic: true, fields: fields, meta: meta})
 
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "Phone"
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "Phone"
 
       assert [] = Floki.find(html, "label[for='flop_filters_1_value']")
     end
@@ -3233,41 +3221,41 @@ defmodule Flop.PhoenixTest do
       html = render_form(%{dynamic: true, fields: fields, meta: meta})
 
       # labels
-      assert [label] = Floki.find(html, "label[for='flop_filters_0_value']")
-      assert String.trim(Floki.text(label)) == "Age"
-      assert [label] = Floki.find(html, "label[for='flop_filters_1_value']")
-      assert String.trim(Floki.text(label)) == "Name"
-      assert [label] = Floki.find(html, "label[for='flop_filters_2_value']")
-      assert String.trim(Floki.text(label)) == "E-mail"
+      assert label = find_one(html, "label[for='flop_filters_0_value']")
+      assert text(label) == "Age"
+      assert label = find_one(html, "label[for='flop_filters_1_value']")
+      assert text(label) == "Name"
+      assert label = find_one(html, "label[for='flop_filters_2_value']")
+      assert text(label) == "E-mail"
 
       # field inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["age"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["name"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_field']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == ["email"]
+      assert input = find_one(html, "input[id='flop_filters_0_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "age"
+      assert input = find_one(html, "input[id='flop_filters_1_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "name"
+      assert input = find_one(html, "input[id='flop_filters_2_field']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == "email"
 
       # op input
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_op']")
-      assert Floki.attribute(input, "type") == ["hidden"]
-      assert Floki.attribute(input, "value") == [">="]
+      assert input = find_one(html, "input[id='flop_filters_0_op']")
+      assert attribute(input, "type") == "hidden"
+      assert attribute(input, "value") == ">="
 
       # value inputs
-      assert [input] = Floki.find(html, "input[id='flop_filters_0_value']")
-      assert Floki.attribute(input, "class") == ["number-input"]
-      assert Floki.attribute(input, "type") == ["number"]
-      assert Floki.attribute(input, "value") == ["8"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_1_value']")
-      assert Floki.attribute(input, "type") == ["text"]
-      assert Floki.attribute(input, "value") == ["George"]
-      assert [input] = Floki.find(html, "input[id='flop_filters_2_value']")
-      assert Floki.attribute(input, "class") == ["email-input"]
-      assert Floki.attribute(input, "type") == ["email"]
-      assert Floki.attribute(input, "value") == ["geo"]
+      assert input = find_one(html, "input[id='flop_filters_0_value']")
+      assert attribute(input, "class") == "number-input"
+      assert attribute(input, "type") == "number"
+      assert attribute(input, "value") == "8"
+      assert input = find_one(html, "input[id='flop_filters_1_value']")
+      assert attribute(input, "type") == "text"
+      assert attribute(input, "value") == "George"
+      assert input = find_one(html, "input[id='flop_filters_2_value']")
+      assert attribute(input, "class") == "email-input"
+      assert attribute(input, "type") == "email"
+      assert attribute(input, "value") == "geo"
     end
 
     test "renders filters when given a offset", %{
