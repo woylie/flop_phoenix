@@ -153,8 +153,6 @@ defmodule Flop.Phoenix do
       input_value: 2
     ]
 
-  import PhoenixHTMLHelpers.Form, only: [humanize: 1]
-
   alias Flop.Meta
   alias Flop.Phoenix.CursorPagination
   alias Flop.Phoenix.Misc
@@ -1402,6 +1400,26 @@ defmodule Flop.Phoenix do
     form
     |> PhoenixHTMLHelpers.Form.input_type(:value)
     |> to_html_input_type()
+  end
+
+  defp humanize(atom) when is_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> humanize()
+  end
+
+  defp humanize(s) when is_binary(s) do
+    if String.ends_with?(s, "_id") do
+      s |> binary_part(0, byte_size(s) - 3) |> to_titlecase()
+    else
+      to_titlecase(s)
+    end
+  end
+
+  defp to_titlecase(s) do
+    s
+    |> String.replace("_", " ")
+    |> :string.titlecase()
   end
 
   # coveralls-ignore-start
