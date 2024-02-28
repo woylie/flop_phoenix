@@ -43,7 +43,7 @@ defmodule Flop.Phoenix.Table do
   attr :target, :string, required: true
   attr :caption, :string, required: true
   attr :opts, :any, required: true
-  attr :col, :any, required: true
+  attr :col, :any
   attr :items, :list, required: true
   attr :foot, :any, required: true
   attr :row_id, :any, default: nil
