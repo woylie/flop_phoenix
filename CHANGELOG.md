@@ -6,6 +6,10 @@
 
 - Loosen version requirement for `phoenix_html`.
 
+### Fixed
+
+- Warning when wrapping table component and passing on `:col` slot as attribute.
+
 ## [0.22.6] - 2024-01-14
 
 ### Changed
