@@ -80,7 +80,7 @@ defmodule FlopPhoenix.MixProject do
         "Changelog" => @source_url <> "/blob/main/CHANGELOG.md",
         "Sponsor" => "https://github.com/sponsors/woylie"
       },
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE*)
+      files: ~w(lib .formatter.exs mix.exs CHANGELOG* README* LICENSE*)
     ]
   end
 
