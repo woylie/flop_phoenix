@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.22.7] - 2024-03-02
+
 ### Changed
 
 - Loosen version requirement for `phoenix_html`.
