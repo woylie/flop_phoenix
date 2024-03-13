@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Support `:col_class` attr on `:col` and `:action` slots in addition to `:col_style`.
+
+### Changed
+
+- Don't render empty `style` attributes on `col` elements in `colgroup`.
+
 ## [0.22.7] - 2024-03-02
 
 ### Changed
