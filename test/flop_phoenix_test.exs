@@ -2666,13 +2666,16 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.table
           event="sort"
           id="user-table"
-          items={[%{name: "George", age: 8}]}
+          items={[%{name: "George", surname: "Floyd", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
             <%= pet.name %>
           </:col>
-          <:col :let={pet} label="Age" field={:age} col_style="width: 40%;">
+          <:col :let={pet} label="Surname" field={:surname}>
+            <%= pet.surname %>
+          </:col>
+          <:col :let={pet} label="Age" field={:age} col_class="some-col-class">
             <%= pet.age %>
           </:col>
         </Flop.Phoenix.table>
@@ -2684,7 +2687,8 @@ defmodule Flop.PhoenixTest do
                   {"colgroup", _,
                    [
                      {"col", [{"style", "width: 60%;"}], _},
-                     {"col", [{"style", "width: 40%;"}], _}
+                     {"col", [], _},
+                     {"col", [{"class", "some-col-class"}], _}
                    ]},
                   {"thead", _, _},
                   {"tbody", _, _}

@@ -60,16 +60,7 @@ defmodule Flop.Phoenix.Table do
     ~H"""
     <table id={@id} {@opts[:table_attrs]}>
       <caption :if={@caption}><%= @caption %></caption>
-      <colgroup :if={
-        Enum.any?(@col, & &1[:col_style]) or Enum.any?(@action, & &1[:col_style])
-      }>
-        <col :for={col <- @col} :if={show_column?(col)} style={col[:col_style]} />
-        <col
-          :for={action <- @action}
-          :if={show_column?(action)}
-          style={action[:col_style]}
-        />
-      </colgroup>
+      <.maybe_colgroup col={@col ++ @action} />
       <thead {@opts[:thead_attrs]}>
         <tr {@opts[:thead_tr_attrs]}>
           <.header_column
@@ -159,6 +150,22 @@ defmodule Flop.Phoenix.Table do
   end
 
   defp maybe_invoke_options_callback(option, _item), do: option
+
+  defp maybe_colgroup(assigns) do
+    ~H"""
+    <colgroup :if={Enum.any?(@col, &(&1[:col_style] || &1[:col_class]))}>
+      <col
+        :for={col <- @col}
+        :if={show_column?(col)}
+        {reject_empty_values(style: col[:col_style], class: col[:col_class])}
+      />
+    </colgroup>
+    """
+  end
+
+  defp reject_empty_values(attrs) do
+    Enum.reject(attrs, fn {_, v} -> v in ["", nil] end)
+  end
 
   defp show_column?(%{hide: true}), do: false
   defp show_column?(%{show: false}), do: false
