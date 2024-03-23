@@ -21,6 +21,7 @@ defmodule Flop.Phoenix.Pagination do
       ],
       next_link_content: "Next",
       page_links: :all,
+      pagination_list_item_attrs: [class: "pagination-list-item"],
       pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
