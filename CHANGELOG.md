@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.22.8] - 2024-03-23
+
 ### Added
 
 - Support `:col_class` attr on `:col` and `:action` slots in addition to `:col_style`.
