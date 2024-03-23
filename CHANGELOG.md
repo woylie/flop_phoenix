@@ -10,6 +10,11 @@
 
 - Don't render empty `style` attributes on `col` elements in `colgroup`.
 
+### Fixed
+
+- The page range calculation in the `Flop.Phoenix.pagination/1` was incorrect
+  towards the last pages.
+
 ## [0.22.7] - 2024-03-02
 
 ### Changed
