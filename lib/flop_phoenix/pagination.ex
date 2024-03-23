@@ -55,7 +55,7 @@ defmodule Flop.Phoenix.Pagination do
       max_pages >= total_pages ->
         1..total_pages
 
-      current_page + additional >= total_pages ->
+      current_page + additional > total_pages ->
         (total_pages - max_pages + 1)..total_pages
 
       true ->
