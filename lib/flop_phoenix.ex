@@ -1378,9 +1378,20 @@ defmodule Flop.Phoenix do
   end
 
   defp inputs_for_filters(form, fields, field_opts) do
-    form.source
-    |> form.impl.to_form(form, :filters, fields: fields)
-    |> Enum.zip(field_opts)
+    fields
+    |> Enum.with_index()
+    |> Enum.reduce([], fn {field, index}, acc ->
+      field_form = form.source
+      |> form.impl.to_form(form, :filters, fields: [field])
+
+      if Enum.count(field_form) > 0 do
+        field_opt = Enum.at(field_opts, index)
+        [{Enum.at(field_form, 0), field_opt} | acc]
+      else
+        acc
+      end
+    end)
+    |> Enum.reverse()
   end
 
   defp normalize_filter_fields(fields) do
