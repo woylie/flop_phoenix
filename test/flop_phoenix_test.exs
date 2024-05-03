@@ -603,6 +603,22 @@ defmodule Flop.PhoenixTest do
       assert attribute(list, "title") == "boop"
     end
 
+    test "allows to overwrite pagination list item attributes" do
+      assigns = %{meta: build(:meta_on_first_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          opts={[pagination_list_item_attrs: [class: "p-list-item"]]}
+        />
+        """)
+
+      assert list_item = find_one(html, "ul li:first-child")
+      assert attribute(list_item, "class") == "p-list-item"
+    end
+
     test "allows to overwrite pagination link attributes" do
       assigns = %{meta: build(:meta_on_second_page)}
 

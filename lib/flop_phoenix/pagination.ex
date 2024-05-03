@@ -24,6 +24,7 @@ defmodule Flop.Phoenix.Pagination do
       pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
+      pagination_list_item_attrs: [],
       previous_link_attrs: [
         aria: [label: "Go to previous page"],
         class: "pagination-previous"
