@@ -2,11 +2,18 @@
 
 ## Unreleased
 
+## [0.22.9] - 2024-05-04
+
+### Added
+
+- Added `:pagination_list_item_attrs` option to `Flop.Phoenix.pagination/1`.
+
 ## [0.22.8] - 2024-03-23
 
 ### Added
 
-- Support `:col_class` attr on `:col` and `:action` slots in addition to `:col_style`.
+- Support `:col_class` attr on `:col` and `:action` slots in addition to
+  `:col_style`.
 
 ### Changed
 
