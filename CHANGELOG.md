@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Require `live_view ~> 1.0.0-rc.0`.
+
 ## [0.22.9] - 2024-05-04
 
 ### Added
