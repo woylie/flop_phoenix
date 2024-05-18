@@ -62,7 +62,7 @@ defmodule FlopPhoenix.MixProject do
       {:phoenix_html, "~> 4.0"},
       {:phoenix_html_helpers, "~> 1.0.0"},
       {:phoenix_live_view, "~> 1.0.0-rc.0"},
-      {:stream_data, "~> 0.5", only: [:dev, :test]}
+      {:stream_data, "~> 1.0", only: [:dev, :test]}
     ]
   end
 
