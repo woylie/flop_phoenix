@@ -6,6 +6,10 @@
 
 - Require `live_view ~> 1.0.0-rc.0`.
 
+### Fixed
+
+- Fixed a deprecation warning in Elixir 1.17.
+
 ## [0.22.9] - 2024-05-04
 
 ### Added
