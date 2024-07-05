@@ -93,6 +93,7 @@ defmodule Flop.Phoenix.Misc do
     case opts_func(component) do
       nil -> []
       {module, func} -> apply(module, func, [])
+      list when is_list(list) -> list
     end
   end
 
