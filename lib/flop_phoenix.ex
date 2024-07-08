@@ -534,7 +534,7 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
 
-      <li :if={@last < @meta.total_pages - 1}>
+      <li :if={@last < @meta.total_pages - 1} {@opts[:pagination_list_item_attrs]}>
         <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
       </li>
 
