@@ -129,11 +129,11 @@ You also have the option to pass a `Phoenix.LiveView.JS` command instead of or
 in addition to a path. For more details, please refer to the component
 documentation.
 
-To change page size, you can either add a HTML `input` control (see below) or
+To change the page size, you can either add an HTML `input` control (see below) or
 add a LiveView `handle_event/3` function with a corresponding control, such 
 as a link. For example, you might create a widget with several page-size links. 
 
-You could create a page_size_link component, like this: 
+You could create a `page_size_link` component like this: 
 
 ```elixir
 attr :current_size, :integer, required: true
@@ -158,9 +158,7 @@ defp page_size_class(_old, _new), do: "font-light"
 You could then render them like this: 
 
 ```elixir
-<%= for ps <- [10, 20, 40, 60] do %>
-  <.page_size_link new_size={ps} current_size={@meta.page_size} />
-<% end %>
+<.page_size_link :for={ps <- [10, 20, 40, 60]} new_size={ps} current_size={@meta.page_size} />
 ```
 
 Then, you can handle the event in your LiveView, like this: 
@@ -174,7 +172,7 @@ Then, you can handle the event in your LiveView, like this:
   end
 ```
 
-This method allows you to update page size while maintaining browser history. 
+This method allows you to update the page size while maintaining browser history. 
 
 If you wish to implement cursor-based pagination, see
 `Flop.Phoenix.cursor_pagination/1` for setup instructions.
