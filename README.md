@@ -129,6 +129,53 @@ You also have the option to pass a `Phoenix.LiveView.JS` command instead of or
 in addition to a path. For more details, please refer to the component
 documentation.
 
+To change page size, you can either add a HTML `input` control (see below) or
+add a LiveView `handle_event/3` function with a corresponding control, such 
+as a link. For example, you might create a widget with several page-size links. 
+
+You could create a page_size_link component, like this: 
+
+```elixir
+attr :current_size, :integer, required: true
+attr :new_size, :integer, required: true
+
+def page_size_link(assigns) do
+  ~H"""
+  <.link
+    phx-click="page-size"
+    phx-value-size={@new_size}
+    class={page_size_class(@current_size, @new_size)}
+  >
+    <%= @new_size %>
+  </.link>
+  """
+end
+
+defp page_size_class(old, old), do: "font-black text-orange-500"
+defp page_size_class(_old, _new), do: "font-light"
+```
+
+You could then render them like this: 
+
+```elixir
+<%= for ps <- [10, 20, 40, 60] do %>
+  <.page_size_link new_size={ps} current_size={@meta.page_size} />
+<% end %>
+```
+
+Then, you can handle the event in your LiveView, like this: 
+
+```elixir
+  def handle_event("page-size", %{"size" => ps}, socket) do
+    flop = %{socket.assigns.meta.flop | page_size: ps, limit: nil}
+    path = Flop.Phoenix.build_path(~p"/pets", flop)
+
+    {:noreply, push_patch(socket, to: path)}
+  end
+```
+
+This method allows you to update page size while maintaining browser history. 
+
 If you wish to implement cursor-based pagination, see
 `Flop.Phoenix.cursor_pagination/1` for setup instructions.
 
@@ -177,6 +224,18 @@ Note that while the `filter_fields` component produces all necessary hidden
 inputs, it doesn't automatically render inputs for filter values. Instead, it
 passes the necessary details to the inner block, allowing you to customize the
 filter inputs with your custom input component.
+
+One such hidden input is the input for `page_size`. If you would like to display this field, you can simply add a direct HTML input control for `page_size` to your `filter_form/1` function, like so: 
+
+```elixir
+    ...
+    <input type="text" name="page_size" value={@meta.page_size} />
+
+    <button class="button" name="reset">reset</button>
+  </.form>
+  """
+end
+```
 
 You can pass additional options for each field. Refer to the
 `Flop.Phoenix.filter_fields/1` documentation for details.
