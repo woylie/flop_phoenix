@@ -1177,7 +1177,7 @@ defmodule Flop.Phoenix do
       |> assign_new(:id, fn -> table_id(meta.schema) end)
 
     ~H"""
-    <%= if @items == [] do %>
+    <%= if Enum.count(@items) == 0 do %>
       <%= @opts[:no_results_content] %>
     <% else %>
       <%= if @opts[:container] do %>

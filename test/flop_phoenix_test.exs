@@ -2562,6 +2562,15 @@ defmodule Flop.PhoenixTest do
              }) == [{"div", [], ["Nothing!"]}]
     end
 
+    test "allows to set no_results_content if items is a stream" do
+      assert render_table(%{
+               items: Phoenix.LiveView.LiveStream.new(:emtpy, "empty", [], []),
+               opts: [
+                 no_results_content: custom_no_results_content()
+               ]
+             }) == [{"div", [], ["Nothing!"]}]
+    end
+
     test "renders row_click" do
       assigns = %{}
 
