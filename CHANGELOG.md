@@ -10,6 +10,12 @@
 
 - Fixed a deprecation warning in Elixir 1.17.
 
+## [0.22.10] - 2024-08-18
+
+### Changed
+
+- Loosen version requirement for `flop` to support 0.26.
+
 ## [0.22.9] - 2024-05-04
 
 ### Added
