@@ -57,7 +57,7 @@ defmodule FlopPhoenix.MixProject do
       # Floki >= 0.36 uses Keyword.validate/2, which was introduced in
       # Elixir 1.13
       {:floki, "~> 0.35.0", only: :test},
-      {:flop, "~> 0.23.0 or ~> 0.24.0 or ~> 0.25.0"},
+      {:flop, ">= 0.23.0 and < 0.27.0"},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:makeup_diff, "~> 0.1.0", only: :dev, runtime: false},
       {:phoenix, "~> 1.6.0 or ~> 1.7.0"},
