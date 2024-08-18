@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## [0.23.0] - 2024-08-18
+
 ### Changed
 
-- Require `live_view ~> 1.0.0-rc.0`.
+- Support and require `live_view ~> 1.0.0-rc.0`.
+- Allow to pass options directly in config file instead of referencing function.
 
 ### Fixed
 
