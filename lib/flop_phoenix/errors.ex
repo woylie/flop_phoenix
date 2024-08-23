@@ -102,3 +102,23 @@ defmodule Flop.Phoenix.PathOrJSError do
   defp on_examples(:table), do: "on_sort={JS.push(\"sort-table\")}"
   defp on_examples(_), do: "on_paginate={JS.push(\"paginate\")}"
 end
+
+defmodule Flop.Phoenix.IncorrectPaginationTypeError do
+  @moduledoc """
+  Raised when a cursor result set meta is provided to the non-cursor
+  pagination or table component.
+  """
+  defexception [:component]
+
+  def message(%{component: _component}) do
+    """
+    Pagination component type does not match result set type.
+
+    Use the apprepriate pagination component for your result set.
+
+    Examples:
+        <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} /> for offset-paginated sets.
+        <Flop.Phoenix.cursor_pagination meta={@meta} path={~p"/pets"} /> for cursor-paginated sets.
+    """
+  end
+end

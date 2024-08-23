@@ -101,6 +101,16 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
+    test "raises an error if cursor pagination is in use" do
+      assigns = %{meta: build(:meta_with_cursors)}
+
+      assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+        """)
+      end
+    end
+
     test "allows to overwrite wrapper class" do
       assigns = %{meta: build(:meta_on_first_page)}
 
@@ -1139,6 +1149,16 @@ defmodule Flop.PhoenixTest do
       assert attribute(nav, "aria-label") == "pagination"
       assert attribute(nav, "class") == "pagination"
       assert attribute(nav, "role") == "navigation"
+    end
+
+    test "raises an error if an offest result set is provided" do
+      assigns = %{meta: build(:meta_on_first_page)}
+
+      assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
+        parse_heex(~H"""
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={%JS{}} />
+        """)
+      end
     end
 
     test "allows to overwrite wrapper class" do

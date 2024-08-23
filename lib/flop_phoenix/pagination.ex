@@ -48,6 +48,11 @@ defmodule Flop.Phoenix.Pagination do
   def max_pages(:hide, _), do: 0
   def max_pages({:ellipsis, max_pages}, _), do: max_pages
 
+  @spec get_page_link_range(
+          non_neg_integer(),
+          non_neg_integer(),
+          non_neg_integer()
+        ) :: Range.t()
   def get_page_link_range(current_page, max_pages, total_pages) do
     # number of additional pages to show before or after current page
     additional = ceil(max_pages / 2)
