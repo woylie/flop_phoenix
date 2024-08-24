@@ -105,20 +105,17 @@ end
 
 defmodule Flop.Phoenix.IncorrectPaginationTypeError do
   @moduledoc """
-  Raised when a cursor result set meta is provided to the non-cursor
-  pagination or table component.
+  Raised when the pagination type used for a query is not supported by a
+  component.
   """
   defexception [:component]
 
   def message(%{component: _component}) do
     """
-    Pagination component type does not match result set type.
+    Pagination type not supported by component
 
-    Use the apprepriate pagination component for your result set.
-
-    Examples:
-        <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} /> for offset-paginated sets.
-        <Flop.Phoenix.cursor_pagination meta={@meta} path={~p"/pets"} /> for cursor-paginated sets.
+    - For page-based pagination, use `Flop.Phoenix.pagination/1`.
+    - For cursor-based pagination, use `Flop.Phoenix.cursor_pagination/1`.
     """
   end
 end
