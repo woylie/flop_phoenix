@@ -433,6 +433,11 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
+  def pagination(%{meta: %{start_cursor: start_cursor, end_cursor: end_cursor}})
+      when not is_nil(start_cursor) or not is_nil(end_cursor) do
+    raise Flop.Phoenix.IncorrectPaginationTypeError, component: :pagination
+  end
+
   def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
     assigns =
       assigns
@@ -781,6 +786,13 @@ defmodule Flop.Phoenix do
 
   def cursor_pagination(%{path: nil, on_paginate: nil, event: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :cursor_pagination
+  end
+
+  def cursor_pagination(%{
+        meta: %{total_count: total_count, total_pages: total_pages}
+      })
+      when not is_nil(total_count) or not is_nil(total_pages) do
+    raise Flop.Phoenix.IncorrectPaginationTypeError, component: :pagination
   end
 
   def cursor_pagination(%{opts: opts} = assigns) do
