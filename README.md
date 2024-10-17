@@ -17,7 +17,7 @@ application.
 ```elixir
 def deps do
   [
-    {:flop_phoenix, "~> 0.23.0"}
+    {:flop_phoenix, "~> 0.23.1"}
   ]
 end
 ```
@@ -130,10 +130,10 @@ in addition to a path. For more details, please refer to the component
 documentation.
 
 To change the page size, you can either add an HTML `input` control (see below) or
-add a LiveView `handle_event/3` function with a corresponding control, such 
-as a link. For example, you might create a widget with several page-size links. 
+add a LiveView `handle_event/3` function with a corresponding control, such
+as a link. For example, you might create a widget with several page-size links.
 
-You could create a `page_size_link` component like this: 
+You could create a `page_size_link` component like this:
 
 ```elixir
 attr :current_size, :integer, required: true
@@ -155,13 +155,13 @@ defp page_size_class(old, old), do: "font-black text-orange-500"
 defp page_size_class(_old, _new), do: "font-light"
 ```
 
-You could then render them like this: 
+You could then render them like this:
 
 ```elixir
 <.page_size_link :for={ps <- [10, 20, 40, 60]} new_size={ps} current_size={@meta.page_size} />
 ```
 
-Then, you can handle the event in your LiveView, like this: 
+Then, you can handle the event in your LiveView, like this:
 
 ```elixir
   def handle_event("page-size", %{"size" => ps}, socket) do
@@ -172,7 +172,7 @@ Then, you can handle the event in your LiveView, like this:
   end
 ```
 
-This method allows you to update the page size while maintaining browser history. 
+This method allows you to update the page size while maintaining browser history.
 
 If you wish to implement cursor-based pagination, see
 `Flop.Phoenix.cursor_pagination/1` for setup instructions.
@@ -223,7 +223,7 @@ inputs, it doesn't automatically render inputs for filter values. Instead, it
 passes the necessary details to the inner block, allowing you to customize the
 filter inputs with your custom input component.
 
-One such hidden input is the input for `page_size`. If you would like to display this field, you can simply add a direct HTML input control for `page_size` to your `filter_form/1` function, like so: 
+One such hidden input is the input for `page_size`. If you would like to display this field, you can simply add a direct HTML input control for `page_size` to your `filter_form/1` function, like so:
 
 ```elixir
     ...
