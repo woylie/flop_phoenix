@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## [0.23.1] - 2024-10-17
+
+### Changed
+
+- Raise an error if a meta struct with the wrong pagination type is passed to the `pagination` or `cursor_pagination` component.
+
+### Fixed
+
+- Fix compilation error in Phoenix LiveView 1.0.0-rc.7.
+- Fix type of `row_click` attribute.
+
 ## [0.23.0] - 2024-08-18
 
 ### Changed
