@@ -1011,7 +1011,7 @@ defmodule Flop.Phoenix do
     Overrides the default function that retrieves the row ID from a stream item.
     """
 
-  attr :row_click, JS,
+  attr :row_click, :any,
     default: nil,
     doc: """
     Sets the `phx-click` function attribute for each row `td`. Expects to be a
