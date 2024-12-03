@@ -59,7 +59,7 @@ defmodule Flop.Phoenix.Table do
 
     ~H"""
     <table id={@id} {@opts[:table_attrs]}>
-      <caption :if={@caption}><%= @caption %></caption>
+      <caption :if={@caption}>{@caption}</caption>
       <.maybe_colgroup col={@col ++ @action} />
       <thead {@opts[:thead_attrs]}>
         <tr {@opts[:thead_tr_attrs]}>
@@ -118,17 +118,17 @@ defmodule Flop.Phoenix.Table do
             {merge_td_attrs(@opts[:tbody_td_attrs], col, item)}
             phx-click={@row_click && @row_click.(item)}
           >
-            <%= render_slot(col, @row_item.(item)) %>
+            {render_slot(col, @row_item.(item))}
           </td>
           <td
             :for={action <- @action}
             {merge_td_attrs(@opts[:tbody_td_attrs], action, item)}
           >
-            <%= render_slot(action, @row_item.(item)) %>
+            {render_slot(action, @row_item.(item))}
           </td>
         </tr>
       </tbody>
-      <tfoot :if={@foot != []}><%= render_slot(@foot) %></tfoot>
+      <tfoot :if={@foot != []}>{render_slot(@foot)}</tfoot>
     </table>
     """
   end
@@ -231,7 +231,7 @@ defmodule Flop.Phoenix.Table do
 
   defp header_column(%{sortable: false} = assigns) do
     ~H"""
-    <th {@thead_th_attrs}><%= @label %></th>
+    <th {@thead_th_attrs}>{@label}</th>
     """
   end
 
@@ -251,12 +251,12 @@ defmodule Flop.Phoenix.Table do
 
   defp arrow(%{direction: direction} = assigns)
        when direction in [:asc, :asc_nulls_first, :asc_nulls_last] do
-    ~H"<span {@rest}><%= @symbol_asc %></span>"
+    ~H"<span {@rest}>{@symbol_asc}</span>"
   end
 
   defp arrow(%{direction: direction} = assigns)
        when direction in [:desc, :desc_nulls_first, :desc_nulls_last] do
-    ~H"<span {@rest}><%= @symbol_desc %></span>"
+    ~H"<span {@rest}>{@symbol_desc}</span>"
   end
 
   defp arrow(%{direction: nil, symbol_unsorted: nil} = assigns) do
@@ -264,7 +264,7 @@ defmodule Flop.Phoenix.Table do
   end
 
   defp arrow(%{direction: nil} = assigns) do
-    ~H"<span {@rest}><%= @symbol_unsorted %></span>"
+    ~H"<span {@rest}>{@symbol_unsorted}</span>"
   end
 
   attr :field, :atom, required: true
@@ -277,7 +277,7 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
     <.link phx-click={@event} phx-target={@target} phx-value-order={@field}>
-      <%= @label %>
+      {@label}
     </.link>
     """
   end
@@ -285,7 +285,7 @@ defmodule Flop.Phoenix.Table do
   defp sort_link(%{on_sort: nil, path: path} = assigns)
        when is_binary(path) do
     ~H"""
-    <.link patch={@path}><%= @label %></.link>
+    <.link patch={@path}>{@label}</.link>
     """
   end
 
@@ -297,7 +297,7 @@ defmodule Flop.Phoenix.Table do
       phx-target={@target}
       phx-value-order={@field}
     >
-      <%= @label %>
+      {@label}
     </.link>
     """
   end

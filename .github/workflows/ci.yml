@@ -49,7 +49,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - { elixir: 1.13, otp: 24 }
           - { elixir: 1.14, otp: 24 }
           - { elixir: 1.14, otp: 25 }
           - { elixir: 1.15, otp: 24 }

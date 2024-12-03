@@ -66,7 +66,7 @@ defmodule MyAppWeb.CoreComponents do
   def input(%{field: nil} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
-      <label for={@id}><%= @label %></label>
+      <label for={@id}>{@label}</label>
       <input
         type={@type}
         name={@name}
@@ -83,7 +83,7 @@ defmodule MyAppWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="error"><%= @message %></p>
+    <p class="error">{@message}</p>
     """
   end
 
