@@ -460,7 +460,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         {@opts[:previous_link_attrs]}
       >
-        <%= @opts[:previous_link_content] %>
+        {@opts[:previous_link_content]}
       </.pagination_link>
       <.pagination_link
         disabled={!@meta.has_next_page?}
@@ -472,7 +472,7 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         {@opts[:next_link_attrs]}
       >
-        <%= @opts[:next_link_content] %>
+        {@opts[:next_link_content]}
       </.pagination_link>
       <.page_links
         event={@event}
@@ -523,7 +523,7 @@ defmodule Flop.Phoenix do
       </li>
 
       <li :if={@first > 2} {@opts[:pagination_list_item_attrs]}>
-        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+        <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
       </li>
 
       <li :for={page <- @range} {@opts[:pagination_list_item_attrs]}>
@@ -535,12 +535,12 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           {Pagination.attrs_for_page_link(page, @meta, @opts)}
         >
-          <%= page %>
+          {page}
         </.pagination_link>
       </li>
 
       <li :if={@last < @meta.total_pages - 1} {@opts[:pagination_list_item_attrs]}>
-        <span {@opts[:ellipsis_attrs]}><%= @opts[:ellipsis_content] %></span>
+        <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
       </li>
 
       <li :if={@last < @meta.total_pages} {@opts[:pagination_list_item_attrs]}>
@@ -552,7 +552,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           {Pagination.attrs_for_page_link(@meta.total_pages, @meta, @opts)}
         >
-          <%= @meta.total_pages %>
+          {@meta.total_pages}
         </.pagination_link>
       </li>
     </ul>
@@ -581,7 +581,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <span {@rest} class={@disabled_class}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </span>
     """
   end
@@ -589,7 +589,7 @@ defmodule Flop.Phoenix do
   defp pagination_link(%{event: event} = assigns) when is_binary(event) do
     ~H"""
     <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -598,7 +598,7 @@ defmodule Flop.Phoenix do
        when is_binary(path) do
     ~H"""
     <.link patch={@path} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -612,7 +612,7 @@ defmodule Flop.Phoenix do
       phx-value-page={@page}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -811,7 +811,7 @@ defmodule Flop.Phoenix do
         disabled_class={@opts[:disabled_class]}
         {@opts[:previous_link_attrs]}
       >
-        <%= @opts[:previous_link_content] %>
+        {@opts[:previous_link_content]}
       </.cursor_pagination_link>
       <.cursor_pagination_link
         direction={if @reverse, do: :previous, else: :next}
@@ -824,7 +824,7 @@ defmodule Flop.Phoenix do
         disabled_class={@opts[:disabled_class]}
         {@opts[:next_link_attrs]}
       >
-        <%= @opts[:next_link_content] %>
+        {@opts[:next_link_content]}
       </.cursor_pagination_link>
     </nav>
     """
@@ -853,7 +853,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <span {@rest} class={@disabled_class}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </span>
     """
   end
@@ -862,7 +862,7 @@ defmodule Flop.Phoenix do
        when is_binary(event) do
     ~H"""
     <.link phx-click={@event} phx-target={@target} phx-value-to={@direction} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -873,7 +873,7 @@ defmodule Flop.Phoenix do
       patch={CursorPagination.pagination_path(@direction, @path, @meta)}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -892,7 +892,7 @@ defmodule Flop.Phoenix do
       phx-value-to={@direction}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
@@ -1189,7 +1189,7 @@ defmodule Flop.Phoenix do
 
     ~H"""
     <%= if @items == [] do %>
-      <%= @opts[:no_results_content] %>
+      {@opts[:no_results_content]}
     <% else %>
       <%= if @opts[:container] do %>
         <div id={@id <> "-container"} {@opts[:container_attrs]}>
@@ -1381,12 +1381,12 @@ defmodule Flop.Phoenix do
     <.hidden_inputs_for_filter form={@form} />
     <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
       <.hidden_inputs_for_filter form={ff} />
-      <%= render_slot(@inner_block, %{
+      {render_slot(@inner_block, %{
         field: ff[:value],
         label: input_label(ff, opts[:label]),
         type: type_for(ff, opts[:type]),
         rest: Keyword.drop(opts, [:label, :op, :type])
-      }) %>
+      })}
     <% end %>
     """
   end

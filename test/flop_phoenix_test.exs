@@ -48,12 +48,12 @@ defmodule Flop.PhoenixTest do
       path={@path}
       target={@target}
     >
-      <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-      <:col :let={pet} label="Email" field={:email}><%= pet.email %></:col>
+      <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+      <:col :let={pet} label="Email" field={:email}>{pet.email}</:col>
       <:col :let={pet} label="Age" hide={@hide_age} show={@show_age}>
-        <%= pet.age %>
+        {pet.age}
       </:col>
-      <:col :let={pet} label="Species" field={:species}><%= pet.species %></:col>
+      <:col :let={pet} label="Species" field={:species}>{pet.species}</:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
     """)
@@ -1760,7 +1760,7 @@ defmodule Flop.PhoenixTest do
           row_item={@row_item}
           event="sort"
         >
-          <:col :let={p}><%= p.name %></:col>
+          <:col :let={p}>{p.name}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -1859,7 +1859,7 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
           on_sort={%JS{}}
         >
-          <:col :let={u} label="Name"><%= u.name %></:col>
+          <:col :let={u} label="Name">{u.name}</:col>
           <:action label="Buttons" tbody_td_attrs={@attrs_fun}>some action</:action>
         </Flop.Phoenix.table>
         """)
@@ -1898,10 +1898,10 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} thead_th_attrs={[class: "name-header"]}>
-            <%= pet.name %>
+            {pet.name}
           </:col>
           <:col :let={pet} thead_th_attrs={[class: "age-header"]}>
-            <%= pet.age %>
+            {pet.age}
           </:col>
           <:action :let={pet} thead_th_attrs={[class: "action-header"]}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
@@ -1925,10 +1925,10 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} tbody_td_attrs={[class: "name-column"]}>
-            <%= pet.name %>
+            {pet.name}
           </:col>
           <:col :let={pet} tbody_td_attrs={[class: "age-column"]}>
-            <%= pet.age %>
+            {pet.age}
           </:col>
           <:action :let={pet} tbody_td_attrs={[class: "action-column"]}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
@@ -1951,8 +1951,8 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} thead_th_attrs={[class: "name-th-class"]}><%= i.name %></:col>
-          <:col :let={i}><%= i.age %></:col>
+          <:col :let={i} thead_th_attrs={[class: "name-th-class"]}>{i.name}</:col>
+          <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -1973,8 +1973,8 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} field={:name}><%= i.name %></:col>
-          <:col :let={i}><%= i.age %></:col>
+          <:col :let={i} field={:name}>{i.name}</:col>
+          <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -1997,9 +1997,9 @@ defmodule Flop.PhoenixTest do
             field={:name}
             th_wrapper_attrs={[class: "name-th-wrapper-class"]}
           >
-            <%= i.name %>
+            {i.name}
           </:col>
-          <:col :let={i} field={:age}><%= i.age %></:col>
+          <:col :let={i} field={:age}>{i.age}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -2020,8 +2020,8 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i} tbody_td_attrs={[class: "name-td-class"]}><%= i.name %></:col>
-          <:col :let={i}><%= i.age %></:col>
+          <:col :let={i} tbody_td_attrs={[class: "name-td-class"]}>{i.name}</:col>
+          <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -2042,7 +2042,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i}><%= i.name %></:col>
+          <:col :let={i}>{i.name}</:col>
           <:action thead_th_attrs={[class: "action-1-th-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
@@ -2065,7 +2065,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
-          <:col :let={i}><%= i.name %></:col>
+          <:col :let={i}>{i.name}</:col>
           <:action tbody_td_attrs={[class: "action-1-td-class"]}>action 1</:action>
           <:action>action 2</:action>
         </Flop.Phoenix.table>
@@ -2242,7 +2242,7 @@ defmodule Flop.PhoenixTest do
             field={:ttfb}
             directions={@ttfb_directions}
           >
-            <%= navigation.ttfb %>
+            {navigation.ttfb}
           </:col>
         </Flop.Phoenix.table>
         """
@@ -2305,10 +2305,10 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet}>
-            <%= pet.name %>
+            {pet.name}
           </:col>
           <:action :let={pet} label={{:safe, "<span>Hello</span>"}}>
-            <%= pet.name %>
+            {pet.name}
           </:action>
         </Flop.Phoenix.table>
         """)
@@ -2329,7 +2329,7 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} label={{:safe, "<span>Hello</span>"}} field={:name}>
-            <%= pet.name %>
+            {pet.name}
           </:col>
         </Flop.Phoenix.table>
         """)
@@ -2594,7 +2594,7 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
           row_click={&JS.navigate("/show/#{&1.id}")}
         >
-          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+          <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
           <:action :let={pet}>
             <.link navigate={"/show/pet/#{pet.name}"}>Show Pet</.link>
           </:action>
@@ -2678,7 +2678,7 @@ defmodule Flop.PhoenixTest do
           items={[%{name: "George"}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
+          <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
           <:foot>
             <tr>
               <td>snap</td>
@@ -2709,13 +2709,13 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
-            <%= pet.name %>
+            {pet.name}
           </:col>
           <:col :let={pet} label="Surname" field={:surname}>
-            <%= pet.surname %>
+            {pet.surname}
           </:col>
           <:col :let={pet} label="Age" field={:age} col_class="some-col-class">
-            <%= pet.age %>
+            {pet.age}
           </:col>
         </Flop.Phoenix.table>
         """)
@@ -2745,8 +2745,8 @@ defmodule Flop.PhoenixTest do
           items={[%{name: "George", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
-          <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-          <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
+          <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+          <:col :let={pet} label="Age" field={:age}>{pet.age}</:col>
         </Flop.Phoenix.table>
         """)
 
@@ -2771,7 +2771,7 @@ defmodule Flop.PhoenixTest do
           meta={%Flop.Meta{flop: %Flop{}}}
         >
           <:col :let={pet} label="Name" field={:name} col_style="width: 60%;">
-            <%= pet.name %>
+            {pet.name}
           </:col>
           <:action :let={pet} col_style="width: 40%;">
             <.link navigate={"/show/pet/#{pet.name}"}>
@@ -3051,7 +3051,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
           <:col :let={i} label={@thead_label_component.(%{})}>
-            <%= i.name %>
+            {i.name}
           </:col>
         </Flop.Phoenix.table>
         """)

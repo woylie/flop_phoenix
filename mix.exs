@@ -8,7 +8,7 @@ defmodule FlopPhoenix.MixProject do
     [
       app: :flop_phoenix,
       version: @version,
-      elixir: "~> 1.8",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
@@ -61,7 +61,7 @@ defmodule FlopPhoenix.MixProject do
       {:phoenix, "~> 1.6.0 or ~> 1.7.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_html_helpers, "~> 1.0.0"},
-      {:phoenix_live_view, "~> 1.0.0-rc.0"},
+      {:phoenix_live_view, "~> 1.0.0-rc.8"},
       {:stream_data, "~> 1.0", only: [:dev, :test]}
     ]
   end

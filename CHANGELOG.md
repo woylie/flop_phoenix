@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Require Phoenix LiveView ~> 1.0.0-rc.8.
+- Require Elixir ~> 1.14.
+
 ## [0.23.1] - 2024-10-17
 
 ### Changed
