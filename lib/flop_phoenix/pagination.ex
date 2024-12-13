@@ -59,15 +59,15 @@ defmodule Flop.Phoenix.Pagination do
 
     cond do
       max_pages >= total_pages ->
-        1..total_pages//1
+        1..total_pages
 
       current_page + additional > total_pages ->
-        (total_pages - max_pages + 1)..total_pages//1
+        (total_pages - max_pages + 1)..total_pages
 
       true ->
         first = max(current_page - additional + 1, 1)
         last = min(first + max_pages - 1, total_pages)
-        first..last//1
+        first..last
     end
   end
 
