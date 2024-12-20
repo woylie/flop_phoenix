@@ -1,7 +1,7 @@
 name: CI
 
 env:
-  ELIXIR_VERSION: "1.17"
+  ELIXIR_VERSION: "1.18"
   OTP_VERSION: "27"
 
 on:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   test-coverage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Test Coverage
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
         run: mix coveralls.github --warnings-as-errors
 
   tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
@@ -60,6 +60,9 @@ jobs:
           - { elixir: 1.17, otp: 25 }
           - { elixir: 1.17, otp: 26 }
           - { elixir: 1.17, otp: 27 }
+          - { elixir: 1.18, otp: 25 }
+          - { elixir: 1.18, otp: 26 }
+          - { elixir: 1.18, otp: 27 }
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -87,7 +90,7 @@ jobs:
 
   matrix-results:
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Tests
     needs:
       - tests
@@ -101,7 +104,7 @@ jobs:
           fi
 
   code-quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Code Quality
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
