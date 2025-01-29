@@ -85,8 +85,12 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     for {{filter, errors, field_opts}, index} <-
           Enum.with_index(filters_errors_opts, offset) do
       index_string = Integer.to_string(index)
-
       hidden = get_hidden(filter, skip_hidden_op)
+
+      field_opts =
+        Keyword.put_new_lazy(field_opts, :label, fn ->
+          filter |> get_field() |> humanize()
+        end)
 
       {data, params} =
         case filter do
@@ -114,6 +118,9 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
           "Only :filters is supported on " <>
             "inputs_for with Flop.Meta, got: #{inspect(field)}."
   end
+
+  defp get_field(%{field: field}), do: field
+  defp get_field(%{"field" => field}), do: field
 
   # no filters, use default
   defp filters_for([], nil, default, _, _) do
@@ -206,6 +213,26 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
               "#{inspect(key)} is not supported on inputs_for with Flop.Meta."
       end
     end
+  end
+
+  defp humanize(atom) when is_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> humanize()
+  end
+
+  defp humanize(s) when is_binary(s) do
+    if String.ends_with?(s, "_id") do
+      s |> binary_part(0, byte_size(s) - 3) |> to_titlecase()
+    else
+      to_titlecase(s)
+    end
+  end
+
+  defp to_titlecase(s) do
+    s
+    |> String.replace("_", " ")
+    |> :string.titlecase()
   end
 
   def input_type(_meta, _form, :after), do: :text_input

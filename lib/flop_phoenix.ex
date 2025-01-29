@@ -149,8 +149,7 @@ defmodule Flop.Phoenix do
   import Phoenix.HTML.Form,
     only: [
       input_id: 2,
-      input_name: 2,
-      input_value: 2
+      input_name: 2
     ]
 
   alias Flop.Meta
@@ -1382,7 +1381,7 @@ defmodule Flop.Phoenix do
       <.hidden_inputs_for_filter form={ff} />
       {render_slot(@inner_block, %{
         field: ff[:value],
-        label: input_label(ff, ff.options[:label]),
+        label: ff.options[:label],
         type: type_for(ff, ff.options[:type]),
         rest: Keyword.drop(ff.options, [:label, :op, :type])
       })}
@@ -1404,9 +1403,6 @@ defmodule Flop.Phoenix do
     end)
   end
 
-  defp input_label(_form, text) when is_binary(text), do: text
-  defp input_label(form, nil), do: form |> input_value(:field) |> humanize()
-
   defp type_for(_form, type) when is_binary(type), do: type
   defp type_for(form, nil), do: input_type_as_string(form)
 
@@ -1414,26 +1410,6 @@ defmodule Flop.Phoenix do
     form
     |> PhoenixHTMLHelpers.Form.input_type(:value)
     |> to_html_input_type()
-  end
-
-  defp humanize(atom) when is_atom(atom) do
-    atom
-    |> Atom.to_string()
-    |> humanize()
-  end
-
-  defp humanize(s) when is_binary(s) do
-    if String.ends_with?(s, "_id") do
-      s |> binary_part(0, byte_size(s) - 3) |> to_titlecase()
-    else
-      to_titlecase(s)
-    end
-  end
-
-  defp to_titlecase(s) do
-    s
-    |> String.replace("_", " ")
-    |> :string.titlecase()
   end
 
   # coveralls-ignore-start
