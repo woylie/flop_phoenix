@@ -1385,7 +1385,6 @@ defmodule Flop.Phoenix do
         type: ff.options[:type],
         rest: Keyword.drop(ff.options, [:label, :op, :type])
       })}
-      <div>{inspect(ff, pretty: true)}</div>
     </.inputs_for>
     """
   end
