@@ -60,7 +60,6 @@ defmodule FlopPhoenix.MixProject do
       {:makeup_diff, "~> 0.1.0", only: :dev, runtime: false},
       {:phoenix, "~> 1.6.0 or ~> 1.7.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_html_helpers, "~> 1.0.0"},
       {:phoenix_live_view, "~> 1.0.0"},
       {:stream_data, "~> 1.0", only: [:dev, :test]}
     ]
