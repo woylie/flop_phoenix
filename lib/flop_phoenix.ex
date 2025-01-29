@@ -1382,7 +1382,7 @@ defmodule Flop.Phoenix do
       {render_slot(@inner_block, %{
         field: ff[:value],
         label: ff.options[:label],
-        type: type_for(ff, ff.options[:type]),
+        type: ff.options[:type],
         rest: Keyword.drop(ff.options, [:label, :op, :type])
       })}
       <div>{inspect(ff, pretty: true)}</div>
@@ -1402,42 +1402,6 @@ defmodule Flop.Phoenix do
         raise Flop.Phoenix.InvalidFilterFieldConfigError, value: field
     end)
   end
-
-  defp type_for(_form, type) when is_binary(type), do: type
-  defp type_for(form, nil), do: input_type_as_string(form)
-
-  defp input_type_as_string(form) do
-    form
-    |> PhoenixHTMLHelpers.Form.input_type(:value)
-    |> to_html_input_type()
-  end
-
-  # coveralls-ignore-start
-
-  defp to_html_input_type(:checkbox), do: "checkbox"
-  defp to_html_input_type(:color_input), do: "color"
-  defp to_html_input_type(:date_input), do: "date"
-  defp to_html_input_type(:date_select), do: "date"
-  defp to_html_input_type(:datetime_local_input), do: "datetime-local"
-  defp to_html_input_type(:datetime_select), do: "datetime-local"
-  defp to_html_input_type(:email_input), do: "email"
-  defp to_html_input_type(:file_input), do: "file"
-  defp to_html_input_type(:hidden_input), do: "hidden"
-  defp to_html_input_type(:multiple_select), do: "select"
-  defp to_html_input_type(:number_input), do: "number"
-  defp to_html_input_type(:password_input), do: "password"
-  defp to_html_input_type(:radio_button), do: "radio"
-  defp to_html_input_type(:range_input), do: "range"
-  defp to_html_input_type(:search_input), do: "search"
-  defp to_html_input_type(:select), do: "select"
-  defp to_html_input_type(:telephone_input), do: "tel"
-  defp to_html_input_type(:text_input), do: "text"
-  defp to_html_input_type(:textarea), do: "textarea"
-  defp to_html_input_type(:time_input), do: "time"
-  defp to_html_input_type(:time_select), do: "time"
-  defp to_html_input_type(:url_input), do: "url"
-
-  # coveralls-ignore-end
 
   defp ensure_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
   defp ensure_meta_form!(_), do: raise(Flop.Phoenix.NoMetaFormError)

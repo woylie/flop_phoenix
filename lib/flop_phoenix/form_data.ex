@@ -87,16 +87,18 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       index_string = Integer.to_string(index)
       hidden = get_hidden(filter, skip_hidden_op)
 
-      field_opts =
-        Keyword.put_new_lazy(field_opts, :label, fn ->
-          filter |> get_field() |> humanize()
-        end)
-
       {data, params} =
         case filter do
           %Filter{} -> {filter, %{}}
           %{} -> {%Filter{}, filter}
         end
+
+      field_opts =
+        field_opts
+        |> Keyword.put_new(:type, input_type(data, meta.schema))
+        |> Keyword.put_new_lazy(:label, fn ->
+          filter |> get_field() |> humanize()
+        end)
 
       %Phoenix.HTML.Form{
         source: meta,
@@ -235,36 +237,23 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     |> :string.titlecase()
   end
 
-  def input_type(_meta, _form, :after), do: :text_input
-  def input_type(_meta, _form, :before), do: :text_input
-  def input_type(_meta, _form, :first), do: :number_input
-  def input_type(_meta, _form, :last), do: :number_input
-  def input_type(_meta, _form, :limit), do: :number_input
-  def input_type(_meta, _form, :offset), do: :number_input
-  def input_type(_meta, _form, :page), do: :number_input
-  def input_type(_meta, _form, :page_size), do: :number_input
-
-  def input_type(
-        _meta,
-        %{data: %Filter{field: field}, source: %{schema: schema}},
-        :value
-      )
-      when not is_nil(schema) do
+  defp input_type(%Filter{field: field}, schema)
+       when not is_nil(field) and not is_nil(schema) do
     schema |> ecto_type(field) |> input_type_for_ecto_type()
   end
 
-  def input_type(_meta, _form, _field), do: :text_input
+  defp input_type(_meta, _form), do: "text"
 
-  defp input_type_for_ecto_type(:boolean), do: :checkbox
-  defp input_type_for_ecto_type(:date), do: :date_select
-  defp input_type_for_ecto_type(:integer), do: :number_input
-  defp input_type_for_ecto_type(:naive_datetime), do: :datetime_select
-  defp input_type_for_ecto_type(:naive_datetime_usec), do: :datetime_select
-  defp input_type_for_ecto_type(:time), do: :time_select
-  defp input_type_for_ecto_type(:time_usec), do: :time_select
-  defp input_type_for_ecto_type(:utc_datetime), do: :datetime_select
-  defp input_type_for_ecto_type(:utc_datetime_usec), do: :datetime_select
-  defp input_type_for_ecto_type(_), do: :text_input
+  defp input_type_for_ecto_type(:boolean), do: "checkbox"
+  defp input_type_for_ecto_type(:date), do: "date"
+  defp input_type_for_ecto_type(:integer), do: "number"
+  defp input_type_for_ecto_type(:naive_datetime), do: "datetime-local"
+  defp input_type_for_ecto_type(:naive_datetime_usec), do: "datetime-local"
+  defp input_type_for_ecto_type(:time), do: "time"
+  defp input_type_for_ecto_type(:time_usec), do: "time"
+  defp input_type_for_ecto_type(:utc_datetime), do: "datetime-local"
+  defp input_type_for_ecto_type(:utc_datetime_usec), do: "datetime-local"
+  defp input_type_for_ecto_type(_), do: "text"
 
   def input_validations(_meta, _form, :after), do: [maxlength: 100]
   def input_validations(_meta, _form, :before), do: [maxlength: 100]
@@ -284,16 +273,8 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     end
   end
 
-  def input_validations(
-        _meta,
-        %{data: %Filter{field: field}, source: %{schema: schema}},
-        :value
-      )
-      when not is_nil(schema) do
-    case :type |> schema.__schema__(field) |> input_type_for_ecto_type() do
-      :text_input -> [maxlength: 100]
-      _ -> []
-    end
+  def input_validations(_meta, %{options: options}, :value) do
+    if options[:type] == "text", do: [maxlength: 100], else: []
   end
 
   def input_validations(_meta, _form, _field), do: []

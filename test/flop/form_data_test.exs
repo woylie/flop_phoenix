@@ -3,7 +3,6 @@ defmodule Flop.Phoenix.FormDataTest do
 
   import Flop.Phoenix.Factory
   import Phoenix.HTML.Form
-  import PhoenixHTMLHelpers.Form
 
   alias Flop.Filter
   alias MyApp.Pet
@@ -503,75 +502,6 @@ defmodule Flop.Phoenix.FormDataTest do
       assert_raise ArgumentError, msg, fn ->
         form = FormData.to_form(meta, [])
         FormData.to_form(meta, form, :something, [])
-      end
-    end
-  end
-
-  describe "input_type/2" do
-    test "returns input type depending on field" do
-      meta = build(:meta_on_first_page)
-      form = FormData.to_form(meta, [])
-
-      assert input_type(form, :after) == :text_input
-      assert input_type(form, :before) == :text_input
-      assert input_type(form, :first) == :number_input
-      assert input_type(form, :last) == :number_input
-      assert input_type(form, :limit) == :number_input
-      assert input_type(form, :offset) == :number_input
-      assert input_type(form, :page) == :number_input
-      assert input_type(form, :page_size) == :number_input
-      assert input_type(form, :anything_else) == :text_input
-    end
-
-    test "returns text_input for filter fields if no schema is passed" do
-      meta =
-        build(:meta_on_first_page,
-          flop: %Flop{filters: [%Filter{field: :name, op: :>=, value: "a"}]}
-        )
-
-      form = FormData.to_form(meta, [])
-      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
-
-      assert input_type(filter_form, :field) == :text_input
-      assert input_type(filter_form, :op) == :text_input
-      assert input_type(filter_form, :value) == :text_input
-    end
-
-    test "returns input type depending on schema/flop field type" do
-      mapping = [
-        integer: :number_input,
-        float: :text_input,
-        boolean: :checkbox,
-        string: :text_input,
-        decimal: :text_input,
-        date: :date_select,
-        time: :time_select,
-        time_usec: :time_select,
-        naive_datetime: :datetime_select,
-        naive_datetime_usec: :datetime_select,
-        utc_datetime: :datetime_select,
-        utc_datetime_usec: :datetime_select,
-        compound: :text_input,
-        join_default: :text_input,
-        join_integer: :number_input,
-        custom_date: :date_select
-      ]
-
-      filters = mapping |> Keyword.keys() |> Enum.map(&%Filter{field: &1})
-
-      meta =
-        build(:meta_on_first_page,
-          flop: %Flop{filters: filters},
-          schema: __MODULE__.TestSchema
-        )
-
-      form = FormData.to_form(meta, [])
-      filter_forms = FormData.to_form(meta, form, :filters, [])
-
-      for filter_form <- filter_forms do
-        field = input_value(filter_form, :field)
-        expected = Keyword.fetch!(mapping, field)
-        assert input_type(filter_form, :value) == expected
       end
     end
   end
