@@ -63,6 +63,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     {name, opts} = Keyword.pop(opts, :as)
     {default, opts} = Keyword.pop(opts, :default, [])
     {fields, opts} = Keyword.pop(opts, :fields)
+    {dynamic, opts} = Keyword.pop(opts, :dynamic, false)
     {offset, opts} = Keyword.pop(opts, :offset, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
@@ -76,13 +77,13 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
     filter_errors = Keyword.get(form.errors, :filters, [])
 
-    filters_with_errors =
+    filters_errors_opts =
       filters
-      |> filters_for(fields, default, filter_errors)
+      |> filters_for(fields, default, filter_errors, dynamic)
       |> reject_unfilterable(meta.schema)
 
-    for {{filter, errors}, index} <-
-          Enum.with_index(filters_with_errors, offset) do
+    for {{filter, errors, this_field_opts}, index} <-
+          Enum.with_index(filters_errors_opts, offset) do
       index_string = Integer.to_string(index)
 
       hidden = get_hidden(filter, skip_hidden_op)
@@ -103,7 +104,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         errors: errors,
         params: params,
         hidden: hidden,
-        options: opts
+        options: opts ++ this_field_opts
       }
     end
   end
@@ -115,18 +116,35 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   # no filters, use default
-  defp filters_for([], nil, default, _), do: zip_errors(default, [])
+  defp filters_for([], nil, default, _, _) do
+    default
+    |> zip_errors([])
+    |> Enum.map(fn {filter, errors} -> {filter, errors, []} end)
+  end
 
   # no static field configuration
-  defp filters_for(filters, nil, _, errors), do: zip_errors(filters, errors)
+  defp filters_for(filters, nil, _, errors, _) do
+    filters
+    |> zip_errors(errors)
+    |> Enum.map(fn {filter, errors} -> {filter, errors, []} end)
+  end
 
   # with static field configuration
-  defp filters_for(filters, fields, _, errors) when is_list(fields) do
+  defp filters_for(filters, fields, _, errors, false = _dynamic)
+       when is_list(fields) do
     filters_with_errors = zip_errors(filters, errors)
 
     fields
     |> Enum.reduce([], &filter_reducer(&1, &2, filters_with_errors))
     |> Enum.reverse()
+  end
+
+  defp filters_for(filters, fields, _, errors, true = _dynamic) do
+    filters
+    |> zip_errors(errors)
+    |> Enum.map(fn {%Filter{field: field} = filter, errors} ->
+      {filter, errors, fields[field] || []}
+    end)
   end
 
   defp get_hidden(filter, false = _skip_hidden_op) do
@@ -147,10 +165,12 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     op = opts[:op] || :==
     default = opts[:default]
 
-    if filter = find_filter_for_field(field, op, filters) do
-      [filter | acc]
-    else
-      [{%Filter{field: field, op: op, value: default}, []} | acc]
+    case find_filter_for_field(field, op, filters) do
+      {filter, errors} ->
+        [{filter, errors, opts} | acc]
+
+      nil ->
+        [{%Filter{field: field, op: op, value: default}, [], opts} | acc]
     end
   end
 
@@ -170,11 +190,11 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   defp reject_unfilterable(filters, nil), do: filters
 
-  defp reject_unfilterable(filters_with_errors, schema) do
+  defp reject_unfilterable(filters_errors_opts, schema) do
     filterable = schema |> struct() |> Flop.Schema.filterable()
     filterable = filterable ++ Enum.map(filterable, &Atom.to_string/1)
 
-    Enum.reject(filters_with_errors, fn {filter, _} ->
+    Enum.reject(filters_errors_opts, fn {filter, _, _} ->
       value(filter, :field) not in filterable
     end)
   end

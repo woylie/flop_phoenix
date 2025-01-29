@@ -1368,33 +1368,27 @@ defmodule Flop.Phoenix do
 
   def filter_fields(assigns) do
     ensure_meta_form!(assigns.form)
-    fields = normalize_filter_fields(assigns[:fields] || [])
-    field_opts = match_field_opts(assigns, fields)
-    inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
 
     assigns =
-      assigns
-      |> assign(:fields, inputs_for_fields)
-      |> assign(:field_opts, field_opts)
+      assign(assigns, :fields, normalize_filter_fields(assigns[:fields] || []))
 
     ~H"""
     <.hidden_inputs_for_filter form={@form} />
-    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
+    <.inputs_for
+      :let={ff}
+      field={@form[:filters]}
+      options={[dynamic: @dynamic, fields: @fields]}
+    >
       <.hidden_inputs_for_filter form={ff} />
       {render_slot(@inner_block, %{
         field: ff[:value],
-        label: input_label(ff, opts[:label]),
-        type: type_for(ff, opts[:type]),
-        rest: Keyword.drop(opts, [:label, :op, :type])
+        label: input_label(ff, ff.options[:label]),
+        type: type_for(ff, ff.options[:type]),
+        rest: Keyword.drop(ff.options, [:label, :op, :type])
       })}
-    <% end %>
+      <div>{inspect(ff, pretty: true)}</div>
+    </.inputs_for>
     """
-  end
-
-  defp inputs_for_filters(form, fields, field_opts) do
-    form.source
-    |> form.impl.to_form(form, :filters, fields: fields)
-    |> Enum.zip(field_opts)
   end
 
   defp normalize_filter_fields(fields) do
@@ -1408,16 +1402,6 @@ defmodule Flop.Phoenix do
       field ->
         raise Flop.Phoenix.InvalidFilterFieldConfigError, value: field
     end)
-  end
-
-  defp match_field_opts(%{dynamic: true, form: form}, fields) do
-    Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
-      fields[field] || []
-    end)
-  end
-
-  defp match_field_opts(_, fields) do
-    Keyword.values(fields)
   end
 
   defp input_label(_form, text) when is_binary(text), do: text

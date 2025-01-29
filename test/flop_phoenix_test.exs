@@ -3033,7 +3033,7 @@ defmodule Flop.PhoenixTest do
       assert attribute(input, "type") == "tel"
     end
 
-    test "it overrides label when passed Phoenix.HTML.Safe" do
+    test "overrides label when passed Phoenix.HTML.Safe" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
         items: [%{name: "George", age: 8}],
