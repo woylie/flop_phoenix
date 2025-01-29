@@ -102,8 +102,8 @@ template:
 <h1>Pets</h1>
 
 <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
-  <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-  <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
+  <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+  <:col :let={pet} label="Age" field={:age}>{pet.age}</:col>
 </Flop.Phoenix.table>
 
 <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} />
@@ -146,7 +146,7 @@ def page_size_link(assigns) do
     phx-value-size={@new_size}
     class={page_size_class(@current_size, @new_size)}
   >
-    <%= @new_size %>
+    {@new_size}
   </.link>
   """
 end
@@ -287,7 +287,7 @@ within the `:let` attributes of the table component.
 
 ```elixir
 <Flop.Phoenix.table items={@streams.pets} meta={@meta} path={~p"/pets"}>
-  <:col :let={{_, pet}} label="Name" field={:name}><%= pet.name %></:col>
-  <:col :let={{_, pet}} label="Age" field={:age}><%= pet.age %></:col>
+  <:col :let={{_, pet}} label="Name" field={:name}>{pet.name}</:col>
+  <:col :let={{_, pet}} label="Age" field={:age}>{pet.age}</:col>
 </Flop.Phoenix.table>
 ```

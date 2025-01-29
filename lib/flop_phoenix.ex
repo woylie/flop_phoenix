@@ -903,8 +903,8 @@ defmodule Flop.Phoenix do
 
   ```elixir
   <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
-    <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-    <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
+    <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+    <:col :let={pet} label="Age" field={:age}>{pet.age}</:col>
   </Flop.Phoenix.table>
   ```
 
@@ -1038,7 +1038,7 @@ defmodule Flop.Phoenix do
 
     ```elixir
     <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
-      <%= pet.name %>
+      {pet.name}
     </:col>
     ```
 
@@ -1171,7 +1171,7 @@ defmodule Flop.Phoenix do
 
         <Flop.Phoenix.table>
           <:foot>
-            <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+            <tr><td>Total: <span class="total">{@total}</span></td></tr>
           </:foot>
         </Flop.Phoenix.table>
     """
