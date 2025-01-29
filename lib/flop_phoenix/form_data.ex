@@ -82,7 +82,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       |> filters_for(fields, default, filter_errors, dynamic)
       |> reject_unfilterable(meta.schema)
 
-    for {{filter, errors, this_field_opts}, index} <-
+    for {{filter, errors, field_opts}, index} <-
           Enum.with_index(filters_errors_opts, offset) do
       index_string = Integer.to_string(index)
 
@@ -104,7 +104,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         errors: errors,
         params: params,
         hidden: hidden,
-        options: opts ++ this_field_opts
+        options: opts ++ field_opts
       }
     end
   end
