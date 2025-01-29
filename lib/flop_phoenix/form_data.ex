@@ -63,6 +63,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     {name, opts} = Keyword.pop(opts, :as)
     {default, opts} = Keyword.pop(opts, :default, [])
     {fields, opts} = Keyword.pop(opts, :fields)
+    {dynamic, opts} = Keyword.pop(opts, :dynamic, false)
     {offset, opts} = Keyword.pop(opts, :offset, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
@@ -76,15 +77,14 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
     filter_errors = Keyword.get(form.errors, :filters, [])
 
-    filters_with_errors =
+    filters_errors_opts =
       filters
-      |> filters_for(fields, default, filter_errors)
+      |> filters_for(fields, default, filter_errors, dynamic)
       |> reject_unfilterable(meta.schema)
 
-    for {{filter, errors}, index} <-
-          Enum.with_index(filters_with_errors, offset) do
+    for {{filter, errors, field_opts}, index} <-
+          Enum.with_index(filters_errors_opts, offset) do
       index_string = Integer.to_string(index)
-
       hidden = get_hidden(filter, skip_hidden_op)
 
       {data, params} =
@@ -92,6 +92,13 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
           %Filter{} -> {filter, %{}}
           %{} -> {%Filter{}, filter}
         end
+
+      field_opts =
+        field_opts
+        |> Keyword.put_new(:type, input_type(data, meta.schema))
+        |> Keyword.put_new_lazy(:label, fn ->
+          filter |> get_field() |> humanize()
+        end)
 
       %Phoenix.HTML.Form{
         source: meta,
@@ -103,7 +110,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         errors: errors,
         params: params,
         hidden: hidden,
-        options: opts
+        options: opts ++ field_opts
       }
     end
   end
@@ -114,19 +121,39 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
             "inputs_for with Flop.Meta, got: #{inspect(field)}."
   end
 
+  defp get_field(%{field: field}), do: field
+  defp get_field(%{"field" => field}), do: field
+
   # no filters, use default
-  defp filters_for([], nil, default, _), do: zip_errors(default, [])
+  defp filters_for([], nil, default, _, _) do
+    default
+    |> zip_errors([])
+    |> Enum.map(fn {filter, errors} -> {filter, errors, []} end)
+  end
 
   # no static field configuration
-  defp filters_for(filters, nil, _, errors), do: zip_errors(filters, errors)
+  defp filters_for(filters, nil, _, errors, _) do
+    filters
+    |> zip_errors(errors)
+    |> Enum.map(fn {filter, errors} -> {filter, errors, []} end)
+  end
 
   # with static field configuration
-  defp filters_for(filters, fields, _, errors) when is_list(fields) do
+  defp filters_for(filters, fields, _, errors, false = _dynamic)
+       when is_list(fields) do
     filters_with_errors = zip_errors(filters, errors)
 
     fields
     |> Enum.reduce([], &filter_reducer(&1, &2, filters_with_errors))
     |> Enum.reverse()
+  end
+
+  defp filters_for(filters, fields, _, errors, true = _dynamic) do
+    filters
+    |> zip_errors(errors)
+    |> Enum.map(fn {%Filter{field: field} = filter, errors} ->
+      {filter, errors, fields[field] || []}
+    end)
   end
 
   defp get_hidden(filter, false = _skip_hidden_op) do
@@ -147,10 +174,12 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     op = opts[:op] || :==
     default = opts[:default]
 
-    if filter = find_filter_for_field(field, op, filters) do
-      [filter | acc]
-    else
-      [{%Filter{field: field, op: op, value: default}, []} | acc]
+    case find_filter_for_field(field, op, filters) do
+      {filter, errors} ->
+        [{filter, errors, opts} | acc]
+
+      nil ->
+        [{%Filter{field: field, op: op, value: default}, [], opts} | acc]
     end
   end
 
@@ -170,11 +199,11 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   defp reject_unfilterable(filters, nil), do: filters
 
-  defp reject_unfilterable(filters_with_errors, schema) do
+  defp reject_unfilterable(filters_errors_opts, schema) do
     filterable = schema |> struct() |> Flop.Schema.filterable()
     filterable = filterable ++ Enum.map(filterable, &Atom.to_string/1)
 
-    Enum.reject(filters_with_errors, fn {filter, _} ->
+    Enum.reject(filters_errors_opts, fn {filter, _, _} ->
       value(filter, :field) not in filterable
     end)
   end
@@ -188,36 +217,43 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     end
   end
 
-  def input_type(_meta, _form, :after), do: :text_input
-  def input_type(_meta, _form, :before), do: :text_input
-  def input_type(_meta, _form, :first), do: :number_input
-  def input_type(_meta, _form, :last), do: :number_input
-  def input_type(_meta, _form, :limit), do: :number_input
-  def input_type(_meta, _form, :offset), do: :number_input
-  def input_type(_meta, _form, :page), do: :number_input
-  def input_type(_meta, _form, :page_size), do: :number_input
+  defp humanize(atom) when is_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> humanize()
+  end
 
-  def input_type(
-        _meta,
-        %{data: %Filter{field: field}, source: %{schema: schema}},
-        :value
-      )
-      when not is_nil(schema) do
+  defp humanize(s) when is_binary(s) do
+    if String.ends_with?(s, "_id") do
+      s |> binary_part(0, byte_size(s) - 3) |> to_titlecase()
+    else
+      to_titlecase(s)
+    end
+  end
+
+  defp to_titlecase(s) do
+    s
+    |> String.replace("_", " ")
+    |> :string.titlecase()
+  end
+
+  defp input_type(%Filter{field: field}, schema)
+       when not is_nil(field) and not is_nil(schema) do
     schema |> ecto_type(field) |> input_type_for_ecto_type()
   end
 
-  def input_type(_meta, _form, _field), do: :text_input
+  defp input_type(_meta, _form), do: "text"
 
-  defp input_type_for_ecto_type(:boolean), do: :checkbox
-  defp input_type_for_ecto_type(:date), do: :date_select
-  defp input_type_for_ecto_type(:integer), do: :number_input
-  defp input_type_for_ecto_type(:naive_datetime), do: :datetime_select
-  defp input_type_for_ecto_type(:naive_datetime_usec), do: :datetime_select
-  defp input_type_for_ecto_type(:time), do: :time_select
-  defp input_type_for_ecto_type(:time_usec), do: :time_select
-  defp input_type_for_ecto_type(:utc_datetime), do: :datetime_select
-  defp input_type_for_ecto_type(:utc_datetime_usec), do: :datetime_select
-  defp input_type_for_ecto_type(_), do: :text_input
+  defp input_type_for_ecto_type(:boolean), do: "checkbox"
+  defp input_type_for_ecto_type(:date), do: "date"
+  defp input_type_for_ecto_type(:integer), do: "number"
+  defp input_type_for_ecto_type(:naive_datetime), do: "datetime-local"
+  defp input_type_for_ecto_type(:naive_datetime_usec), do: "datetime-local"
+  defp input_type_for_ecto_type(:time), do: "time"
+  defp input_type_for_ecto_type(:time_usec), do: "time"
+  defp input_type_for_ecto_type(:utc_datetime), do: "datetime-local"
+  defp input_type_for_ecto_type(:utc_datetime_usec), do: "datetime-local"
+  defp input_type_for_ecto_type(_), do: "text"
 
   def input_validations(_meta, _form, :after), do: [maxlength: 100]
   def input_validations(_meta, _form, :before), do: [maxlength: 100]
@@ -237,16 +273,8 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     end
   end
 
-  def input_validations(
-        _meta,
-        %{data: %Filter{field: field}, source: %{schema: schema}},
-        :value
-      )
-      when not is_nil(schema) do
-    case :type |> schema.__schema__(field) |> input_type_for_ecto_type() do
-      :text_input -> [maxlength: 100]
-      _ -> []
-    end
+  def input_validations(_meta, %{options: options}, :value) do
+    if options[:type] == "text", do: [maxlength: 100], else: []
   end
 
   def input_validations(_meta, _form, _field), do: []

@@ -149,8 +149,7 @@ defmodule Flop.Phoenix do
   import Phoenix.HTML.Form,
     only: [
       input_id: 2,
-      input_name: 2,
-      input_value: 2
+      input_name: 2
     ]
 
   alias Flop.Meta
@@ -904,8 +903,8 @@ defmodule Flop.Phoenix do
 
   ```elixir
   <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
-    <:col :let={pet} label="Name" field={:name}><%= pet.name %></:col>
-    <:col :let={pet} label="Age" field={:age}><%= pet.age %></:col>
+    <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+    <:col :let={pet} label="Age" field={:age}>{pet.age}</:col>
   </Flop.Phoenix.table>
   ```
 
@@ -1039,7 +1038,7 @@ defmodule Flop.Phoenix do
 
     ```elixir
     <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
-      <%= pet.name %>
+      {pet.name}
     </:col>
     ```
 
@@ -1172,7 +1171,7 @@ defmodule Flop.Phoenix do
 
         <Flop.Phoenix.table>
           <:foot>
-            <tr><td>Total: <span class="total"><%= @total %></span></td></tr>
+            <tr><td>Total: <span class="total">{@total}</span></td></tr>
           </:foot>
         </Flop.Phoenix.table>
     """
@@ -1368,33 +1367,26 @@ defmodule Flop.Phoenix do
 
   def filter_fields(assigns) do
     ensure_meta_form!(assigns.form)
-    fields = normalize_filter_fields(assigns[:fields] || [])
-    field_opts = match_field_opts(assigns, fields)
-    inputs_for_fields = if assigns[:dynamic], do: nil, else: fields
 
     assigns =
-      assigns
-      |> assign(:fields, inputs_for_fields)
-      |> assign(:field_opts, field_opts)
+      assign(assigns, :fields, normalize_filter_fields(assigns[:fields] || []))
 
     ~H"""
     <.hidden_inputs_for_filter form={@form} />
-    <%= for {ff, opts} <- inputs_for_filters(@form, @fields, @field_opts) do %>
+    <.inputs_for
+      :let={ff}
+      field={@form[:filters]}
+      options={[dynamic: @dynamic, fields: @fields]}
+    >
       <.hidden_inputs_for_filter form={ff} />
       {render_slot(@inner_block, %{
         field: ff[:value],
-        label: input_label(ff, opts[:label]),
-        type: type_for(ff, opts[:type]),
-        rest: Keyword.drop(opts, [:label, :op, :type])
+        label: ff.options[:label],
+        type: ff.options[:type],
+        rest: Keyword.drop(ff.options, [:label, :op, :type])
       })}
-    <% end %>
+    </.inputs_for>
     """
-  end
-
-  defp inputs_for_filters(form, fields, field_opts) do
-    form.source
-    |> form.impl.to_form(form, :filters, fields: fields)
-    |> Enum.zip(field_opts)
   end
 
   defp normalize_filter_fields(fields) do
@@ -1409,75 +1401,6 @@ defmodule Flop.Phoenix do
         raise Flop.Phoenix.InvalidFilterFieldConfigError, value: field
     end)
   end
-
-  defp match_field_opts(%{dynamic: true, form: form}, fields) do
-    Enum.map(form.data.filters, fn %Flop.Filter{field: field} ->
-      fields[field] || []
-    end)
-  end
-
-  defp match_field_opts(_, fields) do
-    Keyword.values(fields)
-  end
-
-  defp input_label(_form, text) when is_binary(text), do: text
-  defp input_label(form, nil), do: form |> input_value(:field) |> humanize()
-
-  defp type_for(_form, type) when is_binary(type), do: type
-  defp type_for(form, nil), do: input_type_as_string(form)
-
-  defp input_type_as_string(form) do
-    form
-    |> PhoenixHTMLHelpers.Form.input_type(:value)
-    |> to_html_input_type()
-  end
-
-  defp humanize(atom) when is_atom(atom) do
-    atom
-    |> Atom.to_string()
-    |> humanize()
-  end
-
-  defp humanize(s) when is_binary(s) do
-    if String.ends_with?(s, "_id") do
-      s |> binary_part(0, byte_size(s) - 3) |> to_titlecase()
-    else
-      to_titlecase(s)
-    end
-  end
-
-  defp to_titlecase(s) do
-    s
-    |> String.replace("_", " ")
-    |> :string.titlecase()
-  end
-
-  # coveralls-ignore-start
-
-  defp to_html_input_type(:checkbox), do: "checkbox"
-  defp to_html_input_type(:color_input), do: "color"
-  defp to_html_input_type(:date_input), do: "date"
-  defp to_html_input_type(:date_select), do: "date"
-  defp to_html_input_type(:datetime_local_input), do: "datetime-local"
-  defp to_html_input_type(:datetime_select), do: "datetime-local"
-  defp to_html_input_type(:email_input), do: "email"
-  defp to_html_input_type(:file_input), do: "file"
-  defp to_html_input_type(:hidden_input), do: "hidden"
-  defp to_html_input_type(:multiple_select), do: "select"
-  defp to_html_input_type(:number_input), do: "number"
-  defp to_html_input_type(:password_input), do: "password"
-  defp to_html_input_type(:radio_button), do: "radio"
-  defp to_html_input_type(:range_input), do: "range"
-  defp to_html_input_type(:search_input), do: "search"
-  defp to_html_input_type(:select), do: "select"
-  defp to_html_input_type(:telephone_input), do: "tel"
-  defp to_html_input_type(:text_input), do: "text"
-  defp to_html_input_type(:textarea), do: "textarea"
-  defp to_html_input_type(:time_input), do: "time"
-  defp to_html_input_type(:time_select), do: "time"
-  defp to_html_input_type(:url_input), do: "url"
-
-  # coveralls-ignore-end
 
   defp ensure_meta_form!(%Form{data: %Flop{}, source: %Meta{}}), do: :ok
   defp ensure_meta_form!(_), do: raise(Flop.Phoenix.NoMetaFormError)
