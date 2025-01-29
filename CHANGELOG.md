@@ -4,8 +4,15 @@
 
 ### Changed
 
+- Removed dependency on PhoenixHTMLHelpers.
 - Require Phoenix LiveView ~> 1.0.0.
 - Require Elixir ~> 1.14.
+
+### Removed
+
+- Removed `input_type/3` from the `Phoenix.HTML.FormData` protocol
+  implementation for `Flop.Meta`, as the function has been removed from the
+  protocol.
 
 ## [0.23.1] - 2024-10-17
 
