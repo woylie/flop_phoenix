@@ -474,6 +474,7 @@ defmodule Flop.Phoenix do
         {@opts[:next_link_content]}
       </.pagination_link>
       <.page_links
+        :if={@opts[:page_links] != :hide}
         event={@event}
         meta={@meta}
         on_paginate={@on_paginate}
@@ -507,7 +508,7 @@ defmodule Flop.Phoenix do
     assigns = assign(assigns, first: first, last: last, range: range)
 
     ~H"""
-    <ul :if={@opts[:page_links] != :hide} {@opts[:pagination_list_attrs]}>
+    <ul {@opts[:pagination_list_attrs]}>
       <li :if={@first > 1} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           event={@event}
