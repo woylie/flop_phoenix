@@ -1063,18 +1063,6 @@ defmodule Flop.Phoenix do
       behavior for the column, i.e. `{:asc_nulls_last, :desc_nulls_first}`
       """
 
-    attr :show, :boolean,
-      doc: """
-      Boolean value to conditionally show the column. Defaults to `true`
-      Deprecated. Use `:if` instead.
-      """
-
-    attr :hide, :boolean,
-      doc: """
-      Boolean value to conditionally hide the column. Defaults to `false`.
-      Deprecated. Use `:if` instead.
-      """
-
     attr :col_style, :string,
       doc: """
       If set, a `<colgroup>` element is rendered and the value of the
@@ -1128,13 +1116,6 @@ defmodule Flop.Phoenix do
     ```
     """ do
     attr :label, :string, doc: "The content for the header column."
-
-    attr :show, :boolean,
-      doc: "Boolean value to conditionally show the column. Defaults to `true`."
-
-    attr :hide, :boolean,
-      doc:
-        "Boolean value to conditionally hide the column. Defaults to `false`."
 
     attr :col_style, :string,
       doc: """

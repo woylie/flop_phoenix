@@ -65,7 +65,6 @@ defmodule Flop.Phoenix.Table do
         <tr {@opts[:thead_tr_attrs]}>
           <.header_column
             :for={col <- @col}
-            :if={show_column?(col)}
             on_sort={@on_sort}
             event={@event}
             field={col[:field]}
@@ -88,7 +87,6 @@ defmodule Flop.Phoenix.Table do
           />
           <.header_column
             :for={action <- @action}
-            :if={show_column?(action)}
             event={@event}
             field={nil}
             label={action[:label]}
@@ -114,7 +112,6 @@ defmodule Flop.Phoenix.Table do
         >
           <td
             :for={col <- @col}
-            :if={show_column?(col)}
             {merge_td_attrs(@opts[:tbody_td_attrs], col, item)}
             phx-click={@row_click && @row_click.(item)}
           >
@@ -156,7 +153,6 @@ defmodule Flop.Phoenix.Table do
     <colgroup :if={Enum.any?(@col, &(&1[:col_style] || &1[:col_class]))}>
       <col
         :for={col <- @col}
-        :if={show_column?(col)}
         {reject_empty_values(style: col[:col_style], class: col[:col_class])}
       />
     </colgroup>
@@ -166,10 +162,6 @@ defmodule Flop.Phoenix.Table do
   defp reject_empty_values(attrs) do
     Enum.reject(attrs, fn {_, v} -> v in ["", nil] end)
   end
-
-  defp show_column?(%{hide: true}), do: false
-  defp show_column?(%{show: false}), do: false
-  defp show_column?(_), do: true
 
   attr :meta, Flop.Meta, required: true
   attr :field, :atom, required: true

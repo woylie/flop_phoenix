@@ -24,8 +24,6 @@ defmodule Flop.PhoenixTest do
   attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
   attr :opts, :list, default: []
   attr :target, :string, default: nil
-  attr :hide_age, :boolean, default: false
-  attr :show_age, :boolean, default: true
   attr :path, :any, default: {__MODULE__, :route_helper, @route_helper_opts}
 
   attr :items, :list,
@@ -48,9 +46,7 @@ defmodule Flop.PhoenixTest do
     >
       <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
       <:col :let={pet} label="Email" field={:email}>{pet.email}</:col>
-      <:col :let={pet} label="Age" hide={@hide_age} show={@show_age}>
-        {pet.age}
-      </:col>
+      <:col :let={pet} label="Age">{pet.age}</:col>
       <:col :let={pet} label="Species" field={:species}>{pet.species}</:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
@@ -2099,82 +2095,6 @@ defmodule Flop.PhoenixTest do
       html = render_table(%{})
       assert th = find_one(html, "th:fl-contains('Age')")
       assert Floki.children(th, include_text: false) == []
-    end
-
-    test "conditionally hides a column" do
-      html = render_table(%{})
-      assert find_one(html, "th:fl-contains('Age')")
-      assert find_one(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: false, show_age: true})
-      assert find_one(html, "th:fl-contains('Age')")
-      assert find_one(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: true, show_age: true})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: false, show_age: false})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: true, show_age: false})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-    end
-
-    test "conditionally hides an action column" do
-      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons"><a href="#">Show Pet</a></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert find_one(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={true} hide={false}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert find_one(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={true} hide={true}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={false} hide={true}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={false} hide={false}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
     end
 
     test "displays headers with sorting function" do
