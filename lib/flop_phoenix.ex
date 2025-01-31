@@ -428,115 +428,115 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.IncorrectPaginationTypeError, component: :pagination
   end
 
-  def pagination(%{meta: meta, opts: opts, path: path} = assigns) do
-    assigns =
-      assigns
-      |> assign(:opts, Pagination.merge_opts(opts))
-      |> assign(
-        :page_link_helper,
-        Pagination.build_page_link_helper(meta, path)
-      )
-      |> assign(:path, nil)
+  def pagination(%{opts: opts} = assigns) do
+    assigns = assign(assigns, :opts, Pagination.merge_opts(opts))
 
     ~H"""
-    <nav :if={@meta.errors == [] && @meta.total_pages > 1} {@opts[:wrapper_attrs]}>
-      <.pagination_link
-        disabled={!@meta.has_previous_page?}
-        disabled_class={@opts[:disabled_class]}
-        target={@target}
-        page={@meta.previous_page}
-        path={@page_link_helper.(@meta.previous_page)}
-        on_paginate={@on_paginate}
-        {@opts[:previous_link_attrs]}
-      >
-        {@opts[:previous_link_content]}
-      </.pagination_link>
-      <.pagination_link
-        disabled={!@meta.has_next_page?}
-        disabled_class={@opts[:disabled_class]}
-        target={@target}
-        page={@meta.next_page}
-        path={@page_link_helper.(@meta.next_page)}
-        on_paginate={@on_paginate}
-        {@opts[:next_link_attrs]}
-      >
-        {@opts[:next_link_content]}
-      </.pagination_link>
-      <.page_links
-        :if={@opts[:page_links] != :hide}
-        meta={@meta}
-        on_paginate={@on_paginate}
-        page_link_helper={@page_link_helper}
-        opts={@opts}
-        target={@target}
-      />
-    </nav>
+    <.pagination_for
+      :let={p}
+      meta={@meta}
+      page_links={@opts[:page_links]}
+      path={@path}
+    >
+      <nav {@opts[:wrapper_attrs]}>
+        <.pagination_link
+          disabled={is_nil(p.previous_page)}
+          disabled_class={@opts[:disabled_class]}
+          target={@target}
+          page={p.previous_page}
+          path={p.page_link_fun.(p.previous_page)}
+          on_paginate={@on_paginate}
+          {@opts[:previous_link_attrs]}
+        >
+          {@opts[:previous_link_content]}
+        </.pagination_link>
+        <.pagination_link
+          disabled={is_nil(p.next_page)}
+          disabled_class={@opts[:disabled_class]}
+          target={@target}
+          page={p.next_page}
+          path={p.page_link_fun.(p.next_page)}
+          on_paginate={@on_paginate}
+          {@opts[:next_link_attrs]}
+        >
+          {@opts[:next_link_content]}
+        </.pagination_link>
+        <.page_links
+          :if={@opts[:page_links] != :hide}
+          current_page={p.current_page}
+          ellipsis_end?={p.ellipsis_end?}
+          ellipsis_start?={p.ellipsis_start?}
+          on_paginate={@on_paginate}
+          opts={@opts}
+          page_link_fun={p.page_link_fun}
+          page_range_end={p.page_range_end}
+          page_range_start={p.page_range_start}
+          target={@target}
+          total_pages={p.total_pages}
+        />
+      </nav>
+    </.pagination_for>
     """
   end
 
-  attr :meta, Flop.Meta, required: true
+  attr :current_page, :integer, required: true
+  attr :ellipsis_end?, :boolean, required: true
+  attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
-  attr :page_link_helper, :any, required: true
-  attr :target, :string, required: true
   attr :opts, :list, required: true
+  attr :page_link_fun, :any, required: true
+  attr :page_range_end, :integer, required: true
+  attr :page_range_start, :integer, required: true
+  attr :target, :string, required: true
+  attr :total_pages, :integer, required: true
 
-  defp page_links(%{meta: meta} = assigns) do
-    max_pages =
-      Pagination.max_pages(assigns.opts[:page_links], assigns.meta.total_pages)
-
-    range =
-      first..last//_ =
-      Pagination.get_page_link_range(
-        meta.current_page,
-        max_pages,
-        meta.total_pages
-      )
-
-    assigns = assign(assigns, first: first, last: last, range: range)
-
+  defp page_links(assigns) do
     ~H"""
     <ul {@opts[:pagination_list_attrs]}>
-      <li :if={@first > 1} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_start > 1} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           target={@target}
           page={1}
-          path={@page_link_helper.(1)}
+          path={@page_link_fun.(1)}
           on_paginate={@on_paginate}
-          {Pagination.attrs_for_page_link(1, @meta, @opts)}
+          {Pagination.attrs_for_page_link(1, @current_page, @opts)}
         >
           1
         </.pagination_link>
       </li>
 
-      <li :if={@first > 2} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_start?} {@opts[:pagination_list_item_attrs]}>
         <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
       </li>
 
-      <li :for={page <- @range} {@opts[:pagination_list_item_attrs]}>
+      <li
+        :for={page <- @page_range_start..@page_range_end}
+        {@opts[:pagination_list_item_attrs]}
+      >
         <.pagination_link
           target={@target}
           page={page}
-          path={@page_link_helper.(page)}
+          path={@page_link_fun.(page)}
           on_paginate={@on_paginate}
-          {Pagination.attrs_for_page_link(page, @meta, @opts)}
+          {Pagination.attrs_for_page_link(page, @current_page, @opts)}
         >
           {page}
         </.pagination_link>
       </li>
 
-      <li :if={@last < @meta.total_pages - 1} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_end?} {@opts[:pagination_list_item_attrs]}>
         <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
       </li>
 
-      <li :if={@last < @meta.total_pages} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_end < @total_pages} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           target={@target}
-          page={@meta.total_pages}
-          path={@page_link_helper.(@meta.total_pages)}
+          page={@total_pages}
+          path={@page_link_fun.(@total_pages)}
           on_paginate={@on_paginate}
-          {Pagination.attrs_for_page_link(@meta.total_pages, @meta, @opts)}
+          {Pagination.attrs_for_page_link(@total_pages, @current_page, @opts)}
         >
-          {@meta.total_pages}
+          {@total_pages}
         </.pagination_link>
       </li>
     </ul>
@@ -590,6 +590,155 @@ defmodule Flop.Phoenix do
       {render_slot(@inner_block)}
     </.link>
     """
+  end
+
+  @doc """
+  This component is a pagination builder.
+
+  It does not render anything by itself. Instead, it prepares all the necessary
+  information needed to render a pagination component and passes it to the
+  inner block.
+
+  For an example implementation, see `pagination/1`.
+
+  ## Example
+
+  ```heex
+  <.pagination_for
+    :let={p}
+    meta={@meta}
+    page_links={{:ellipsis, 4}}
+    path={~p"/birds"}
+  >
+    <%!--
+    The variable passed to the inner block via `:let` looks similar to:
+
+    %{
+      current_page: 6,
+      ellipsis_start?: true,
+      ellipsis_end?: true,
+      next_page: 7,
+      page_range_end: 8,
+      page_link_fun: #Function<42.18682967/1 in :erl_eval.expr/6>,
+      page_range_start: 5,
+      pagination_type: :page,
+      previous_page: 5,
+      total_pages: 10
+    }
+    %>
+  </.pagination_for>
+  ```
+  """
+  @doc section: :components
+  @doc since: "0.24.0"
+  @spec pagination_for(map) :: Phoenix.LiveView.Rendered.t()
+
+  attr :meta, Flop.Meta,
+    required: true,
+    doc: """
+    The meta information of the query as returned by the `Flop` query functions.
+    """
+
+  attr :path, :any,
+    default: nil,
+    doc: """
+    If set, a function that takes a page number and returns a link with
+    pagination, filter, and sort parameters based on the given path is passed
+    as `page_link_fun` to the inner block.
+
+    The value must be either a URI string (Phoenix verified route), an MFA or FA
+    tuple (Phoenix route helper), or a 1-ary path builder function. See
+    `Flop.Phoenix.build_path/3` for details.
+    """
+
+  attr :page_links, :any,
+    default: :all,
+    doc: """
+    Specifies how many page links should be rendered.
+
+    Default: `#{inspect(Pagination.default_opts()[:page_links])}`.
+
+    - `:all` - Renders all page links.
+    - `{:ellipsis, n}` - Renders `n` page links. Renders ellipsis elements if
+      there are more pages than displayed.
+    - `:hide` - Does not render any page links.
+
+    A `page_range_start` and `page_range_end` attribute are passed to the
+    inner block based on this option. If this attribute is set to `:hide`, both
+    of those values will be `nil`.
+    """
+
+  slot :inner_block, required: true
+
+  def pagination_for(
+        %{
+          meta: %Flop.Meta{errors: [], total_pages: total_pages} = meta,
+          page_links: page_links,
+          path: path
+        } = assigns
+      )
+      when total_pages > 1 do
+    page_link_fun = Pagination.build_page_link_fun(meta, path)
+    pagination_type = pagination_type(meta.flop)
+
+    {page_range_start, page_range_end} =
+      Pagination.get_page_link_range(
+        page_links,
+        meta.current_page,
+        meta.total_pages
+      )
+
+    assigns =
+      assigns
+      |> assign(:current_page, meta.current_page)
+      |> assign(:ellipsis_end?, page_range_end < meta.total_pages - 1)
+      |> assign(:ellipsis_start?, page_range_start > 2)
+      |> assign(:meta, nil)
+      |> assign(:next_page, meta.next_page)
+      |> assign(:page_link_fun, page_link_fun)
+      |> assign(:page_range_end, page_range_end)
+      |> assign(:page_range_start, page_range_start)
+      |> assign(:pagination_type, pagination_type)
+      |> assign(:path, nil)
+      |> assign(:previous_page, meta.previous_page)
+      |> assign(:total_pages, meta.total_pages)
+
+    ~H"""
+    {render_slot(@inner_block, %{
+      current_page: @current_page,
+      ellipsis_end?: @ellipsis_end?,
+      ellipsis_start?: @ellipsis_start?,
+      next_page: @next_page,
+      page_range_end: @page_range_end,
+      page_link_fun: @page_link_fun,
+      page_range_start: @page_range_start,
+      pagination_type: @pagination_type,
+      previous_page: @previous_page,
+      total_pages: @total_pages
+    })}
+    """
+  end
+
+  def pagination_for(assigns) do
+    ~H""
+  end
+
+  defp pagination_type(%Flop{limit: limit, offset: offset})
+       when is_integer(limit) and is_integer(offset) do
+    :offset
+  end
+
+  defp pagination_type(%Flop{page: page, page_size: page_size})
+       when is_integer(page) and is_integer(page_size) do
+    :page
+  end
+
+  defp pagination_type(%Flop{first: first}) when is_binary(first) do
+    :first
+  end
+
+  defp pagination_type(%Flop{last: last}) when is_binary(last) do
+    :last
   end
 
   @doc """
