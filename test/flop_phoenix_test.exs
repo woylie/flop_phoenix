@@ -776,6 +776,7 @@ defmodule Flop.PhoenixTest do
           build(
             :meta_on_second_page,
             flop: %Flop{
+              page: 1,
               page_size: 20,
               order_by: [:name],
               order_directions: [:asc]

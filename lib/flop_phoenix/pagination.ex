@@ -44,36 +44,35 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.deep_merge(opts)
   end
 
-  def max_pages(:all, total_pages), do: total_pages
-  def max_pages(:hide, _), do: 0
-  def max_pages({:ellipsis, max_pages}, _), do: max_pages
-
   @spec get_page_link_range(
-          non_neg_integer(),
+          :all | :hide | {:ellipsis, non_neg_integer()},
           non_neg_integer(),
           non_neg_integer()
-        ) :: Range.t()
-  def get_page_link_range(current_page, max_pages, total_pages) do
+        ) :: {non_neg_integer() | nil, non_neg_integer() | nil}
+  def get_page_link_range(:all, _, total_pages), do: {1, total_pages}
+  def get_page_link_range(:hide, _, _), do: {nil, nil}
+
+  def get_page_link_range({:ellipsis, max_pages}, current_page, total_pages) do
     # number of additional pages to show before or after current page
     additional = ceil(max_pages / 2)
 
     cond do
       max_pages >= total_pages ->
-        1..total_pages
+        {1, total_pages}
 
       current_page + additional > total_pages ->
-        (total_pages - max_pages + 1)..total_pages
+        {total_pages - max_pages + 1, total_pages}
 
       true ->
         first = max(current_page - additional + 1, 1)
         last = min(first + max_pages - 1, total_pages)
-        first..last
+        {first, last}
     end
   end
 
-  def build_page_link_helper(_meta, nil), do: fn _ -> nil end
+  def build_page_link_fun(_meta, nil), do: fn _ -> nil end
 
-  def build_page_link_helper(meta, path) do
+  def build_page_link_fun(meta, path) do
     query_params = build_query_params(meta)
 
     fn page ->
@@ -121,11 +120,11 @@ defmodule Flop.Phoenix.Pagination do
   defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
   defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
 
-  def attrs_for_page_link(page, %{current_page: page}, opts) do
+  def attrs_for_page_link(page, page, opts) do
     add_page_link_aria_label(opts[:current_link_attrs], page, opts)
   end
 
-  def attrs_for_page_link(page, _meta, opts) do
+  def attrs_for_page_link(page, _current_page, opts) do
     add_page_link_aria_label(opts[:pagination_link_attrs], page, opts)
   end
 
