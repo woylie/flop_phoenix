@@ -124,8 +124,7 @@ defmodule Flop.Phoenix do
 
   You will need to handle the event in the `c:Phoenix.LiveView.handle_event/3`
   or `c:Phoenix.LiveComponent.handle_event/3` callback of your
-  LiveView or LiveComponent module. The event name will be the one you set with
-  the `:event` option.
+  LiveView or LiveComponent module.
 
       def handle_event("paginate-pets", %{"page" => page}, socket) do
         flop = Flop.set_page(socket.assigns.meta.flop, page)
@@ -380,7 +379,7 @@ defmodule Flop.Phoenix do
 
         <.pagination
           meta={@meta}
-          path={~"/pets"}
+          path={~p"/pets"}
           on_paginate={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
         />
 
@@ -403,14 +402,6 @@ defmodule Flop.Phoenix do
     ```
     """
 
-  attr :event, :string,
-    default: nil,
-    doc: """
-    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
-    Alternatively, set `:path`, if you want the parameters to appear in the URL.
-    Deprecated in favor of `on_paginate`.
-    """
-
   attr :target, :string,
     default: nil,
     doc: """
@@ -428,7 +419,7 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  def pagination(%{path: nil, on_paginate: nil, event: nil}) do
+  def pagination(%{path: nil, on_paginate: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
@@ -452,7 +443,6 @@ defmodule Flop.Phoenix do
       <.pagination_link
         disabled={!@meta.has_previous_page?}
         disabled_class={@opts[:disabled_class]}
-        event={@event}
         target={@target}
         page={@meta.previous_page}
         path={@page_link_helper.(@meta.previous_page)}
@@ -464,7 +454,6 @@ defmodule Flop.Phoenix do
       <.pagination_link
         disabled={!@meta.has_next_page?}
         disabled_class={@opts[:disabled_class]}
-        event={@event}
         target={@target}
         page={@meta.next_page}
         path={@page_link_helper.(@meta.next_page)}
@@ -475,7 +464,6 @@ defmodule Flop.Phoenix do
       </.pagination_link>
       <.page_links
         :if={@opts[:page_links] != :hide}
-        event={@event}
         meta={@meta}
         on_paginate={@on_paginate}
         page_link_helper={@page_link_helper}
@@ -489,7 +477,6 @@ defmodule Flop.Phoenix do
   attr :meta, Flop.Meta, required: true
   attr :on_paginate, JS
   attr :page_link_helper, :any, required: true
-  attr :event, :string, required: true
   attr :target, :string, required: true
   attr :opts, :list, required: true
 
@@ -511,7 +498,6 @@ defmodule Flop.Phoenix do
     <ul {@opts[:pagination_list_attrs]}>
       <li :if={@first > 1} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
-          event={@event}
           target={@target}
           page={1}
           path={@page_link_helper.(1)}
@@ -528,7 +514,6 @@ defmodule Flop.Phoenix do
 
       <li :for={page <- @range} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
-          event={@event}
           target={@target}
           page={page}
           path={@page_link_helper.(page)}
@@ -545,7 +530,6 @@ defmodule Flop.Phoenix do
 
       <li :if={@last < @meta.total_pages} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
-          event={@event}
           target={@target}
           page={@meta.total_pages}
           path={@page_link_helper.(@meta.total_pages)}
@@ -561,7 +545,6 @@ defmodule Flop.Phoenix do
 
   attr :path, :string
   attr :on_paginate, JS
-  attr :event, :string, required: true
   attr :target, :string, required: true
   attr :page, :integer, required: true
   attr :disabled, :boolean, default: false
@@ -583,14 +566,6 @@ defmodule Flop.Phoenix do
     <span {@rest} class={@disabled_class}>
       {render_slot(@inner_block)}
     </span>
-    """
-  end
-
-  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
-    ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
     """
   end
 
@@ -728,7 +703,7 @@ defmodule Flop.Phoenix do
 
         <.cursor_pagination
           meta={@meta}
-          path={~"/pets"}
+          path={~p"/pets"}
           on_paginate={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
         />
 
@@ -749,14 +724,6 @@ defmodule Flop.Phoenix do
       scroll-behavior: smooth;
     }
     ```
-    """
-
-  attr :event, :string,
-    default: nil,
-    doc: """
-    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
-    Alternatively, set `:path`, if you want the parameters to appear in the URL.
-    Deprecated. Use `on_paginate` instead.
     """
 
   attr :target, :string,
@@ -784,7 +751,7 @@ defmodule Flop.Phoenix do
     documentation.
     """
 
-  def cursor_pagination(%{path: nil, on_paginate: nil, event: nil}) do
+  def cursor_pagination(%{path: nil, on_paginate: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :cursor_pagination
   end
 
@@ -805,7 +772,6 @@ defmodule Flop.Phoenix do
         meta={@meta}
         path={@path}
         on_paginate={@on_paginate}
-        event={@event}
         target={@target}
         disabled={CursorPagination.disable?(@meta, :previous, @reverse)}
         disabled_class={@opts[:disabled_class]}
@@ -818,7 +784,6 @@ defmodule Flop.Phoenix do
         meta={@meta}
         path={@path}
         on_paginate={@on_paginate}
-        event={@event}
         target={@target}
         disabled={CursorPagination.disable?(@meta, :next, @reverse)}
         disabled_class={@opts[:disabled_class]}
@@ -834,7 +799,6 @@ defmodule Flop.Phoenix do
   attr :meta, Flop.Meta, required: true
   attr :path, :any, required: true
   attr :on_paginate, JS
-  attr :event, :string, required: true
   attr :target, :string, required: true
   attr :disabled, :boolean, default: false
   attr :disabled_class, :string, required: true
@@ -855,15 +819,6 @@ defmodule Flop.Phoenix do
     <span {@rest} class={@disabled_class}>
       {render_slot(@inner_block)}
     </span>
-    """
-  end
-
-  defp cursor_pagination_link(%{event: event} = assigns)
-       when is_binary(event) do
-    ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-to={@direction} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
     """
   end
 
@@ -973,17 +928,9 @@ defmodule Flop.Phoenix do
 
         <.table
           meta={@meta}
-          path={~"/pets"}
+          path={~p"/pets"}
           on_sort={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
         />
-    """
-
-  attr :event, :string,
-    default: nil,
-    doc: """
-    If set, `Flop.Phoenix` will render links with a `phx-click` attribute.
-    Alternatively, set `:path`, if you want the parameters to appear in the URL.
-    Deprecated in favor of `on_sort`.
     """
 
   attr :target, :string,
@@ -1063,18 +1010,6 @@ defmodule Flop.Phoenix do
       behavior for the column, i.e. `{:asc_nulls_last, :desc_nulls_first}`
       """
 
-    attr :show, :boolean,
-      doc: """
-      Boolean value to conditionally show the column. Defaults to `true`
-      Deprecated. Use `:if` instead.
-      """
-
-    attr :hide, :boolean,
-      doc: """
-      Boolean value to conditionally hide the column. Defaults to `false`.
-      Deprecated. Use `:if` instead.
-      """
-
     attr :col_style, :string,
       doc: """
       If set, a `<colgroup>` element is rendered and the value of the
@@ -1129,13 +1064,6 @@ defmodule Flop.Phoenix do
     """ do
     attr :label, :string, doc: "The content for the header column."
 
-    attr :show, :boolean,
-      doc: "Boolean value to conditionally show the column. Defaults to `true`."
-
-    attr :hide, :boolean,
-      doc:
-        "Boolean value to conditionally hide the column. Defaults to `false`."
-
     attr :col_style, :string,
       doc: """
       If set, a `<colgroup>` element is rendered and the value of the
@@ -1177,7 +1105,7 @@ defmodule Flop.Phoenix do
         </Flop.Phoenix.table>
     """
 
-  def table(%{path: nil, on_sort: nil, event: nil}) do
+  def table(%{path: nil, on_sort: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :table
   end
 
@@ -1198,7 +1126,6 @@ defmodule Flop.Phoenix do
             col={@col}
             foot={@foot}
             on_sort={@on_sort}
-            event={@event}
             id={@id}
             items={@items}
             meta={@meta}
@@ -1217,7 +1144,6 @@ defmodule Flop.Phoenix do
           col={@col}
           foot={@foot}
           on_sort={@on_sort}
-          event={@event}
           id={@id}
           items={@items}
           meta={@meta}

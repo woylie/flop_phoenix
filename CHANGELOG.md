@@ -13,6 +13,16 @@
 - Removed `input_type/3` from the `Phoenix.HTML.FormData` protocol
   implementation for `Flop.Meta`, as the function has been removed from the
   protocol.
+- Removed the previously deprecated `:event` attribute from the
+  `Flop.Phoenix.pagination/1`, `Flop.Phoenix.cursor_pagination`, and
+  `Flop.Phoenix.table/1` components. Use `:on_paginate` and `:on_sort` instead.
+- Removed the previously deprecated `:hide` and `:show` attributes from the
+  `:col` and `:action` slots of the `Flop.Phoenix.table/1` component. Use the
+  `:if` attribute instead.
+
+### Fixed
+
+- Fixed a warning about ranges in Elixir 1.18.
 
 ## [0.23.1] - 2024-10-17
 
@@ -128,7 +138,7 @@
   component to `tbody_td_attrs` in order to match the naming of the global
   table options.
 
-### Upgrade guide
+### How to upgrade
 
 Rename the `attrs` attribute to `tbody_td_attrs` in both the `col` slot and the
 `action` slot:

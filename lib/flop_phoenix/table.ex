@@ -39,7 +39,6 @@ defmodule Flop.Phoenix.Table do
   attr :meta, Flop.Meta, required: true
   attr :path, :any, required: true
   attr :on_sort, JS
-  attr :event, :string, required: true
   attr :target, :string, required: true
   attr :caption, :string, required: true
   attr :opts, :any, required: true
@@ -65,9 +64,7 @@ defmodule Flop.Phoenix.Table do
         <tr {@opts[:thead_tr_attrs]}>
           <.header_column
             :for={col <- @col}
-            :if={show_column?(col)}
             on_sort={@on_sort}
-            event={@event}
             field={col[:field]}
             label={col[:label]}
             sortable={sortable?(col[:field], @meta.schema)}
@@ -88,8 +85,6 @@ defmodule Flop.Phoenix.Table do
           />
           <.header_column
             :for={action <- @action}
-            :if={show_column?(action)}
-            event={@event}
             field={nil}
             label={action[:label]}
             sortable={false}
@@ -98,7 +93,7 @@ defmodule Flop.Phoenix.Table do
               merge_attrs(@opts[:thead_th_attrs], action, :thead_th_attrs)
             }
             path={nil}
-            target={@event}
+            target={@target}
           />
         </tr>
       </thead>
@@ -114,7 +109,6 @@ defmodule Flop.Phoenix.Table do
         >
           <td
             :for={col <- @col}
-            :if={show_column?(col)}
             {merge_td_attrs(@opts[:tbody_td_attrs], col, item)}
             phx-click={@row_click && @row_click.(item)}
           >
@@ -156,7 +150,6 @@ defmodule Flop.Phoenix.Table do
     <colgroup :if={Enum.any?(@col, &(&1[:col_style] || &1[:col_class]))}>
       <col
         :for={col <- @col}
-        :if={show_column?(col)}
         {reject_empty_values(style: col[:col_style], class: col[:col_class])}
       />
     </colgroup>
@@ -167,16 +160,11 @@ defmodule Flop.Phoenix.Table do
     Enum.reject(attrs, fn {_, v} -> v in ["", nil] end)
   end
 
-  defp show_column?(%{hide: true}), do: false
-  defp show_column?(%{show: false}), do: false
-  defp show_column?(_), do: true
-
   attr :meta, Flop.Meta, required: true
   attr :field, :atom, required: true
   attr :label, :any, required: true
   attr :path, :any, required: true
   attr :on_sort, JS
-  attr :event, :string, required: true
   attr :target, :string, required: true
   attr :sortable, :boolean, required: true
   attr :thead_th_attrs, :list, required: true
@@ -212,7 +200,6 @@ defmodule Flop.Phoenix.Table do
         <.sort_link
           path={@sort_path}
           on_sort={@on_sort}
-          event={@event}
           field={@field}
           label={@label}
           target={@target}
@@ -271,16 +258,7 @@ defmodule Flop.Phoenix.Table do
   attr :label, :string, required: true
   attr :path, :string
   attr :on_sort, JS
-  attr :event, :string
   attr :target, :string
-
-  defp sort_link(%{event: event} = assigns) when is_binary(event) do
-    ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-order={@field}>
-      {@label}
-    </.link>
-    """
-  end
 
   defp sort_link(%{on_sort: nil, path: path} = assigns)
        when is_binary(path) do

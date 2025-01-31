@@ -19,13 +19,10 @@ defmodule Flop.PhoenixTest do
 
   attr :caption, :string, default: nil
   attr :on_sort, JS, default: nil
-  attr :event, :string, default: nil
   attr :id, :string, default: "some-table"
   attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
   attr :opts, :list, default: []
   attr :target, :string, default: nil
-  attr :hide_age, :boolean, default: false
-  attr :show_age, :boolean, default: true
   attr :path, :any, default: {__MODULE__, :route_helper, @route_helper_opts}
 
   attr :items, :list,
@@ -38,7 +35,6 @@ defmodule Flop.PhoenixTest do
     <Flop.Phoenix.table
       caption={@caption}
       on_sort={@on_sort}
-      event={@event}
       id={@id}
       items={@items}
       meta={@meta}
@@ -48,9 +44,7 @@ defmodule Flop.PhoenixTest do
     >
       <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
       <:col :let={pet} label="Email" field={:email}>{pet.email}</:col>
-      <:col :let={pet} label="Age" hide={@hide_age} show={@show_age}>
-        {pet.age}
-      </:col>
+      <:col :let={pet} label="Age">{pet.age}</:col>
       <:col :let={pet} label="Species" field={:species}>{pet.species}</:col>
       <:col>column without label</:col>
     </Flop.Phoenix.table>
@@ -73,7 +67,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       nav = find_one(html, "nav:root")
@@ -87,7 +81,7 @@ defmodule Flop.PhoenixTest do
       assigns = %{meta: build(:meta_one_page)}
 
       assert parse_heex(~H"""
-             <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+             <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
              """) == []
     end
 
@@ -95,7 +89,7 @@ defmodule Flop.PhoenixTest do
       assigns = %{meta: build(:meta_no_results)}
 
       assert parse_heex(~H"""
-             <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+             <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
              """) == []
     end
 
@@ -104,7 +98,7 @@ defmodule Flop.PhoenixTest do
 
       assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} on_paginate={%JS{}} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
       end
     end
@@ -116,7 +110,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.pagination
           meta={@meta}
-          on_paginate={%JS{}}
+          on_paginate={JS.push("paginate")}
           opts={[wrapper_attrs: [class: "boo"]]}
         />
         """)
@@ -135,7 +129,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.pagination
           meta={@meta}
-          on_paginate={%JS{}}
+          on_paginate={JS.push("paginate")}
           opts={[wrapper_attrs: [title: "paginate"]]}
         />
         """)
@@ -248,18 +242,18 @@ defmodule Flop.PhoenixTest do
       assert attribute(a, "href") == "/pets?page_size=10"
     end
 
-    test "renders previous link when using click event handling" do
+    test "renders previous link when using on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert a = find_one(html, "a:fl-contains('Previous')")
 
       assert attribute(a, "class") == "pagination-previous"
-      assert attribute(a, "phx-click") == "paginate"
+      assert attribute(a, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
       assert attribute(a, "phx-value-page") == "1"
       assert attribute(a, "href") == "#"
     end
@@ -269,7 +263,11 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          target="here"
+        />
         """)
 
       assert a = find_one(html, "a:fl-contains('Previous')")
@@ -356,12 +354,12 @@ defmodule Flop.PhoenixTest do
                "pagination-previous disabled"
     end
 
-    test "disables previous link if on first page when using click handlers" do
+    test "disables previous link if on first page when using on_paginate" do
       assigns = %{meta: build(:meta_on_first_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert previous_link = find_one(html, "span:fl-contains('Previous')")
@@ -409,18 +407,21 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?page=3&page_size=10")
     end
 
-    test "renders next link when using click event handling" do
+    test "renders next link when using on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
 
       assert attribute(link, "class") == "pagination-next"
-      assert attribute(link, "phx-click") == "paginate"
+
+      assert attribute(link, "phx-click") ==
+               ~s|[[\"push\",{\"event\":\"paginate\"}]]|
+
       assert attribute(link, "phx-value-page") == "3"
       assert attribute(link, "href") == "#"
     end
@@ -430,7 +431,11 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          target="here"
+        />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
@@ -475,12 +480,12 @@ defmodule Flop.PhoenixTest do
       assert attribute(next, "href") == nil
     end
 
-    test "renders next link on last page when using click event handling" do
+    test "renders next link on last page when using on_paginate" do
       assigns = %{meta: build(:meta_on_last_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert next = find_one(html, "span:fl-contains('Next')")
@@ -542,17 +547,17 @@ defmodule Flop.PhoenixTest do
       assert text(link) == "3"
     end
 
-    test "renders page links when using click event handling" do
+    test "renders page links when using on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
       assert attribute(link, "href") == "#"
-      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
       assert attribute(link, "phx-value-page") == "1"
       assert text(link) =~ "1"
     end
@@ -562,7 +567,11 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" target="here" />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          target="here"
+        />
         """)
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
@@ -580,14 +589,14 @@ defmodule Flop.PhoenixTest do
       assert Floki.find(html, ".pagination-links") == []
     end
 
-    test "doesn't render pagination links if set to hide when passing event" do
+    test "doesn't render pagination links if set to hide with on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
         <Flop.Phoenix.pagination
           meta={@meta}
-          event="paginate"
+          on_paginate={JS.push("paginate")}
           opts={[page_links: :hide]}
         />
         """)
@@ -788,22 +797,22 @@ defmodule Flop.PhoenixTest do
       refute href =~ "order_directions[]="
     end
 
-    test "does not require path when passing event" do
+    test "does not require path when passing on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
       assert attribute(link, "class") == "pagination-previous"
-      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
       assert attribute(link, "phx-value-page") == "1"
       assert attribute(link, "href") == "#"
     end
 
-    test "raises if neither path nor event nor on_paginate are passed" do
+    test "raises if neither path nor on_paginate are passed" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       assert_raise Flop.Phoenix.PathOrJSError,
@@ -1154,7 +1163,7 @@ defmodule Flop.PhoenixTest do
 
       assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={%JS{}} />
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
       end
     end
@@ -1295,17 +1304,17 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?before=B&last=10")
     end
 
-    test "renders previous link when using click event handling" do
+    test "renders previous link when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
       assert attribute(link, "class") == "pagination-previous"
-      assert attribute(link, "phx-click") == "paginate"
+      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
       assert attribute(link, "phx-value-to") == "previous"
       assert attribute(link, "href") == "#"
     end
@@ -1315,7 +1324,11 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          target="here"
+        />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1413,12 +1426,12 @@ defmodule Flop.PhoenixTest do
                "pagination-previous disabled"
     end
 
-    test "disables previous link if on first page when using click handlers" do
+    test "disables previous link if on first page when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert previous_link = find_one(html, "span:fl-contains('Previous')")
@@ -1434,7 +1447,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.cursor_pagination
           meta={@meta}
-          event="paginate"
+          on_paginate={JS.push("paginate")}
           opts={[
             previous_link_attrs: [class: "prev", title: "no"],
             previous_link_content: "Prev"
@@ -1464,17 +1477,18 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?first=10&after=C")
     end
 
-    test "renders next link when using click event handling" do
+    test "renders next link when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
       assert attribute(link, "class") == "pagination-next"
-      assert attribute(link, "phx-click") == "paginate"
+
+      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
       assert attribute(link, "phx-value-to") == "next"
       assert attribute(link, "href") == "#"
     end
@@ -1484,7 +1498,11 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" target="here" />
+        <Flop.Phoenix.cursor_pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          target="here"
+        />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
@@ -1530,12 +1548,12 @@ defmodule Flop.PhoenixTest do
       assert attribute(next, "href") == nil
     end
 
-    test "renders next link on last page when using click event handling" do
+    test "renders next link on last page when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors, has_next_page?: false)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} event="paginate" />
+        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert next = find_one(html, "span:fl-contains('Next')")
@@ -1550,7 +1568,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.cursor_pagination
           meta={@meta}
-          event="paginate"
+          on_paginate={JS.push("paginate")}
           opts={[
             next_link_attrs: [class: "next", title: "no"],
             next_link_content: "N-n-next"
@@ -1652,13 +1670,12 @@ defmodule Flop.PhoenixTest do
     test "sets default ID based on schema module" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        event: "sort-table",
         items: ["George"]
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={JS.push("sort")}>
           <:col></:col>
         </Flop.Phoenix.table>
         """)
@@ -1676,7 +1693,7 @@ defmodule Flop.PhoenixTest do
           items={["George"]}
           meta={%Flop.Meta{flop: %Flop{}}}
           opts={[container: true]}
-          event="sort"
+          on_sort={JS.push("sort")}
         >
           <:col></:col>
         </Flop.Phoenix.table>
@@ -1690,13 +1707,12 @@ defmodule Flop.PhoenixTest do
     test "does not set row ID if items are not a stream" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        event: "sort-table",
         items: ["George"]
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} event="sort">
+        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={JS.push("sort")}>
           <:col></:col>
         </Flop.Phoenix.table>
         """)
@@ -1708,14 +1724,18 @@ defmodule Flop.PhoenixTest do
     test "allows to set row ID function" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        event: "sort-table",
         items: [%Pet{id: 1, name: "George"}, %Pet{id: 2, name: "Mary"}],
         row_id: &"pets-#{&1.name}"
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} row_id={@row_id} event="sort">
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          row_id={@row_id}
+          on_sort={JS.push("sort")}
+        >
           <:col></:col>
         </Flop.Phoenix.table>
         """)
@@ -1733,7 +1753,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@stream} meta={@meta} event="sort">
+        <Flop.Phoenix.table items={@stream} meta={@meta} on_sort={JS.push("sort")}>
           <:col></:col>
         </Flop.Phoenix.table>
         """)
@@ -1756,7 +1776,7 @@ defmodule Flop.PhoenixTest do
           items={@items}
           meta={@meta}
           row_item={@row_item}
-          event="sort"
+          on_sort={JS.push("sort")}
         >
           <:col :let={p}>{p.name}</:col>
         </Flop.Phoenix.table>
@@ -1855,7 +1875,7 @@ defmodule Flop.PhoenixTest do
             %{name: "Bart Harley-Jarvis", age: 1}
           ]}
           meta={%Flop.Meta{flop: %Flop{}}}
-          on_sort={%JS{}}
+          on_sort={JS.push("sort")}
         >
           <:col :let={u} label="Name">{u.name}</:col>
           <:action label="Buttons" tbody_td_attrs={@attrs_fun}>some action</:action>
@@ -1948,7 +1968,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i} thead_th_attrs={[class: "name-th-class"]}>{i.name}</:col>
           <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
@@ -1970,7 +1995,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i} field={:name}>{i.name}</:col>
           <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
@@ -1989,7 +2019,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col
             :let={i}
             field={:name}
@@ -2017,7 +2052,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i} tbody_td_attrs={[class: "name-td-class"]}>{i.name}</:col>
           <:col :let={i}>{i.age}</:col>
         </Flop.Phoenix.table>
@@ -2039,7 +2079,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i}>{i.name}</:col>
           <:action thead_th_attrs={[class: "action-1-th-class"]}>action 1</:action>
           <:action>action 2</:action>
@@ -2062,7 +2107,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i}>{i.name}</:col>
           <:action tbody_td_attrs={[class: "action-1-td-class"]}>action 1</:action>
           <:action>action 2</:action>
@@ -2099,82 +2149,6 @@ defmodule Flop.PhoenixTest do
       html = render_table(%{})
       assert th = find_one(html, "th:fl-contains('Age')")
       assert Floki.children(th, include_text: false) == []
-    end
-
-    test "conditionally hides a column" do
-      html = render_table(%{})
-      assert find_one(html, "th:fl-contains('Age')")
-      assert find_one(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: false, show_age: true})
-      assert find_one(html, "th:fl-contains('Age')")
-      assert find_one(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: true, show_age: true})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: false, show_age: false})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-
-      html = render_table(%{hide_age: true, show_age: false})
-      assert [] = Floki.find(html, "th:fl-contains('Age')")
-      assert [] = Floki.find(html, "td:fl-contains('8')")
-    end
-
-    test "conditionally hides an action column" do
-      assigns = %{meta: %Flop.Meta{flop: %Flop{}}}
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons"><a href="#">Show Pet</a></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert find_one(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={true} hide={false}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert find_one(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={true} hide={true}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={false} hide={true}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table path="/pets" items={[%{}]} meta={@meta}>
-          <:col></:col>
-          <:action label="Buttons" show={false} hide={false}></:action>
-        </Flop.Phoenix.table>
-        """)
-
-      assert [] = Floki.find(html, "th:fl-contains('Buttons')")
     end
 
     test "displays headers with sorting function" do
@@ -2297,7 +2271,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table
-          event="sort"
+          on_sort={JS.push("sort")}
           id="user-table"
           items={[%{name: "George"}]}
           meta={%Flop.Meta{flop: %Flop{}}}
@@ -2322,7 +2296,7 @@ defmodule Flop.PhoenixTest do
         parse_heex(~H"""
         <Flop.Phoenix.table
           id="user-table"
-          event="sort"
+          on_sort={JS.push("sort")}
           items={[%{name: "George"}]}
           meta={%Flop.Meta{flop: %Flop{}}}
         >
@@ -2383,26 +2357,26 @@ defmodule Flop.PhoenixTest do
       assert attribute(th_species, "aria-sort") == nil
     end
 
-    test "renders links with click handler" do
-      html = render_table(%{event: "sort", path: nil})
+    test "renders links with on_sort" do
+      html = render_table(%{on_sort: JS.push("sort"), path: nil})
 
       assert a = find_one(html, "th a:fl-contains('Name')")
       assert attribute(a, "href") == "#"
-      assert attribute(a, "phx-click") == "sort"
+      assert attribute(a, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(a, "phx-value-order") == "name"
 
       assert a = find_one(html, "th a:fl-contains('Email')")
       assert attribute(a, "href") == "#"
-      assert attribute(a, "phx-click") == "sort"
+      assert attribute(a, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(a, "phx-value-order") == "email"
     end
 
     test "adds phx-target to header links" do
-      html = render_table(%{event: "sort", path: nil, target: "here"})
+      html =
+        render_table(%{on_sort: JS.push("sort"), path: nil, target: "here"})
 
       assert a = find_one(html, "th a:fl-contains('Name')")
       assert attribute(a, "href") == "#"
-      assert attribute(a, "phx-click") == "sort"
       assert attribute(a, "phx-target") == "here"
       assert attribute(a, "phx-value-order") == "name"
     end
@@ -2586,7 +2560,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table
-          event="sort"
+          on_sort={JS.push("sort")}
           id="user-table"
           items={[%{name: "George", id: 1}]}
           meta={%Flop.Meta{flop: %Flop{}}}
@@ -2671,7 +2645,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table
-          event="sort"
+          on_sort={JS.push("sort")}
           id="user-table"
           items={[%{name: "George"}]}
           meta={%Flop.Meta{flop: %Flop{}}}
@@ -2701,7 +2675,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table
-          event="sort"
+          on_sort={JS.push("sort")}
           id="user-table"
           items={[%{name: "George", surname: "Floyd", age: 8}]}
           meta={%Flop.Meta{flop: %Flop{}}}
@@ -2763,7 +2737,7 @@ defmodule Flop.PhoenixTest do
       html =
         parse_heex(~H"""
         <Flop.Phoenix.table
-          event="sort"
+          on_sort={JS.push("sort")}
           id="user-table"
           items={[%{name: "George", id: 1}]}
           meta={%Flop.Meta{flop: %Flop{}}}
@@ -2833,15 +2807,15 @@ defmodule Flop.PhoenixTest do
              ] = html
     end
 
-    test "does not require path when passing event" do
-      html = render_table(%{event: "sort-table", path: nil})
+    test "does not require path when passing on_sort" do
+      html = render_table(%{on_sort: JS.push("sort"), path: nil})
 
       assert link = find_one(html, "a:fl-contains('Name')")
-      assert attribute(link, "phx-click") == "sort-table"
+      assert attribute(link, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(link, "href") == "#"
     end
 
-    test "raises if neither path nor event are passed" do
+    test "raises if neither path nor on_sort are passed" do
       assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
                      render_component(&table/1,
@@ -3047,7 +3021,12 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.table items={@items} meta={@meta} on_sort={%JS{}} opts={@opts}>
+        <Flop.Phoenix.table
+          items={@items}
+          meta={@meta}
+          on_sort={JS.push("sort")}
+          opts={@opts}
+        >
           <:col :let={i} label={@thead_label_component.(%{})}>
             {i.name}
           </:col>
