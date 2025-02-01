@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.24.0] - 2025-02-01
+
 ### Added
 
 - Add `Flop.Phoenix.Pagination` struct to hold information needed to render
@@ -156,7 +158,7 @@ config :flop_phoenix,
 -   ]
 - end
 
-+ attr :meta, Flop.Meta, required: true,
++ attr :meta, Flop.Meta, required: true
 + attr :path, :any, default: nil
 + attr :on_paginate, JS, default: nil
 + attr :target, :string, default: nil

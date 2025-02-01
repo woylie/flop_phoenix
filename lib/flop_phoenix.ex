@@ -20,7 +20,7 @@ defmodule Flop.Phoenix do
   defmodule MyAppWeb.CoreComponents do
     use Phoenix.Component
 
-    attr :meta, Flop.Meta, required: true,
+    attr :meta, Flop.Meta, required: true
     attr :path, :any, default: nil
     attr :on_paginate, JS, default: nil
     attr :target, :string, default: nil
