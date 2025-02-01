@@ -578,12 +578,12 @@ defmodule Flop.PhoenixTest do
       assert attribute(link, "phx-target") == "here"
     end
 
-    test "doesn't render pagination links if set to hide" do
-      assigns = %{meta: build(:meta_on_second_page), opts: [page_links: :hide]}
+    test "doesn't render pagination links if set to none" do
+      assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={:none} />
         """)
 
       assert Floki.find(html, ".pagination-links") == []
@@ -597,7 +597,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
-          opts={[page_links: :hide]}
+          page_links={:none}
         />
         """)
 
@@ -623,15 +623,12 @@ defmodule Flop.PhoenixTest do
     test "allows to overwrite pagination list item attributes" do
       assigns = %{
         meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
-        opts: [
-          page_links: {:ellipsis, 6},
-          pagination_list_item_attrs: [class: "p-list-item"]
-        ]
+        opts: [pagination_list_item_attrs: [class: "p-list-item"]]
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={6} opts={@opts} />
         """)
 
       for list_item <- Floki.find(html, "ul li") do
@@ -894,28 +891,23 @@ defmodule Flop.PhoenixTest do
 
     test "does not render ellipsis if total pages <= max pages" do
       # max pages smaller than total pages
-      assigns = %{
-        meta: build(:meta_on_second_page),
-        opts: [page_links: {:ellipsis, 50}]
-      }
+      assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={50} />
         """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
       assert html |> Floki.find(".pagination-link") |> length() == 5
 
       # max pages equal to total pages
-      assigns = %{
-        meta: build(:meta_on_second_page),
-        opts: [page_links: {:ellipsis, 5}]
-      }
+
+      assigns = %{meta: build(:meta_on_second_page)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
@@ -923,14 +915,11 @@ defmodule Flop.PhoenixTest do
     end
 
     test "renders end ellipsis and last page link when on page 1" do
-      assigns = %{
-        meta: build(:meta_on_first_page, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
-      }
+      assigns = %{meta: build(:meta_on_first_page, total_pages: 20)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find("li .pagination-ellipsis") |> length() == 1
@@ -945,13 +934,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders start ellipsis and first page link when on last page" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 20, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 20, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
@@ -966,13 +954,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on even page with even number of max pages" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
-        opts: [page_links: {:ellipsis, 6}]
+        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={6} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
@@ -988,13 +975,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on odd page with odd number of max pages" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
@@ -1010,13 +996,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on even page with odd number of max pages" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 10, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
@@ -1032,13 +1017,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders ellipses when on odd page with even number of max pages" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 11, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
@@ -1054,13 +1038,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders end ellipsis when on page close to the beginning" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 2, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 2, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
@@ -1075,13 +1058,12 @@ defmodule Flop.PhoenixTest do
 
     test "renders start ellipsis when on page close to the end" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 18, total_pages: 20),
-        opts: [page_links: {:ellipsis, 5}]
+        meta: build(:meta_on_first_page, current_page: 18, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
       assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
@@ -1098,7 +1080,6 @@ defmodule Flop.PhoenixTest do
       assigns = %{
         meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
         opts: [
-          page_links: {:ellipsis, 5},
           ellipsis_attrs: [class: "dotdotdot", title: "dot"],
           ellipsis_content: "dot dot dot"
         ]
@@ -1106,7 +1087,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} opts={@opts} />
         """)
 
       assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
