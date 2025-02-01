@@ -676,24 +676,11 @@ defmodule Flop.Phoenix do
     page_links={4}
     path={~p"/birds"}
   >
-    <%!--
-    The variable passed to the inner block via `:let` looks similar to:
-
-    %{
-      current_page: 6,
-      ellipsis_start?: true,
-      ellipsis_end?: true,
-      next_page: 7,
-      page_range_end: 8,
-      path_fun: #Function<42.18682967/1 in :erl_eval.expr/6>,
-      page_range_start: 5,
-      pagination_type: :page,
-      previous_page: 5,
-      total_pages: 10
-    }
-    %>
+    <%!-- put together your component here %>
   </.pagination_for>
   ```
+
+  The variable passed to the inner block is a `Flop.Phoenix.Pagination` struct.
   """
   @doc section: :components
   @doc since: "0.24.0"
