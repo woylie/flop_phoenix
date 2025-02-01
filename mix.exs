@@ -90,8 +90,7 @@ defmodule FlopPhoenix.MixProject do
       source_ref: @version,
       skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
       groups_for_docs: [
-        Components: &(&1[:section] == :components),
-        Miscellaneous: &(&1[:section] == :miscellaneous)
+        Components: &(&1[:section] == :components)
       ]
     ]
   end

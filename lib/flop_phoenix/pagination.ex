@@ -20,7 +20,6 @@ defmodule Flop.Phoenix.Pagination do
         class: "pagination-next"
       ],
       next_link_content: "Next",
-      page_links: :all,
       pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
@@ -42,32 +41,6 @@ defmodule Flop.Phoenix.Pagination do
     default_opts()
     |> Misc.deep_merge(Misc.get_global_opts(:pagination))
     |> Misc.deep_merge(opts)
-  end
-
-  @spec get_page_link_range(
-          :all | :hide | {:ellipsis, non_neg_integer()},
-          non_neg_integer(),
-          non_neg_integer()
-        ) :: {non_neg_integer() | nil, non_neg_integer() | nil}
-  def get_page_link_range(:all, _, total_pages), do: {1, total_pages}
-  def get_page_link_range(:hide, _, _), do: {nil, nil}
-
-  def get_page_link_range({:ellipsis, max_pages}, current_page, total_pages) do
-    # number of additional pages to show before or after current page
-    additional = ceil(max_pages / 2)
-
-    cond do
-      max_pages >= total_pages ->
-        {1, total_pages}
-
-      current_page + additional > total_pages ->
-        {total_pages - max_pages + 1, total_pages}
-
-      true ->
-        first = max(current_page - additional + 1, 1)
-        last = min(first + max_pages - 1, total_pages)
-        {first, last}
-    end
   end
 
   def build_page_link_fun(_meta, nil), do: fn _ -> nil end

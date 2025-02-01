@@ -26,7 +26,6 @@ defmodule Flop.Phoenix do
             ellipsis_content: "‥",
             next_link_attrs: [class: "next"],
             next_link_content: next_icon(),
-            page_links: {:ellipsis, 7},
             pagination_link_aria_label: &"\#{&1}ページ目へ",
             previous_link_attrs: [class: "prev"],
             previous_link_content: previous_icon()
@@ -176,12 +175,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:next_link_content` - The content for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_content])}`.
-  - `:page_links` - Specifies how many page links should be rendered.
-    Default: `#{inspect(Pagination.default_opts()[:page_links])}`.
-    - `:all` - Renders all page links.
-    - `{:ellipsis, n}` - Renders `n` page links. Renders ellipsis elements if
-      there are more pages than displayed.
-    - `:hide` - Does not render any page links.
   - `:pagination_link_aria_label` - 1-arity function that takes a page number
     and returns an aria label for the corresponding page link.
     Default: `&"Go to page \#{&1}"`.
@@ -206,7 +199,6 @@ defmodule Flop.Phoenix do
           | {:ellipsis_content, Phoenix.HTML.safe() | binary}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
-          | {:page_links, :all | :hide | {:ellipsis, pos_integer}}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
@@ -214,6 +206,16 @@ defmodule Flop.Phoenix do
           | {:previous_link_attrs, keyword}
           | {:previous_link_content, Phoenix.HTML.safe() | binary}
           | {:wrapper_attrs, keyword}
+
+  @typedoc """
+  Defines how many page links to render.
+
+  - `:all` - Renders all page links.
+  - `:none` - Does not render any page links.
+  - Integer - Renders up to the specified number of page links in addition to
+    the first and last page.
+  """
+  @type page_link_option :: :all | :none | pos_integer
 
   @typedoc """
   Defines the available options for `Flop.Phoenix.cursor_pagination/1`.
@@ -317,12 +319,10 @@ defmodule Flop.Phoenix do
   By default, page links for all pages are shown. You can limit the number of
   page links or disable them altogether by passing the `:page_links` option.
 
-  - `:all`: Show all page links (default).
-  - `:hide`: Don't show any page links. Only the previous/next links will be
-    shown.
-  - `{:ellipsis, x}`: Limits the number of page links. The first and last page
-    are always displayed. The `x` refers to the number of additional page links
-    to show.
+  - `:all` - Renders all page links.
+  - `:none` - Does not render any page links.
+  - Integer - Renders up to the specified number of page links in addition to
+    the first and last page.
 
   ## Pagination link aria label
 
@@ -408,6 +408,17 @@ defmodule Flop.Phoenix do
     Sets the `phx-target` attribute for the pagination links.
     """
 
+  attr :page_links, :any,
+    default: 5,
+    doc: """
+    Defines how many page links to render.
+
+    - `:all` - Renders all page links.
+    - `:none` - Does not render any page links.
+    - Integer - Renders up to the specified number of page links in addition to
+      the first and last page.
+    """
+
   attr :opts, :list,
     default: [],
     doc: """
@@ -432,12 +443,7 @@ defmodule Flop.Phoenix do
     assigns = assign(assigns, :opts, Pagination.merge_opts(opts))
 
     ~H"""
-    <.pagination_for
-      :let={p}
-      meta={@meta}
-      page_links={@opts[:page_links]}
-      path={@path}
-    >
+    <.pagination_for :let={p} meta={@meta} page_links={@page_links} path={@path}>
       <nav {@opts[:wrapper_attrs]}>
         <.pagination_link
           disabled={is_nil(p.previous_page)}
@@ -462,7 +468,7 @@ defmodule Flop.Phoenix do
           {@opts[:next_link_content]}
         </.pagination_link>
         <.page_links
-          :if={@opts[:page_links] != :hide}
+          :if={@page_links != :none}
           current_page={p.current_page}
           ellipsis_end?={p.ellipsis_end?}
           ellipsis_start?={p.ellipsis_start?}
@@ -607,7 +613,7 @@ defmodule Flop.Phoenix do
   <.pagination_for
     :let={p}
     meta={@meta}
-    page_links={{:ellipsis, 4}}
+    page_links={4}
     path={~p"/birds"}
   >
     <%!--
@@ -652,19 +658,17 @@ defmodule Flop.Phoenix do
     """
 
   attr :page_links, :any,
-    default: :all,
+    default: 5,
     doc: """
-    Specifies how many page links should be rendered.
-
-    Default: `#{inspect(Pagination.default_opts()[:page_links])}`.
+    Defines how many page links to render.
 
     - `:all` - Renders all page links.
-    - `{:ellipsis, n}` - Renders `n` page links. Renders ellipsis elements if
-      there are more pages than displayed.
-    - `:hide` - Does not render any page links.
+    - `:none` - Does not render any page links.
+    - Integer - Renders up to the specified number of page links in addition to
+      the first and last page.
 
     A `page_range_start` and `page_range_end` attribute are passed to the
-    inner block based on this option. If this attribute is set to `:hide`, both
+    inner block based on this option. If this attribute is set to `:none`, both
     of those values will be `nil`.
     """
 
@@ -682,11 +686,7 @@ defmodule Flop.Phoenix do
     pagination_type = pagination_type(meta.flop)
 
     {page_range_start, page_range_end} =
-      Pagination.get_page_link_range(
-        page_links,
-        meta.current_page,
-        meta.total_pages
-      )
+      page_link_range(page_links, meta.current_page, meta.total_pages)
 
     assigns =
       assigns
@@ -739,6 +739,44 @@ defmodule Flop.Phoenix do
 
   defp pagination_type(%Flop{last: last}) when is_binary(last) do
     :last
+  end
+
+  @doc """
+  Returns the range of page links to be rendered.
+
+  ## Usage
+
+      iex> page_link_range(:all, 4, 20)
+      {1, 20}
+
+      iex> page_link_range(:none, 4, 20)
+      {nil, nil}
+
+      iex> page_link_range(5, 4, 20)
+      {2, 6}
+  """
+  @spec page_link_range(page_link_option(), pos_integer(), pos_integer()) ::
+          {pos_integer() | nil, pos_integer() | nil}
+  def page_link_range(:all, _, total_pages), do: {1, total_pages}
+  def page_link_range(:none, _, _), do: {nil, nil}
+
+  def page_link_range(max_pages, current_page, total_pages)
+      when is_integer(max_pages) do
+    # number of additional pages to show before or after current page
+    additional = ceil(max_pages / 2)
+
+    cond do
+      max_pages >= total_pages ->
+        {1, total_pages}
+
+      current_page + additional > total_pages ->
+        {total_pages - max_pages + 1, total_pages}
+
+      true ->
+        first = max(current_page - additional + 1, 1)
+        last = min(first + max_pages - 1, total_pages)
+        {first, last}
+    end
   end
 
   @doc """
@@ -1658,7 +1696,6 @@ defmodule Flop.Phoenix do
       "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
   """
   @doc since: "0.6.0"
-  @doc section: :miscellaneous
   @spec to_query(Flop.t()) :: keyword
   def to_query(%Flop{filters: filters} = flop, opts \\ []) do
     filter_map =
@@ -1864,7 +1901,6 @@ defmodule Flop.Phoenix do
       "/articles/category/announcements/page/5?order_by[]=published_at"
   """
   @doc since: "0.6.0"
-  @doc section: :miscellaneous
   @spec build_path(
           String.t()
           | {module, atom, [any]}
