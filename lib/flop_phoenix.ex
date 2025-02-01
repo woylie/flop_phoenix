@@ -751,13 +751,19 @@ defmodule Flop.Phoenix do
 
   def pagination_for(
         %{
-          meta: %Flop.Meta{errors: [], total_pages: total_pages} = meta,
+          meta:
+            %Flop.Meta{
+              errors: [],
+              has_next_page?: has_next_page?,
+              has_previous_page?: has_previous_page?,
+              total_pages: total_pages
+            } = meta,
           page_links: page_links,
           path: path,
           reverse: reverse
         } = assigns
       )
-      when total_pages > 1 do
+      when has_next_page? or has_previous_page? do
     pagination_type = pagination_type(meta.flop)
 
     pagination =
@@ -780,8 +786,8 @@ defmodule Flop.Phoenix do
           total_pages: total_pages
         }
       else
-        previous_cursor = if meta.has_previous_page?, do: meta.start_cursor
-        next_cursor = if meta.has_next_page?, do: meta.end_cursor
+        previous_cursor = if has_previous_page?, do: meta.start_cursor
+        next_cursor = if has_next_page?, do: meta.end_cursor
         path_fun = build_cursor_path_fun(meta, path)
 
         {previous_direction, previous_cursor, next_direction, next_cursor} =
