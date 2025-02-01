@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+### Changed
+
+- Accept global attributes for pagination component.
+- Remove default `class` from pagination component.
+- Remove `role` attribute from the pagination component. The `<nav>` element
+  already has the implicit ARIA role `navigation`.
+
+### How to upgrade
+
+Remove the `wrapper_opts` from your pagination options and pass them directly
+as attributes instead.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+-   opts={[
+-     wrapper_attrs: [
+-       class: "pagination",
+-       aria: [label: "Quppernerit"]
+-     ]
+-   ]}
++   class="pagination"
++   aria-label="Quppernerit"
+/>
+```
+
 ## [0.24.0] - 2025-02-01
 
 ### Added

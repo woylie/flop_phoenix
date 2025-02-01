@@ -179,9 +179,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:previous_link_attrs])}`.
   - `:previous_link_content` - The content for the link to the previous page.
     Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
-  - `:wrapper_attrs` - The attributes for the `<nav>` element that wraps the
-    pagination links.
-    Default: `#{inspect(Pagination.default_opts()[:wrapper_attrs])}`.
   """
   @type pagination_option ::
           {:current_link_attrs, keyword}
@@ -196,7 +193,6 @@ defmodule Flop.Phoenix do
           | {:pagination_list_item_attrs, keyword}
           | {:previous_link_attrs, keyword}
           | {:previous_link_content, Phoenix.HTML.safe() | binary}
-          | {:wrapper_attrs, keyword}
 
   @typedoc """
   Defines how many page links to render.
@@ -415,6 +411,19 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
+  attr :rest, :global,
+    default: %{"aria-label": "Pagination"},
+    doc: """
+    The attributes are added to the outer `<nav>` element.
+
+
+    The `aria-label` defaults to `"Pagination"`. If your application is
+    localized, the label should be translated to the user locale. In languages
+    with latin characters, the first letter should be capitalized. If multiple
+    pagination components are rendered on the same page, each one should have
+    a distinct aria label.
+    """
+
   def pagination(%{path: nil, on_paginate: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
@@ -430,7 +439,7 @@ defmodule Flop.Phoenix do
       path={@path}
       reverse={@reverse}
     >
-      <nav {@opts[:wrapper_attrs]}>
+      <nav {@rest}>
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.previous_page)}

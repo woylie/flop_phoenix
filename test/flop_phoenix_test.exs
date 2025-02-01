@@ -72,9 +72,7 @@ defmodule Flop.PhoenixTest do
 
       nav = find_one(html, "nav:root")
 
-      assert attribute(nav, "aria-label") == "pagination"
-      assert attribute(nav, "class") == "pagination"
-      assert attribute(nav, "role") == "navigation"
+      assert attribute(nav, "aria-label") == "Pagination"
     end
 
     test "does not render anything if there is only one page" do
@@ -93,7 +91,7 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
-    test "allows to overwrite wrapper class" do
+    test "allows to set global attributes" do
       assigns = %{meta: build(:meta_on_first_page)}
 
       html =
@@ -101,35 +99,15 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
-          opts={[wrapper_attrs: [class: "boo"]]}
+          class="boo"
+          aria-label="Blaðsíðuskipting"
         />
         """)
 
       nav = find_one(html, "nav:root")
 
-      assert attribute(nav, "aria-label") == "pagination"
+      assert attribute(nav, "aria-label") == "Blaðsíðuskipting"
       assert attribute(nav, "class") == "boo"
-      assert attribute(nav, "role") == "navigation"
-    end
-
-    test "allows to add attributes to wrapper" do
-      assigns = %{meta: build(:meta_on_first_page)}
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          on_paginate={JS.push("paginate")}
-          opts={[wrapper_attrs: [title: "paginate"]]}
-        />
-        """)
-
-      nav = find_one(html, "nav:root")
-
-      assert attribute(nav, "aria-label") == "pagination"
-      assert attribute(nav, "class") == "pagination"
-      assert attribute(nav, "role") == "navigation"
-      assert attribute(nav, "title") == "paginate"
     end
 
     test "renders previous link" do
@@ -1116,55 +1094,6 @@ defmodule Flop.PhoenixTest do
   end
 
   describe "pagination/1 with cursor pagination" do
-    test "renders pagination wrapper" do
-      assigns = %{meta: build(:meta_with_cursors)}
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
-        """)
-
-      assert nav = find_one(html, "nav")
-      assert attribute(nav, "aria-label") == "pagination"
-      assert attribute(nav, "class") == "pagination"
-      assert attribute(nav, "role") == "navigation"
-    end
-
-    test "allows to overwrite wrapper class" do
-      assigns = %{
-        meta: build(:meta_with_cursors),
-        opts: [wrapper_attrs: [class: "boo"]]
-      }
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
-        """)
-
-      assert wrapper = find_one(html, "nav")
-      assert attribute(wrapper, "aria-label") == "pagination"
-      assert attribute(wrapper, "class") == "boo"
-      assert attribute(wrapper, "role") == "navigation"
-    end
-
-    test "allows to add attributes to wrapper" do
-      assigns = %{
-        meta: build(:meta_with_cursors),
-        opts: [wrapper_attrs: [title: "paginate"]]
-      }
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
-        """)
-
-      assert wrapper = find_one(html, "nav")
-      assert attribute(wrapper, "aria-label") == "pagination"
-      assert attribute(wrapper, "class") == "pagination"
-      assert attribute(wrapper, "role") == "navigation"
-      assert attribute(wrapper, "title") == "paginate"
-    end
-
     test "renders previous link" do
       assigns = %{meta: build(:meta_with_cursors)}
 
