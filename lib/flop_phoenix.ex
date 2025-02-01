@@ -218,31 +218,6 @@ defmodule Flop.Phoenix do
   @type page_link_option :: :all | :none | pos_integer
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.cursor_pagination/1`.
-
-  - `:disabled_class` - The class which is added to disabled links. Default:
-    `#{inspect(CursorPagination.default_opts()[:disabled_class])}`.
-  - `:next_link_attrs` - The attributes for the link to the next page.
-    Default: `#{inspect(CursorPagination.default_opts()[:next_link_attrs])}`.
-  - `:next_link_content` - The content for the link to the next page.
-    Default: `#{inspect(CursorPagination.default_opts()[:next_link_content])}`.
-  - `:previous_link_attrs` - The attributes for the link to the previous page.
-    Default: `#{inspect(CursorPagination.default_opts()[:previous_link_attrs])}`.
-  - `:previous_link_content` - The content for the link to the previous page.
-    Default: `#{inspect(CursorPagination.default_opts()[:previous_link_content])}`.
-  - `:wrapper_attrs` - The attributes for the `<nav>` element that wraps the
-    pagination links.
-    Default: `#{inspect(CursorPagination.default_opts()[:wrapper_attrs])}`.
-  """
-  @type cursor_pagination_option ::
-          {:disabled_class, String.t()}
-          | {:next_link_attrs, keyword}
-          | {:next_link_content, Phoenix.HTML.safe() | binary}
-          | {:previous_link_attrs, keyword}
-          | {:previous_link_content, Phoenix.HTML.safe() | binary}
-          | {:wrapper_attrs, keyword}
-
-  @typedoc """
   Defines the available options for `Flop.Phoenix.table/1`.
 
   - `:container` - Wraps the table in a `<div>` if `true`.
