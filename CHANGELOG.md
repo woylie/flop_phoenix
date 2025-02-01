@@ -11,10 +11,15 @@
 
 ### Changed
 
+- Support cursor pagination in `Flop.Phoenix.pagination/1`.
+- Deprecate `Flop.Phoenix.cursor_pagination/1` in favor of
+  `Flop.Phoenix.pagination/1`.
 - Remove the `page_links` option from the `pagination_opts`. Set this option
   with the new `page_links` attribute instead.
 - Change the values of the `page_links` option from
   `:all | :hide | {:ellipsis, pos_integer}` to `:all | :none | pos_integer`.
+- Change default value for `page_links` option of the
+  `Flop.Phoenix.pagination/1` component from `:all` to `5`.
 - Remove dependency on PhoenixHTMLHelpers.
 - Require Phoenix LiveView ~> 1.0.0.
 - Require Elixir ~> 1.14.

@@ -174,9 +174,6 @@ Then, you can handle the event in your LiveView, like this:
 
 This method allows you to update the page size while maintaining browser history.
 
-If you wish to implement cursor-based pagination, see
-`Flop.Phoenix.cursor_pagination/1` for setup instructions.
-
 ## Filter forms
 
 Flop Phoenix implements the `Phoenix.HTML.FormData` for the `Flop.Meta` struct.

@@ -300,7 +300,11 @@ defmodule Flop.Phoenix do
           | {:thead_tr_attrs, keyword}
 
   @doc """
-  Generates a pagination element.
+  Renders pagination links for the given `Flop.Meta` struct.
+
+  This component can render both page-based or cursor-based pagination links.
+  Which one is used depends on the pagination type that was used to make the
+  Flop query.
 
   ## Examples
 
@@ -417,6 +421,19 @@ defmodule Flop.Phoenix do
     - `:none` - Does not render any page links.
     - Integer - Renders up to the specified number of page links in addition to
       the first and last page.
+
+    This attribute is only used for page-based pagination.
+    """
+
+  attr :reverse, :boolean,
+    default: false,
+    doc: """
+    By default, the `next` link moves forward with the `:after` parameter set to
+    the end cursor, and the `previous` link moves backward with the `:before`
+    parameter set to the start cursor. If `reverse` is set to `true`, the
+    destinations of the links are switched.
+
+    This attribute is only for for cursor-based pagination.
     """
 
   attr :opts, :list,
@@ -434,11 +451,6 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
-  def pagination(%{meta: %{start_cursor: start_cursor, end_cursor: end_cursor}})
-      when not is_nil(start_cursor) or not is_nil(end_cursor) do
-    raise Flop.Phoenix.IncorrectPaginationTypeError, component: :pagination
-  end
-
   def pagination(%{opts: opts} = assigns) do
     assigns = assign(assigns, :opts, Pagination.merge_opts(opts))
 
@@ -446,6 +458,7 @@ defmodule Flop.Phoenix do
     <.pagination_for :let={p} meta={@meta} page_links={@page_links} path={@path}>
       <nav {@opts[:wrapper_attrs]}>
         <.pagination_link
+          :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.previous_page)}
           disabled_class={@opts[:disabled_class]}
           target={@target}
@@ -457,6 +470,7 @@ defmodule Flop.Phoenix do
           {@opts[:previous_link_content]}
         </.pagination_link>
         <.pagination_link
+          :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.next_page)}
           disabled_class={@opts[:disabled_class]}
           target={@target}
@@ -468,7 +482,7 @@ defmodule Flop.Phoenix do
           {@opts[:next_link_content]}
         </.pagination_link>
         <.page_links
-          :if={@page_links != :none}
+          :if={p.pagination_type in [:page, :offset] and @page_links != :none}
           current_page={p.current_page}
           ellipsis_end?={p.ellipsis_end?}
           ellipsis_start?={p.ellipsis_start?}
@@ -480,6 +494,32 @@ defmodule Flop.Phoenix do
           target={@target}
           total_pages={p.total_pages}
         />
+        <.cursor_pagination_link
+          :if={p.pagination_type in [:first, :last]}
+          direction={if @reverse, do: :next, else: :previous}
+          meta={@meta}
+          path={@path}
+          on_paginate={@on_paginate}
+          target={@target}
+          disabled={CursorPagination.disable?(@meta, :previous, @reverse)}
+          disabled_class={@opts[:disabled_class]}
+          {@opts[:previous_link_attrs]}
+        >
+          {@opts[:previous_link_content]}
+        </.cursor_pagination_link>
+        <.cursor_pagination_link
+          :if={p.pagination_type in [:first, :last]}
+          direction={if @reverse, do: :previous, else: :next}
+          meta={@meta}
+          path={@path}
+          on_paginate={@on_paginate}
+          target={@target}
+          disabled={CursorPagination.disable?(@meta, :next, @reverse)}
+          disabled_class={@opts[:disabled_class]}
+          {@opts[:next_link_attrs]}
+        >
+          {@opts[:next_link_content]}
+        </.cursor_pagination_link>
       </nav>
     </.pagination_for>
     """
@@ -598,6 +638,63 @@ defmodule Flop.Phoenix do
     """
   end
 
+  attr :direction, :atom, required: true
+  attr :meta, Flop.Meta, required: true
+  attr :path, :any, required: true
+  attr :on_paginate, JS
+  attr :target, :string, required: true
+  attr :disabled, :boolean, default: false
+  attr :disabled_class, :string, required: true
+  attr :rest, :global
+  slot :inner_block
+
+  defp cursor_pagination_link(
+         %{disabled: true, disabled_class: disabled_class} = assigns
+       ) do
+    rest =
+      Map.update(assigns.rest, :class, disabled_class, fn class ->
+        [class, disabled_class]
+      end)
+
+    assigns = assign(assigns, :rest, rest)
+
+    ~H"""
+    <span {@rest} class={@disabled_class}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
+    ~H"""
+    <.link
+      patch={CursorPagination.pagination_path(@direction, @path, @meta)}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </.link>
+    """
+  end
+
+  defp cursor_pagination_link(
+         %{direction: direction, path: path, meta: meta} = assigns
+       ) do
+    path = CursorPagination.pagination_path(direction, path, meta)
+    assigns = assign(assigns, :path, path)
+
+    ~H"""
+    <.link
+      patch={@path}
+      phx-click={@on_paginate}
+      phx-target={@target}
+      phx-value-to={@direction}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </.link>
+    """
+  end
+
   @doc """
   This component is a pagination builder.
 
@@ -682,40 +779,42 @@ defmodule Flop.Phoenix do
         } = assigns
       )
       when total_pages > 1 do
-    page_link_fun = Pagination.build_page_link_fun(meta, path)
     pagination_type = pagination_type(meta.flop)
 
-    {page_range_start, page_range_end} =
-      page_link_range(page_links, meta.current_page, meta.total_pages)
+    pagination =
+      if pagination_type in [:page, :offset] do
+        page_link_fun = Pagination.build_page_link_fun(meta, path)
+
+        {page_range_start, page_range_end} =
+          page_link_range(page_links, meta.current_page, meta.total_pages)
+
+        %Pagination{
+          current_page: meta.current_page,
+          ellipsis_end?: page_range_end < meta.total_pages - 1,
+          ellipsis_start?: page_range_start > 2,
+          next_page: meta.next_page,
+          page_range_end: page_range_end,
+          page_link_fun: page_link_fun,
+          page_range_start: page_range_start,
+          pagination_type: pagination_type,
+          previous_page: meta.previous_page,
+          total_pages: total_pages
+        }
+      else
+        %Pagination{
+          pagination_type: pagination_type
+        }
+      end
 
     assigns =
       assigns
-      |> assign(:current_page, meta.current_page)
-      |> assign(:ellipsis_end?, page_range_end < meta.total_pages - 1)
-      |> assign(:ellipsis_start?, page_range_start > 2)
+      |> assign(:pagination, pagination)
       |> assign(:meta, nil)
-      |> assign(:next_page, meta.next_page)
-      |> assign(:page_link_fun, page_link_fun)
-      |> assign(:page_range_end, page_range_end)
-      |> assign(:page_range_start, page_range_start)
-      |> assign(:pagination_type, pagination_type)
+      |> assign(:page_links, nil)
       |> assign(:path, nil)
-      |> assign(:previous_page, meta.previous_page)
-      |> assign(:total_pages, meta.total_pages)
 
     ~H"""
-    {render_slot(@inner_block, %{
-      current_page: @current_page,
-      ellipsis_end?: @ellipsis_end?,
-      ellipsis_start?: @ellipsis_start?,
-      next_page: @next_page,
-      page_range_end: @page_range_end,
-      page_link_fun: @page_link_fun,
-      page_range_start: @page_range_start,
-      pagination_type: @pagination_type,
-      previous_page: @previous_page,
-      total_pages: @total_pages
-    })}
+    {render_slot(@inner_block, @pagination)}
     """
   end
 
@@ -733,11 +832,11 @@ defmodule Flop.Phoenix do
     :page
   end
 
-  defp pagination_type(%Flop{first: first}) when is_binary(first) do
+  defp pagination_type(%Flop{first: first}) when is_integer(first) do
     :first
   end
 
-  defp pagination_type(%Flop{last: last}) when is_binary(last) do
+  defp pagination_type(%Flop{last: last}) when is_integer(last) do
     :last
   end
 
@@ -849,6 +948,7 @@ defmodule Flop.Phoenix do
   `[:family_name, :given_name, :id]`.
   """
   @doc section: :components
+  @doc deprecated: "Use Flop.Phoenix.pagination/1 instead."
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
 
   attr :meta, Flop.Meta,
@@ -979,63 +1079,6 @@ defmodule Flop.Phoenix do
         {@opts[:next_link_content]}
       </.cursor_pagination_link>
     </nav>
-    """
-  end
-
-  attr :direction, :atom, required: true
-  attr :meta, Flop.Meta, required: true
-  attr :path, :any, required: true
-  attr :on_paginate, JS
-  attr :target, :string, required: true
-  attr :disabled, :boolean, default: false
-  attr :disabled_class, :string, required: true
-  attr :rest, :global
-  slot :inner_block
-
-  defp cursor_pagination_link(
-         %{disabled: true, disabled_class: disabled_class} = assigns
-       ) do
-    rest =
-      Map.update(assigns.rest, :class, disabled_class, fn class ->
-        [class, disabled_class]
-      end)
-
-    assigns = assign(assigns, :rest, rest)
-
-    ~H"""
-    <span {@rest} class={@disabled_class}>
-      {render_slot(@inner_block)}
-    </span>
-    """
-  end
-
-  defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
-    ~H"""
-    <.link
-      patch={CursorPagination.pagination_path(@direction, @path, @meta)}
-      {@rest}
-    >
-      {render_slot(@inner_block)}
-    </.link>
-    """
-  end
-
-  defp cursor_pagination_link(
-         %{direction: direction, path: path, meta: meta} = assigns
-       ) do
-    path = CursorPagination.pagination_path(direction, path, meta)
-    assigns = assign(assigns, :path, path)
-
-    ~H"""
-    <.link
-      patch={@path}
-      phx-click={@on_paginate}
-      phx-target={@target}
-      phx-value-to={@direction}
-      {@rest}
-    >
-      {render_slot(@inner_block)}
-    </.link>
     """
   end
 
