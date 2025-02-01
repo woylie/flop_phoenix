@@ -12,8 +12,6 @@
 ### Changed
 
 - Support cursor pagination in `Flop.Phoenix.pagination/1`.
-- Deprecate `Flop.Phoenix.cursor_pagination/1` in favor of
-  `Flop.Phoenix.pagination/1`.
 - Remove the `page_links` option from the `pagination_opts`. Set this option
   with the new `page_links` attribute instead.
 - Change the values of the `page_links` option from
@@ -26,12 +24,16 @@
 
 ### Removed
 
+- Remove `Flop.Phoenix.cursor_pagination/1`. Use `Flop.Phoenix.pagination/1`
+  instead.
+- Remove `t:Flop.Phoenix.cursor_pagination_option/0`.
+- Remove `Flop.Phoenix.IncorrectPaginationTypeError`.
 - Remove `input_type/3` from the `Phoenix.HTML.FormData` protocol
   implementation for `Flop.Meta`. The function had been removed from the
   protocol in Phoenix.HTML 4.0.
 - Remove the previously deprecated `:event` attribute from the
-  `Flop.Phoenix.pagination/1`, `Flop.Phoenix.cursor_pagination`, and
-  `Flop.Phoenix.table/1` components. Use `:on_paginate` and `:on_sort` instead.
+  `Flop.Phoenix.pagination/1` and `Flop.Phoenix.table/1` components. Use
+  `:on_paginate` and `:on_sort` instead.
 - Remove the previously deprecated `:hide` and `:show` attributes from the
   `:col` and `:action` slots of the `Flop.Phoenix.table/1` component. Use the
   `:if` attribute instead.
