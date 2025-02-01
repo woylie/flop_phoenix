@@ -4,12 +4,12 @@
 
 ### Added
 
-- Add `Flop.Phoenix.pagination_for/1` for building custom pagination components
-  more easily. Update the existing `Flop.Phoenix.pagination/1` component to it.
 - Add `Flop.Phoenix.Pagination` struct to hold information needed to render
   a pagination component.
 - Add `Flop.Phoenix.Pagination.new/2` to build a `Pagination` struct from a
   `Flop.Meta` struct.
+- Add `Flop.Phoenix.pagination_for/1` for building custom pagination components.
+  Update the existing `Flop.Phoenix.pagination/1` component to it.
 - Add `Flop.Phoenix.page_link_range/3` for determining which page links to
   render in a pagination component.
 
@@ -35,16 +35,102 @@
 - Remove `input_type/3` from the `Phoenix.HTML.FormData` protocol
   implementation for `Flop.Meta`. The function had been removed from the
   protocol in Phoenix.HTML 4.0.
-- Remove the previously deprecated `:event` attribute from the
+- Remove the previously deprecated `event` attribute from the
   `Flop.Phoenix.pagination/1` and `Flop.Phoenix.table/1` components. Use
   `:on_paginate` and `:on_sort` instead.
-- Remove the previously deprecated `:hide` and `:show` attributes from the
+- Remove the previously deprecated `hide` and `show` attributes from the
   `:col` and `:action` slots of the `Flop.Phoenix.table/1` component. Use the
   `:if` attribute instead.
 
 ### Fixed
 
 - Fix a warning about ranges in Elixir 1.18.
+
+### How to upgrade
+
+Replace `Flop.Phoenix.cursor_pagination/1` with `Flop.Phoenix.pagination/1`.
+
+```diff
+- <Flop.Phoenix.cursor_pagination meta={@meta} path={~p"/pets"} />
++ <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} />
+```
+
+Update the format of the `page_links` option for the pagination component.
+
+```diff
+- page_links: {:ellipsis, 7},
++ page_links: 7,
+
+- page_links: :hide,
++ page_links: :none,
+```
+
+Remove `page_links` from your `pagination_opts` function and add it as an
+attribute instead.
+
+```diff
+def pagination_opts do
+  [
+    ellipsis_attrs: [class: "ellipsis"],
+    ellipsis_content: "‥",
+    next_link_attrs: [class: "next"],
+    next_link_content: next_icon(),
+-     page_links: 7,
+    pagination_link_aria_label: &"#{&1}ページ目へ",
+    previous_link_attrs: [class: "prev"],
+    previous_link_content: previous_icon()
+  ]
+end
+
+<Flop.Phoenix.pagination
+  meta={@meta}
+  path={~p"/pets"}
++ page_links={7}
+/>
+```
+
+Replace the `:show` and `:hide` attribute in the `:col` slot of the table
+component with `:if`.
+
+```diff
+<:col
+  :let={pet}
+- show={@admin?}
++ :if={@admin?}
+  label="Name"
+  field={:name}
+>
+  <%= pet.name %>
+</:col>
+
+<:col
+  :let={pet}
+- hide={!@admin?}
++ :if={@admin?}
+  label="Name"
+  field={:name}
+>
+  <%= pet.name %>
+</:col>
+```
+
+Replace the `event` attribute of the pagination table components with
+`on_paginate` and `on_sort`.
+
+```diff
+<Flop.Phoenix.pagination
+  meta={@meta}
+- event="paginate"
++ on_paginate={JS.push("paginate")}
+/>
+
+<Flop.Phoenix.table
+  items={@pets}
+  meta={@meta}
+- event="sort"
++ on_sort={JS.push("sort")}
+>
+```
 
 ## [0.23.1] - 2024-10-17
 

@@ -8,9 +8,6 @@ filter forms with [Flop](https://hex.pm/packages/flop) and
 
 ## Installation
 
-To start using flop_phoenix, add it to your list of dependencies in `mix.exs`
-of your Phoenix application:
-
 Add `flop_phoenix` to your list of dependencies in the `mix.exs` of your Phoenix
 application.
 
@@ -22,28 +19,33 @@ def deps do
 end
 ```
 
-Next, set up your business logic according to the
+Next, set up your business logic following the
 [Flop documentation](https://hex.pm/packages/flop).
 
 ## Usage
 
-First, define a function that utilizes `Flop.validate_and_run/3` to query your
-desired list. For example:
+### Context
+
+Define a context function that uses `Flop.validate_and_run/3` to perform a
+list query. For example:
 
 ```elixir
 defmodule MyApp.Pets do
   alias MyApp.Pet
 
   def list_pets(params) do
-    Flop.validate_and_run(Pet, params, for: Pet)
+    Flop.validate_and_run(Pet, params, for: Pet, replace_invalid_params: true)
   end
 end
 ```
 
+Note the usage of the `replace_invalid_params` option, which lets Flop ignore
+invalid parameters instead of returning an error.
+
 ### LiveView
 
-In the LiveView, fetch the data and assign it alongside the meta data to the
-socket.
+In the LiveView module, fetch the data and assign it alongside the meta data to
+the socket.
 
 ```elixir
 defmodule MyAppWeb.PetLive.Index do
@@ -53,23 +55,18 @@ defmodule MyAppWeb.PetLive.Index do
 
   @impl Phoenix.LiveView
   def handle_params(params, _, socket) do
-    case Pets.list_pets(params) do
-      {:ok, {pets, meta}} ->
-        {:noreply, assign(socket, %{pets: pets, meta: meta})}
-
-      {:error, _meta} ->
-        # This will reset invalid parameters. Alternatively, you can assign
-        # only the meta and render the errors, or you can ignore the error
-        # case entirely.
-        {:noreply, push_navigate(socket, to: ~p"/pets")}
-    end
+    # We set `replace_invalid_params` to `true` in the context function, so we
+    # should never get an error. If you don't set the option, Flop will return
+    # an error tuple with a `Flop.Meta` struct which includes the validation
+    # errors.
+    {:ok, {pets, meta}} = Pets.list_pets(params)
   end
 end
 ```
 
 If you prefer the `Flop.Phoenix` components not to reflect pagination, sorting,
 and filtering parameters in the URL, fetch and assign the data in the
-`c:Phoenix.LiveView.handle_event/3` callback. You need to pass a
+`c:Phoenix.LiveView.handle_event/3` callback instead. You need to pass a
 `Phoenix.LiveView.JS` command as an attribute to the components in that case.
 
 ### Controller
@@ -86,14 +83,15 @@ defmodule MyAppWeb.PetController do
   action_fallback MyAppWeb.FallbackController
 
   def index(conn, params) do
-    with {:ok, {pets, meta}} <- Pets.list_pets(params) do
-      render(conn, :index, meta: meta, pets: pets)
-    end
+    {:ok, {pets, meta}} = Pets.list_pets(params)
+    render(conn, :index, meta: meta, pets: pets)
   end
 end
 ```
 
-## Sortable tables and pagination
+## HEEx Template
+
+### Sortable table and pagination
 
 To add a sortable table and pagination links, you can add the following to your
 template:
@@ -109,13 +107,13 @@ template:
 <Flop.Phoenix.pagination meta={@meta} path={~p"/pets"} />
 ```
 
-In this context, path points to the current route, and Flop Phoenix appends
+In this context, `path` points to the current route, and Flop Phoenix appends
 pagination, filtering, and sorting parameters to it. You can use verified
-routes, route helpers, or custom path builder functions. You'll find
-explanations for the different formats in the documentation for
+routes, route helpers, or custom path builder functions. You can find a
+description of the different formats in the documentation for
 `Flop.Phoenix.build_path/3`.
 
-Note that the field attribute in the `:col` slot is optional. If set and the
+Note that the `field` attribute in the `:col` slot is optional. If set and the
 corresponding field in the schema is defined as sortable, the table header for
 that column will be interactive, allowing users to sort by that column. However,
 if the field isn't defined as sortable, or if the field attribute is omitted, or
@@ -123,7 +121,7 @@ set to `nil` or `false`, the table header will not be clickable.
 
 By using the `for` option in your Flop query, Flop Phoenix can identify which
 table columns are sortable. Additionally, it omits the `order` and `page_size`
-parameters if they align with the default values specified via `Flop.Schema`.
+parameters if they match the default values defined with `Flop.Schema`.
 
 You also have the option to pass a `Phoenix.LiveView.JS` command instead of or
 in addition to a path. For more details, please refer to the component
@@ -144,7 +142,6 @@ def page_size_link(assigns) do
   <.link
     phx-click="page-size"
     phx-value-size={@new_size}
-    class={page_size_class(@current_size, @new_size)}
   >
     {@new_size}
   </.link>
@@ -155,13 +152,13 @@ defp page_size_class(old, old), do: "font-black text-orange-500"
 defp page_size_class(_old, _new), do: "font-light"
 ```
 
-You could then render them like this:
+You can then render them like this:
 
 ```elixir
 <.page_size_link :for={ps <- [10, 20, 40, 60]} new_size={ps} current_size={@meta.page_size} />
 ```
 
-Then, you can handle the event in your LiveView, like this:
+And add an event handler to the LiveView module:
 
 ```elixir
   def handle_event("page-size", %{"size" => ps}, socket) do
@@ -172,9 +169,10 @@ Then, you can handle the event in your LiveView, like this:
   end
 ```
 
-This method allows you to update the page size while maintaining browser history.
+This method allows you to update the page size while maintaining browser
+history.
 
-## Filter forms
+### Filter forms
 
 Flop Phoenix implements the `Phoenix.HTML.FormData` for the `Flop.Meta` struct.
 As such, you can easily pass the struct to Phoenix form functions. One
@@ -215,27 +213,7 @@ def filter_form(%{meta: meta} = assigns) do
 end
 ```
 
-Note that while the `filter_fields` component produces all necessary hidden
-inputs, it doesn't automatically render inputs for filter values. Instead, it
-passes the necessary details to the inner block, allowing you to customize the
-filter inputs with your custom input component.
-
-One such hidden input is the input for `page_size`. If you would like to display this field, you can simply add a direct HTML input control for `page_size` to your `filter_form/1` function, like so:
-
-```elixir
-    ...
-    <input type="text" name="page_size" value={@meta.page_size} />
-
-    <button class="button" name="reset">reset</button>
-  </.form>
-  """
-end
-```
-
-You can pass additional options for each field. Refer to the
-`Flop.Phoenix.filter_fields/1` documentation for details.
-
-Now, you can render a filter form like so:
+Now you can render a filter form like this:
 
 ```elixir
 <.filter_form
@@ -256,6 +234,42 @@ def handle_event("update-filter", params, socket) do
 end
 ```
 
+Note that while the `filter_fields` component produces all necessary hidden
+inputs, it doesn't automatically render inputs for filter values. Instead, it
+passes the necessary details to the inner block, allowing you to customize the
+filter inputs with your custom input component.
+
+You can pass additional options for each field. Refer to the
+`Flop.Phoenix.filter_fields/1` documentation for details.
+
+#### Adding visible inputs for meta parameters
+
+If you want to render visible inputs instead of relying on the hidden input that
+are automatically added to the form, you can just add them to the form
+component:
+
+```elixir
+<.form
+  for={@form}
+  id={@id}
+  phx-target={@target}
+  phx-change={@on_change}
+  phx-submit={@on_change}
+>
+  <%!-- ... %>
+
+  <label for="filter-form-page-size">Page size</label>
+  <input
+    id="filter-form-page-size"
+    type="text"
+    name="page_size"
+    value={@meta.page_size}
+  />
+
+  <button class="button" name="reset">reset</button>
+</.form>
+```
+
 ## LiveView streams
 
 To use LiveView streams, you can change your `handle_params/3` function as
@@ -263,15 +277,8 @@ follows:
 
 ```elixir
 def handle_params(params, _, socket) do
-  case Pets.list_pets(params) do
-    {:ok, {pets, meta}} ->
-      {:noreply,
-         socket
-         |> assign(:meta, meta)
-         |> stream(:pets, pets, reset: true)}
-
-    # ...
-  end
+  {:ok, {pets, meta}} = Pets.list_pets(params)
+  {:noreply, socket |> assign(:meta, meta) |> stream(:pets, pets, reset: true)}
 end
 ```
 

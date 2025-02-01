@@ -105,21 +105,23 @@ defmodule Flop.Phoenix do
   If used without the `path` attribute, you will need to include a `push`
   command to trigger an event when a pagination or sort link is clicked.
 
-  You can set a different target by assigning a `:target`. The value
+  You can set a different target setting the `target` attribute. The value
   will be used as the `phx-target` attribute.
 
-      <Flop.Phoenix.table
-        items={@items}
-        meta={@meta}
-        on_sort={JS.push("sort-pets")}
-        target={@myself}
-      />
+  ```heex
+  <Flop.Phoenix.table
+    items={@items}
+    meta={@meta}
+    on_sort={JS.push("sort-pets")}
+    target={@myself}
+  />
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        on_paginate={JS.push("paginate-pets")}
-        target={@myself}
-      />
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    on_paginate={JS.push("paginate-pets")}
+    target={@myself}
+  />
+  ```
 
   You will need to handle the event in the `c:Phoenix.LiveView.handle_event/3`
   or `c:Phoenix.LiveComponent.handle_event/3` callback of your
@@ -282,25 +284,23 @@ defmodule Flop.Phoenix do
 
   ## Examples
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={~p"/pets"}
-      />
+  With a verified route:
 
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={{Routes, :pet_path, [@socket, :index]}}
-      />
+  ```heex
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={~p"/pets"}
+  />
+  ```
 
-  ## Page link options
+  With a route helper:
 
-  By default, page links for all pages are shown. You can limit the number of
-  page links or disable them altogether by passing the `:page_links` option.
-
-  - `:all` - Renders all page links.
-  - `:none` - Does not render any page links.
-  - Integer - Renders up to the specified number of page links in addition to
-    the first and last page.
+  ```heex
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={{Routes, :pet_path, [@socket, :index]}}
+  />
+  ```
 
   ## Pagination link aria label
 
@@ -345,21 +345,25 @@ defmodule Flop.Phoenix do
     If used without the `path` attribute, you should include a `push` operation
     to handle the event with the `handle_event` callback.
 
-        <.pagination
-          meta={@meta}
-          on_paginate={
-            JS.dispatch("my_app:scroll_to", to: "#pet-table") |> JS.push("paginate")
-          }
-        />
+    ```heex
+    <.pagination
+      meta={@meta}
+      on_paginate={
+        JS.dispatch("my_app:scroll_to", to: "#pet-table") |> JS.push("paginate")
+      }
+    />
+    ```
 
     If used with the `path` attribute, the URL is patched _and_ the given
     JS command is executed.
 
-        <.pagination
-          meta={@meta}
-          path={~p"/pets"}
-          on_paginate={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
-        />
+    ```heex
+    <.pagination
+      meta={@meta}
+      path={~p"/pets"}
+      on_paginate={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
+    />
+    ```
 
     With the above attributes in place, you can add the following JavaScript to
     your application to scroll to the top of your table whenever a pagination
@@ -826,7 +830,7 @@ defmodule Flop.Phoenix do
 
   ## Example
 
-  ```elixir
+  ```heex
   <Flop.Phoenix.table items={@pets} meta={@meta} path={~p"/pets"}>
     <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
     <:col :let={pet} label="Age" field={:age}>{pet.age}</:col>
@@ -884,22 +888,26 @@ defmodule Flop.Phoenix do
     If used without the `path` attribute, you should include a `push` operation
     to handle the event with the `handle_event` callback.
 
-        <.table
-          items={@items}
-          meta={@meta}
-          on_sort={
-            JS.dispatch("my_app:scroll_to", to: "#pet-table") |> JS.push("sort")
-          }
-        />
+    ```heex
+    <.table
+      items={@items}
+      meta={@meta}
+      on_sort={
+        JS.dispatch("my_app:scroll_to", to: "#pet-table") |> JS.push("sort")
+      }
+    />
+    ```
 
     If used with the `path` attribute, the URL is patched _and_ the given
     JS command is executed.
 
-        <.table
-          meta={@meta}
-          path={~p"/pets"}
-          on_sort={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
-        />
+    ```heex
+    <.table
+      meta={@meta}
+      path={~p"/pets"}
+      on_sort={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
+    />
+    ```
     """
 
   attr :target, :string,
@@ -1067,11 +1075,13 @@ defmodule Flop.Phoenix do
     You can optionally add a `foot`. The inner block will be rendered inside
     a `tfoot` element.
 
-        <Flop.Phoenix.table>
-          <:foot>
-            <tr><td>Total: <span class="total">{@total}</span></td></tr>
-          </:foot>
-        </Flop.Phoenix.table>
+    ```heex
+    <Flop.Phoenix.table>
+      <:foot>
+        <tr><td>Total: <span class="total">{@total}</span></td></tr>
+      </:foot>
+    </Flop.Phoenix.table>
+    ```
     """
 
   def table(%{path: nil, on_sort: nil}) do
@@ -1163,9 +1173,8 @@ defmodule Flop.Phoenix do
 
   These options are passed to the inner block via `:let`:
 
-  - The `field` is a `Phoenix.HTML.FormField.t` struct.
-  - The `type` is the input type as a string, _not_ the name of the
-    `Phoenix.HTML.Form` input function (e.g. `"text"`, not `:text_input`). The
+  - The `field` is a `Phoenix.HTML.FormField` struct.
+  - The `type` is the input type as a string (e.g. `"text"`, `"number"`). The
     type is derived from the type of the field being filtered on, but it can
     be overridden in the field options.
   - `rest` contains any additional field options passed.
@@ -1244,14 +1253,16 @@ defmodule Flop.Phoenix do
     inner block, which allows you to render the fields with your existing
     components.
 
-        <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
-          <.input
-            field={i.field}
-            label={i.label}
-            type={i.type}
-            {i.rest}
-          />
-        </.filter_fields>
+    ```heex
+    <.filter_fields :let={i} form={@form} fields={[:email, :name]}>
+      <.input
+        field={i.field}
+        label={i.label}
+        type={i.type}
+        {i.rest}
+      />
+    </.filter_fields>
+    ```
 
     The options passed to the inner block are:
 
@@ -1314,26 +1325,31 @@ defmodule Flop.Phoenix do
   Since the filters are represented as an array in the params, make sure to
   add the `offset` option so that the `Flop.Meta` can be properly mapped back to
   your input fields. For every call to `inputs_for` always add the length of all
-  previous calls to `inputs_for` as offset.
+  previous calls to `inputs_for` as offset. Note that the example below uses
+  the old `PhoenixHTMLHelpers.Form.inputs_for/4` function.
+  `Phoenix.Component.inputs_for/1` currently overrides the `index` set by
+  `Flop.Phoenix.FormData`, which leads to duplicate DOM IDs.
 
-      <.form :let={f} for={@meta}>
-        <.hidden_inputs_for_filter form={@form} />
+  ```heex
+  <.form :let={f} for={@meta}>
+    <.hidden_inputs_for_filter form={@form} />
 
-        <div class="field-group">
-          <div class="field">
-            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [:name]], fn ff -> %>
-              <.hidden_inputs_for_filter form={ff} />
-              <.input label="Name" type="text" field={{ff, :value}} />
-            <% end %>
-          </div>
-          <div class="field">
-            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1] fn ff -> %>
-              <.hidden_inputs_for_filter form={ff} />
-              <.input label="E-mail" type="email" field={{ff, :value}} />
-            <% end %>
-          </div>
-        </div>
-      </.form>
+    <div class="field-group">
+      <div class="field">
+        <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [:name]], fn ff -> %>
+          <.hidden_inputs_for_filter form={ff} />
+          <.input label="Name" type="text" field={{ff, :value}} />
+        <% end %>
+      </div>
+      <div class="field">
+        <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1] fn ff -> %>
+          <.hidden_inputs_for_filter form={ff} />
+          <.input label="E-mail" type="email" field={{ff, :value}} />
+        <% end %>
+      </div>
+    </div>
+  </.form>
+  ```
   """
   @doc since: "0.16.0"
   @doc section: :components
