@@ -273,8 +273,6 @@ defmodule Flop.Phoenix.Pagination do
         aria: [current: "page"]
       ],
       disabled_class: "disabled",
-      ellipsis_attrs: [class: "pagination-ellipsis"],
-      ellipsis_content: Phoenix.HTML.raw("&hellip;"),
       next_link_attrs: [
         aria: [label: "Go to next page"],
         class: "pagination-next"

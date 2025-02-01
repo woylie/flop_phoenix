@@ -2,12 +2,20 @@
 
 ## Unreleased
 
-### Changed
+### Added
 
 - Accept global attributes for pagination component.
+- Add `ellipsis` slot to pagination component.
+
+### Removed
+
+- Remove `wrapper_attrs` from the pagination options. Pass the attributes
+  directly as attributes instead.
 - Remove default `class` from pagination component.
 - Remove `role` attribute from the pagination component. The `<nav>` element
   already has the implicit ARIA role `navigation`.
+- Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
+  use the `ellipsis` slot instead.
 
 ### How to upgrade
 
@@ -18,15 +26,34 @@ as attributes instead.
   <Flop.Phoenix.pagination
     meta={@meta}
     path={@path}
--   opts={[
+    opts={[
 -     wrapper_attrs: [
 -       class: "pagination",
 -       aria: [label: "Quppernerit"]
 -     ]
--   ]}
+    ]}
 +   class="pagination"
 +   aria-label="Quppernerit"
-/>
+  />
+```
+
+Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
+`ellipsis` slot.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+    opts={[
+-     ellipsis_attrs: [class: "ellipsis", aria-hidden: "true"],
+-     elipsis_content: "‥"
+    ]}
+- />
++ >
++   <:ellipsis>
++     <span class="ellipsis" aria-hidden="true">‥</span>
++   </:ellipsis>
++ </Flop.Phoenix.pagination>
 ```
 
 ## [0.24.0] - 2025-02-01

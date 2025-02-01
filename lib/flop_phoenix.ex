@@ -33,8 +33,6 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         target={@target}
         opts={[
-          ellipsis_attrs: [class: "ellipsis"],
-          ellipsis_content: "‥",
           next_link_attrs: [class: "next"],
           next_link_content: next_icon(),
           pagination_link_aria_label: &"\#{&1}ページ目へ",
@@ -157,11 +155,6 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
   - `:disabled_class` - The class which is added to disabled links. Default:
     `#{inspect(Pagination.default_opts()[:disabled_class])}`.
-  - `:ellipsis_attrs` - The attributes for the `<span>` that wraps the
-    ellipsis.
-    Default: `#{inspect(Pagination.default_opts()[:ellipsis_attrs])}`.
-  - `:ellipsis_content` - The content for the ellipsis element.
-    Default: `#{inspect(Pagination.default_opts()[:ellipsis_content])}`.
   - `:next_link_attrs` - The attributes for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:next_link_content` - The content for the link to the next page.
@@ -183,8 +176,6 @@ defmodule Flop.Phoenix do
   @type pagination_option ::
           {:current_link_attrs, keyword}
           | {:disabled_class, String.t()}
-          | {:ellipsis_attrs, keyword}
-          | {:ellipsis_content, Phoenix.HTML.safe() | binary}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
@@ -424,6 +415,19 @@ defmodule Flop.Phoenix do
     a distinct aria label.
     """
 
+  slot :ellipsis,
+    doc: """
+    The content of the `<li>` element that usually shows an ellipsis and is
+    rendered toward the beginning and/or end of the page links if there are
+    more pages than the configured limit.
+
+    If the slot is not used, a default element is used:
+
+    ```html
+    <span aria-hidden="true">&hellip;</span>
+    ```
+    """
+
   def pagination(%{path: nil, on_paginate: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
@@ -467,6 +471,7 @@ defmodule Flop.Phoenix do
         <.page_links
           :if={p.pagination_type in [:page, :offset] and @page_links != :none}
           current_page={p.current_page}
+          ellipsis={@ellipsis}
           ellipsis_end?={p.ellipsis_end?}
           ellipsis_start?={p.ellipsis_start?}
           on_paginate={@on_paginate}
@@ -516,6 +521,7 @@ defmodule Flop.Phoenix do
   attr :page_range_start, :integer, required: true
   attr :target, :string, required: true
   attr :total_pages, :integer, required: true
+  attr :ellipsis, :any
 
   defp page_links(assigns) do
     ~H"""
@@ -533,7 +539,7 @@ defmodule Flop.Phoenix do
       </li>
 
       <li :if={@ellipsis_start?} {@opts[:pagination_list_item_attrs]}>
-        <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
+        <.ellipsis ellipsis={@ellipsis} />
       </li>
 
       <li
@@ -552,7 +558,7 @@ defmodule Flop.Phoenix do
       </li>
 
       <li :if={@ellipsis_end?} {@opts[:pagination_list_item_attrs]}>
-        <span {@opts[:ellipsis_attrs]}>{@opts[:ellipsis_content]}</span>
+        <.ellipsis ellipsis={@ellipsis} />
       </li>
 
       <li :if={@page_range_end < @total_pages} {@opts[:pagination_list_item_attrs]}>
@@ -567,6 +573,18 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
     </ul>
+    """
+  end
+
+  defp ellipsis(%{ellipsis: []} = assigns) do
+    ~H"""
+    <span aria-hidden="true">&hellip;</span>
+    """
+  end
+
+  defp ellipsis(assigns) do
+    ~H"""
+    {render_slot(@ellipsis)}
     """
   end
 
