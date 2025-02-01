@@ -59,18 +59,17 @@ defmodule Flop.Phoenix.Pagination do
   def build_page_link_fun(_meta, nil), do: fn _ -> nil end
 
   def build_page_link_fun(meta, path) do
-    query_params = build_query_params(meta)
-
-    fn page ->
-      params = maybe_put_page(query_params, page)
-      Flop.Phoenix.build_path(path, params)
-    end
+    &build_path_to_page(path, &1, build_query_params(meta))
   end
 
   defp build_query_params(meta) do
     meta.flop
     |> ensure_page_based_params()
     |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
+  end
+
+  defp build_path_to_page(path, page, query_params) do
+    Flop.Phoenix.build_path(path, maybe_put_page(query_params, page))
   end
 
   @doc """
