@@ -9,11 +9,15 @@ defmodule Flop.Phoenix.Pagination do
     :current_page,
     :ellipsis_end?,
     :ellipsis_start?,
+    :next_cursor,
+    :next_direction,
     :next_page,
     :page_range_end,
     :page_link_fun,
     :page_range_start,
     :pagination_type,
+    :previous_cursor,
+    :previous_direction,
     :previous_page,
     :total_pages
   ]

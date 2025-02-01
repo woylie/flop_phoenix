@@ -455,7 +455,13 @@ defmodule Flop.Phoenix do
     assigns = assign(assigns, :opts, Pagination.merge_opts(opts))
 
     ~H"""
-    <.pagination_for :let={p} meta={@meta} page_links={@page_links} path={@path}>
+    <.pagination_for
+      :let={p}
+      meta={@meta}
+      page_links={@page_links}
+      path={@path}
+      reverse={@reverse}
+    >
       <nav {@opts[:wrapper_attrs]}>
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
@@ -496,12 +502,11 @@ defmodule Flop.Phoenix do
         />
         <.cursor_pagination_link
           :if={p.pagination_type in [:first, :last]}
-          direction={if @reverse, do: :next, else: :previous}
-          meta={@meta}
-          path={@path}
+          direction={p.previous_direction}
+          path={p.page_link_fun.(p.previous_cursor, p.previous_direction)}
           on_paginate={@on_paginate}
           target={@target}
-          disabled={CursorPagination.disable?(@meta, :previous, @reverse)}
+          disabled={is_nil(p.previous_cursor)}
           disabled_class={@opts[:disabled_class]}
           {@opts[:previous_link_attrs]}
         >
@@ -509,12 +514,11 @@ defmodule Flop.Phoenix do
         </.cursor_pagination_link>
         <.cursor_pagination_link
           :if={p.pagination_type in [:first, :last]}
-          direction={if @reverse, do: :previous, else: :next}
-          meta={@meta}
-          path={@path}
+          direction={p.next_direction}
+          path={p.page_link_fun.(p.next_cursor, p.next_direction)}
           on_paginate={@on_paginate}
           target={@target}
-          disabled={CursorPagination.disable?(@meta, :next, @reverse)}
+          disabled={is_nil(p.next_cursor)}
           disabled_class={@opts[:disabled_class]}
           {@opts[:next_link_attrs]}
         >
@@ -639,8 +643,7 @@ defmodule Flop.Phoenix do
   end
 
   attr :direction, :atom, required: true
-  attr :meta, Flop.Meta, required: true
-  attr :path, :any, required: true
+  attr :path, :string
   attr :on_paginate, JS
   attr :target, :string, required: true
   attr :disabled, :boolean, default: false
@@ -667,21 +670,13 @@ defmodule Flop.Phoenix do
 
   defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
     ~H"""
-    <.link
-      patch={CursorPagination.pagination_path(@direction, @path, @meta)}
-      {@rest}
-    >
+    <.link patch={@path} {@rest}>
       {render_slot(@inner_block)}
     </.link>
     """
   end
 
-  defp cursor_pagination_link(
-         %{direction: direction, path: path, meta: meta} = assigns
-       ) do
-    path = CursorPagination.pagination_path(direction, path, meta)
-    assigns = assign(assigns, :path, path)
-
+  defp cursor_pagination_link(assigns) do
     ~H"""
     <.link
       patch={@path}
@@ -769,13 +764,23 @@ defmodule Flop.Phoenix do
     of those values will be `nil`.
     """
 
+  attr :reverse, :boolean,
+    default: false,
+    doc: """
+    By default, the `next` link moves forward with the `:after` parameter set to
+    the end cursor, and the `previous` link moves backward with the `:before`
+    parameter set to the start cursor. If `reverse` is set to `true`, the
+    destinations of the links are switched.
+    """
+
   slot :inner_block, required: true
 
   def pagination_for(
         %{
           meta: %Flop.Meta{errors: [], total_pages: total_pages} = meta,
           page_links: page_links,
-          path: path
+          path: path,
+          reverse: reverse
         } = assigns
       )
       when total_pages > 1 do
@@ -801,8 +806,24 @@ defmodule Flop.Phoenix do
           total_pages: total_pages
         }
       else
+        previous_cursor = if meta.has_previous_page?, do: meta.start_cursor
+        next_cursor = if meta.has_next_page?, do: meta.end_cursor
+        page_link_fun = CursorPagination.build_page_link_fun(meta, path)
+
+        {previous_direction, previous_cursor, next_direction, next_cursor} =
+          if reverse do
+            {:next, next_cursor, :previous, previous_cursor}
+          else
+            {:previous, previous_cursor, :next, next_cursor}
+          end
+
         %Pagination{
-          pagination_type: pagination_type
+          next_cursor: next_cursor,
+          next_direction: next_direction,
+          page_link_fun: page_link_fun,
+          pagination_type: pagination_type,
+          previous_cursor: previous_cursor,
+          previous_direction: previous_direction
         }
       end
 
