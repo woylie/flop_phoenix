@@ -5,6 +5,19 @@ defmodule Flop.Phoenix.Pagination do
 
   require Logger
 
+  defstruct [
+    :current_page,
+    :ellipsis_end?,
+    :ellipsis_start?,
+    :next_page,
+    :page_range_end,
+    :page_link_fun,
+    :page_range_start,
+    :pagination_type,
+    :previous_page,
+    :total_pages
+  ]
+
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [

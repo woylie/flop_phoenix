@@ -93,16 +93,6 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
-    test "raises an error if cursor pagination is in use" do
-      assigns = %{meta: build(:meta_with_cursors)}
-
-      assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
-        """)
-      end
-    end
-
     test "allows to overwrite wrapper class" do
       assigns = %{meta: build(:meta_on_first_page)}
 
@@ -1125,29 +1115,19 @@ defmodule Flop.PhoenixTest do
     end
   end
 
-  describe "cursor_pagination/1" do
+  describe "pagination/1 with cursor pagination" do
     test "renders pagination wrapper" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert nav = find_one(html, "nav")
       assert attribute(nav, "aria-label") == "pagination"
       assert attribute(nav, "class") == "pagination"
       assert attribute(nav, "role") == "navigation"
-    end
-
-    test "raises an error if an offest result set is provided" do
-      assigns = %{meta: build(:meta_on_first_page)}
-
-      assert_raise Flop.Phoenix.IncorrectPaginationTypeError, fn ->
-        parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
-        """)
-      end
     end
 
     test "allows to overwrite wrapper class" do
@@ -1158,7 +1138,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
       assert wrapper = find_one(html, "nav")
@@ -1175,7 +1155,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
       assert wrapper = find_one(html, "nav")
@@ -1190,7 +1170,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1206,7 +1186,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={@js} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={@js} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1224,7 +1204,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
           on_paginate={JS.push("paginate")}
@@ -1252,7 +1232,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
+        <Flop.Phoenix.pagination meta={@meta} path={@path} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1265,7 +1245,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path={&path_func/1} />
+        <Flop.Phoenix.pagination meta={@meta} path={&path_func/1} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1278,7 +1258,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1291,7 +1271,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1306,7 +1286,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
           target="here"
@@ -1323,7 +1303,7 @@ defmodule Flop.PhoenixTest do
       # default
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1336,7 +1316,7 @@ defmodule Flop.PhoenixTest do
       # reverse
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" reverse={true} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" reverse={true} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
@@ -1356,7 +1336,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path={@path} />
+        <Flop.Phoenix.pagination meta={@meta} path={@path} />
         """)
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
@@ -1380,7 +1360,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
         """)
 
       assert link = find_one(html, "a[title='p-p-previous']")
@@ -1399,7 +1379,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert previous_link = find_one(html, "span:fl-contains('Previous')")
@@ -1413,7 +1393,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert previous_link = find_one(html, "span:fl-contains('Previous')")
@@ -1427,7 +1407,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
           opts={[
@@ -1448,7 +1428,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
@@ -1464,7 +1444,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
@@ -1480,7 +1460,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
           target="here"
@@ -1496,7 +1476,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
           opts={[
@@ -1522,7 +1502,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} path="/pets" />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
       assert next = find_one(html, "span:fl-contains('Next')")
@@ -1535,7 +1515,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination meta={@meta} on_paginate={JS.push("paginate")} />
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
       assert next = find_one(html, "span:fl-contains('Next')")
@@ -1548,7 +1528,7 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.cursor_pagination
+        <Flop.Phoenix.pagination
           meta={@meta}
           on_paginate={JS.push("paginate")}
           opts={[
@@ -1569,7 +1549,7 @@ defmodule Flop.PhoenixTest do
       assert_raise Flop.Phoenix.PathOrJSError,
                    fn ->
                      rendered_to_string(~H"""
-                     <Flop.Phoenix.cursor_pagination meta={@meta} />
+                     <Flop.Phoenix.pagination meta={@meta} />
                      """)
                    end
     end
@@ -1580,7 +1560,7 @@ defmodule Flop.PhoenixTest do
       assigns = %{meta: meta}
 
       assert parse_heex(~H"""
-             <Flop.Phoenix.cursor_pagination meta={@meta} path="/path" />
+             <Flop.Phoenix.pagination meta={@meta} path="/path" />
              """) == []
     end
   end
