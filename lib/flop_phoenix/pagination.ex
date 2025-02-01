@@ -43,33 +43,6 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.deep_merge(opts)
   end
 
-  @spec get_page_link_range(
-          Flop.Phoenix.page_link_option(),
-          pos_integer(),
-          pos_integer()
-        ) :: {pos_integer() | nil, pos_integer() | nil}
-  def get_page_link_range(:all, _, total_pages), do: {1, total_pages}
-  def get_page_link_range(:none, _, _), do: {nil, nil}
-
-  def get_page_link_range(max_pages, current_page, total_pages)
-      when is_integer(max_pages) do
-    # number of additional pages to show before or after current page
-    additional = ceil(max_pages / 2)
-
-    cond do
-      max_pages >= total_pages ->
-        {1, total_pages}
-
-      current_page + additional > total_pages ->
-        {total_pages - max_pages + 1, total_pages}
-
-      true ->
-        first = max(current_page - additional + 1, 1)
-        last = min(first + max_pages - 1, total_pages)
-        {first, last}
-    end
-  end
-
   def build_page_link_fun(_meta, nil), do: fn _ -> nil end
 
   def build_page_link_fun(meta, path) do
