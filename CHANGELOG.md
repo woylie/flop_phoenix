@@ -2,33 +2,45 @@
 
 ## Unreleased
 
+### Added
+
+- Add `Flop.Phoenix.pagination_for/1` for building custom pagination components
+  more easily. Update the existing `Flop.Phoenix.pagination/1` component to it.
+- Add `Flop.Phoenix.page_link_range/3` for determining which page links to
+  render in a pagination component.
+
 ### Changed
 
-- Removed dependency on PhoenixHTMLHelpers.
+- Remove the `page_links` option from the `pagination_opts`. Set this option
+  with the new `page_links` attribute instead.
+- Change the values of the `page_links` option from
+  `:all | :hide | {:ellipsis, pos_integer}` to `:all | :none | pos_integer`.
+- Remove dependency on PhoenixHTMLHelpers.
 - Require Phoenix LiveView ~> 1.0.0.
 - Require Elixir ~> 1.14.
 
 ### Removed
 
-- Removed `input_type/3` from the `Phoenix.HTML.FormData` protocol
-  implementation for `Flop.Meta`, as the function has been removed from the
-  protocol.
-- Removed the previously deprecated `:event` attribute from the
+- Remove `input_type/3` from the `Phoenix.HTML.FormData` protocol
+  implementation for `Flop.Meta`. The function had been removed from the
+  protocol in Phoenix.HTML 4.0.
+- Remove the previously deprecated `:event` attribute from the
   `Flop.Phoenix.pagination/1`, `Flop.Phoenix.cursor_pagination`, and
   `Flop.Phoenix.table/1` components. Use `:on_paginate` and `:on_sort` instead.
-- Removed the previously deprecated `:hide` and `:show` attributes from the
+- Remove the previously deprecated `:hide` and `:show` attributes from the
   `:col` and `:action` slots of the `Flop.Phoenix.table/1` component. Use the
   `:if` attribute instead.
 
 ### Fixed
 
-- Fixed a warning about ranges in Elixir 1.18.
+- Fix a warning about ranges in Elixir 1.18.
 
 ## [0.23.1] - 2024-10-17
 
 ### Changed
 
-- Raise an error if a meta struct with the wrong pagination type is passed to the `pagination` or `cursor_pagination` component.
+- Raise an error if a meta struct with the wrong pagination type is passed to
+  the `pagination` or `cursor_pagination` component.
 
 ### Fixed
 
