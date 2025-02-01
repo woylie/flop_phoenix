@@ -22,6 +22,9 @@
   `:all | :hide | {:ellipsis, pos_integer}` to `:all | :none | pos_integer`.
 - Change default value for `page_links` option of the
   `Flop.Phoenix.pagination/1` component from `:all` to `5`.
+- Deprecate configuring the `pagination` and `table` components via the
+  application environment. Define wrapper components that pass the `opts`
+  attribute to the Flop.Phoenix components instead.
 - Remove dependency on PhoenixHTMLHelpers.
 - Require Phoenix LiveView ~> 1.0.0.
 - Require Elixir ~> 1.14.
@@ -130,6 +133,47 @@ Replace the `event` attribute of the pagination table components with
 - event="sort"
 + on_sort={JS.push("sort")}
 >
+```
+
+Remove the configuration for the pagination component from `config/config.exs`
+and define a wrapper component in your `CoreComponents` module instead. This
+is optional, but will make future version updates easier.
+
+For the pagination component:
+
+```diff
+# config/config.exs
+
+config :flop_phoenix,
+- pagination: [opts: {MyAppWeb.CoreComponents, :pagination_opts}],
+  table: [opts: {MyAppWeb.CoreComponents, :table_opts}]
+
+# MyAppWeb.CoreComponents
+
+- def pagination_opts do
+-   [
+-     # ...
+-   ]
+- end
+
++ attr :meta, Flop.Meta, required: true,
++ attr :path, :any, default: nil
++ attr :on_paginate, JS, default: nil
++ attr :target, :string, default: nil
++
++ def pagination(assigns) do
++   ~H\"""
++   <Flop.Phoenix.pagination
++     meta={@meta}
++     path={@path}
++     on_paginate={@on_paginate}
++     target={@target}
++     opts={[
++       # ...
++     ]}
++   />
++   \"""
++ end
 ```
 
 ## [0.23.1] - 2024-10-17

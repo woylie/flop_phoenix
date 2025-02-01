@@ -9,74 +9,64 @@ defmodule Flop.Phoenix do
 
   ## Customization
 
-  The default classes, attributes, texts and symbols can be overridden by
-  passing the `opts` assign. Since you probably will use the same `opts` in all
-  your templates, you can globally configure an `opts` provider function for
-  each component.
+  To customize the components, it is recommended to define wrapper components in
+  your `CoreComponents` module that pass attributes that are constant for your
+  application and add additional markup as necessary.
 
-  The functions have to return the options as a keyword list. The overrides
-  are deep-merged into the default options.
+  For example, to customize the `pagination` component, define your own
+  `pagination` component:
 
-      defmodule MyAppWeb.CoreComponents do
-        use Phoenix.Component
+  ```heex
+  defmodule MyAppWeb.CoreComponents do
+    use Phoenix.Component
 
-        def pagination_opts do
-           [
-            ellipsis_attrs: [class: "ellipsis"],
-            ellipsis_content: "‥",
-            next_link_attrs: [class: "next"],
-            next_link_content: next_icon(),
-            pagination_link_aria_label: &"\#{&1}ページ目へ",
-            previous_link_attrs: [class: "prev"],
-            previous_link_content: previous_icon()
-          ]
-        end
+    attr :meta, Flop.Meta, required: true,
+    attr :path, :any, default: nil
+    attr :on_paginate, JS, default: nil
+    attr :target, :string, default: nil
 
-        defp next_icon do
-          assigns = %{}
+    def pagination(assigns) do
+      ~H\"""
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={@path}
+        on_paginate={@on_paginate}
+        target={@target}
+        opts={[
+          ellipsis_attrs: [class: "ellipsis"],
+          ellipsis_content: "‥",
+          next_link_attrs: [class: "next"],
+          next_link_content: next_icon(),
+          pagination_link_aria_label: &"\#{&1}ページ目へ",
+          previous_link_attrs: [class: "prev"],
+          previous_link_content: previous_icon()
+        ]}
+      />
+      \"""
+    end
 
-          ~H\"""
-          <i class="fas fa-chevron-right"/>
-          \"""
-        end
+    defp next_icon do
+      assigns = %{}
 
-        defp previous_icon do
-          assigns = %{}
+      ~H\"""
+      <i class="fas fa-chevron-right"/>
+      \"""
+    end
 
-          ~H\"""
-          <i class="fas fa-chevron-left"/>
-          \"""
-        end
+    defp previous_icon do
+      assigns = %{}
 
-        def table_opts do
-          [
-            container: true,
-            container_attrs: [class: "table-container"],
-            no_results_content: no_results_content(),
-            table_attrs: [class: "table"]
-          ]
-        end
+      ~H\"""
+      <i class="fas fa-chevron-left"/>
+      \"""
+    end
+  end
+  ```
 
-        defp no_results_content do
-          assigns = %{}
-
-          ~H\"""
-          <p>Nothing found.</p>
-          \"""
-        end
-      end
+  The given `opts` attributes are deep-merged into the default options.
 
   Refer to `t:pagination_option/0` and `t:table_option/0` for a list of
   available options and defaults.
-
-  Once you have defined these functions, you can reference them with a
-  module/function tuple in `config/config.exs`.
-
-  ```elixir
-  config :flop_phoenix,
-    pagination: [opts: {MyApp.CoreComponents, :pagination_opts}],
-    table: [opts: {MyApp.CoreComponents, :table_opts}]
-  ```
 
   ## Hiding default parameters
 
