@@ -890,14 +890,32 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find("li .pagination-ellipsis") |> length() == 1
-      assert html |> Floki.find("li .pagination-link") |> length() == 6
+      assert [ellipsis] = Floki.find(html, "li span")
+      assert attribute(ellipsis, "aria-hidden") == "true"
+      assert text(ellipsis) == "…"
+
+      assert html |> Floki.find("li a") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 20']")
 
       for i <- 1..5 do
         assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
+    end
+
+    test "can customize ellipsis" do
+      assigns = %{meta: build(:meta_on_first_page, total_pages: 20)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5}>
+          <:ellipsis><span class="ellipsis">oh</span></:ellipsis>
+        </Flop.Phoenix.pagination>
+        """)
+
+      assert [ellipsis] = Floki.find(html, "li span")
+      assert attribute(ellipsis, "class") == "ellipsis"
+      assert text(ellipsis) == "oh"
     end
 
     test "renders start ellipsis and first page link when on last page" do
@@ -910,8 +928,8 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
-      assert html |> Floki.find(".pagination-link") |> length() == 6
+      assert html |> Floki.find("li span") |> length() == 1
+      assert html |> Floki.find("li a") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
 
@@ -930,7 +948,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={6} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find("li span") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 8
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
@@ -951,7 +969,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find("li span") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
@@ -972,7 +990,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find("li span") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
@@ -993,7 +1011,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 2
+      assert html |> Floki.find("li span") |> length() == 2
       assert html |> Floki.find(".pagination-link") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
@@ -1014,7 +1032,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find("li span") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 20']")
@@ -1034,7 +1052,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} />
         """)
 
-      assert html |> Floki.find(".pagination-ellipsis") |> length() == 1
+      assert html |> Floki.find("li span") |> length() == 1
       assert html |> Floki.find(".pagination-link") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
@@ -1042,24 +1060,6 @@ defmodule Flop.PhoenixTest do
       for i <- 16..20 do
         assert find_one(html, "li a[aria-label='Go to page #{i}']")
       end
-    end
-
-    test "allows to overwrite ellipsis attributes and content" do
-      assigns = %{
-        meta: build(:meta_on_first_page, current_page: 10, total_pages: 20),
-        opts: [
-          ellipsis_attrs: [class: "dotdotdot", title: "dot"],
-          ellipsis_content: "dot dot dot"
-        ]
-      }
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={5} opts={@opts} />
-        """)
-
-      assert [el, _] = Floki.find(html, "span[class='dotdotdot']")
-      assert text(el) == "dot dot dot"
     end
 
     test "always uses page/page_size" do
