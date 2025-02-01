@@ -300,7 +300,11 @@ defmodule Flop.Phoenix do
           | {:thead_tr_attrs, keyword}
 
   @doc """
-  Generates a pagination element.
+  Renders pagination links for the given `Flop.Meta` struct.
+
+  This component can render both page-based or cursor-based pagination links.
+  Which one is used depends on the pagination type that was used to make the
+  Flop query.
 
   ## Examples
 
@@ -944,6 +948,7 @@ defmodule Flop.Phoenix do
   `[:family_name, :given_name, :id]`.
   """
   @doc section: :components
+  @doc deprecated: "Use Flop.Phoenix.pagination/1 instead."
   @spec cursor_pagination(map) :: Phoenix.LiveView.Rendered.t()
 
   attr :meta, Flop.Meta,
