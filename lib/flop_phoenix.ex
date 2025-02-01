@@ -1696,7 +1696,6 @@ defmodule Flop.Phoenix do
       "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
   """
   @doc since: "0.6.0"
-  @doc section: :miscellaneous
   @spec to_query(Flop.t()) :: keyword
   def to_query(%Flop{filters: filters} = flop, opts \\ []) do
     filter_map =
@@ -1902,7 +1901,6 @@ defmodule Flop.Phoenix do
       "/articles/category/announcements/page/5?order_by[]=published_at"
   """
   @doc since: "0.6.0"
-  @doc section: :miscellaneous
   @spec build_path(
           String.t()
           | {module, atom, [any]}
