@@ -934,6 +934,7 @@ defmodule Flop.Phoenix do
       iex> page_link_range(5, 4, 20)
       {2, 6}
   """
+  @doc since: "0.24.0"
   @spec page_link_range(page_link_option(), pos_integer(), pos_integer()) ::
           {pos_integer() | nil, pos_integer() | nil}
   def page_link_range(:all, _, total_pages), do: {1, total_pages}
