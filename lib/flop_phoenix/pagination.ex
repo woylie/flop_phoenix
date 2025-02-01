@@ -288,12 +288,7 @@ defmodule Flop.Phoenix.Pagination do
         aria: [label: "Go to previous page"],
         class: "pagination-previous"
       ],
-      previous_link_content: "Previous",
-      wrapper_attrs: [
-        class: "pagination",
-        role: "navigation",
-        aria: [label: "pagination"]
-      ]
+      previous_link_content: "Previous"
     ]
   end
 
