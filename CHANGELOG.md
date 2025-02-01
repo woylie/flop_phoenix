@@ -6,6 +6,8 @@
 
 - Add `Flop.Phoenix.pagination_for/1` for building custom pagination components
   more easily. Update the existing `Flop.Phoenix.pagination/1` component to it.
+- Add `Flop.Phoenix.Pagination` struct to hold information needed to render
+  a pagination component.
 - Add `Flop.Phoenix.page_link_range/3` for determining which page links to
   render in a pagination component.
 
