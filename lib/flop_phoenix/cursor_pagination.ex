@@ -5,9 +5,9 @@ defmodule Flop.Phoenix.CursorPagination do
 
   require Logger
 
-  def build_page_link_fun(_meta, nil), do: fn _, _ -> nil end
+  def build_path_fun(_meta, nil), do: fn _, _ -> nil end
 
-  def build_page_link_fun(meta, path) do
+  def build_path_fun(meta, path) do
     &build_path(path, &1, &2, build_query_params(meta))
   end
 

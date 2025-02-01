@@ -13,9 +13,9 @@ defmodule Flop.Phoenix.Pagination do
     :next_direction,
     :next_page,
     :page_range_end,
-    :page_link_fun,
     :page_range_start,
     :pagination_type,
+    :path_fun,
     :previous_cursor,
     :previous_direction,
     :previous_page,
@@ -60,9 +60,9 @@ defmodule Flop.Phoenix.Pagination do
     |> Misc.deep_merge(opts)
   end
 
-  def build_page_link_fun(_meta, nil), do: fn _ -> nil end
+  def build_path_fun(_meta, nil), do: fn _ -> nil end
 
-  def build_page_link_fun(meta, path) do
+  def build_path_fun(meta, path) do
     &build_path_to_page(path, &1, build_query_params(meta))
   end
 

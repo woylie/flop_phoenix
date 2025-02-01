@@ -444,7 +444,7 @@ defmodule Flop.Phoenix do
           disabled_class={@opts[:disabled_class]}
           target={@target}
           page={p.previous_page}
-          path={p.page_link_fun.(p.previous_page)}
+          path={p.path_fun.(p.previous_page)}
           on_paginate={@on_paginate}
           {@opts[:previous_link_attrs]}
         >
@@ -456,7 +456,7 @@ defmodule Flop.Phoenix do
           disabled_class={@opts[:disabled_class]}
           target={@target}
           page={p.next_page}
-          path={p.page_link_fun.(p.next_page)}
+          path={p.path_fun.(p.next_page)}
           on_paginate={@on_paginate}
           {@opts[:next_link_attrs]}
         >
@@ -469,7 +469,7 @@ defmodule Flop.Phoenix do
           ellipsis_start?={p.ellipsis_start?}
           on_paginate={@on_paginate}
           opts={@opts}
-          page_link_fun={p.page_link_fun}
+          path_fun={p.path_fun}
           page_range_end={p.page_range_end}
           page_range_start={p.page_range_start}
           target={@target}
@@ -478,7 +478,7 @@ defmodule Flop.Phoenix do
         <.cursor_pagination_link
           :if={p.pagination_type in [:first, :last]}
           direction={p.previous_direction}
-          path={p.page_link_fun.(p.previous_cursor, p.previous_direction)}
+          path={p.path_fun.(p.previous_cursor, p.previous_direction)}
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.previous_cursor)}
@@ -490,7 +490,7 @@ defmodule Flop.Phoenix do
         <.cursor_pagination_link
           :if={p.pagination_type in [:first, :last]}
           direction={p.next_direction}
-          path={p.page_link_fun.(p.next_cursor, p.next_direction)}
+          path={p.path_fun.(p.next_cursor, p.next_direction)}
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.next_cursor)}
@@ -509,7 +509,7 @@ defmodule Flop.Phoenix do
   attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
   attr :opts, :list, required: true
-  attr :page_link_fun, :any, required: true
+  attr :path_fun, :any, required: true
   attr :page_range_end, :integer, required: true
   attr :page_range_start, :integer, required: true
   attr :target, :string, required: true
@@ -522,7 +522,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           target={@target}
           page={1}
-          path={@page_link_fun.(1)}
+          path={@path_fun.(1)}
           on_paginate={@on_paginate}
           {Pagination.attrs_for_page_link(1, @current_page, @opts)}
         >
@@ -541,7 +541,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           target={@target}
           page={page}
-          path={@page_link_fun.(page)}
+          path={@path_fun.(page)}
           on_paginate={@on_paginate}
           {Pagination.attrs_for_page_link(page, @current_page, @opts)}
         >
@@ -557,7 +557,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           target={@target}
           page={@total_pages}
-          path={@page_link_fun.(@total_pages)}
+          path={@path_fun.(@total_pages)}
           on_paginate={@on_paginate}
           {Pagination.attrs_for_page_link(@total_pages, @current_page, @opts)}
         >
@@ -692,7 +692,7 @@ defmodule Flop.Phoenix do
       ellipsis_end?: true,
       next_page: 7,
       page_range_end: 8,
-      page_link_fun: #Function<42.18682967/1 in :erl_eval.expr/6>,
+      path_fun: #Function<42.18682967/1 in :erl_eval.expr/6>,
       page_range_start: 5,
       pagination_type: :page,
       previous_page: 5,
@@ -717,7 +717,7 @@ defmodule Flop.Phoenix do
     doc: """
     If set, a function that takes a page number and returns a link with
     pagination, filter, and sort parameters based on the given path is passed
-    as `page_link_fun` to the inner block.
+    as `path_fun` to the inner block.
 
     The value must be either a URI string (Phoenix verified route), an MFA or FA
     tuple (Phoenix route helper), or a 1-ary path builder function. See
@@ -763,7 +763,7 @@ defmodule Flop.Phoenix do
 
     pagination =
       if pagination_type in [:page, :offset] do
-        page_link_fun = Pagination.build_page_link_fun(meta, path)
+        path_fun = Pagination.build_path_fun(meta, path)
 
         {page_range_start, page_range_end} =
           page_link_range(page_links, meta.current_page, meta.total_pages)
@@ -774,7 +774,7 @@ defmodule Flop.Phoenix do
           ellipsis_start?: page_range_start > 2,
           next_page: meta.next_page,
           page_range_end: page_range_end,
-          page_link_fun: page_link_fun,
+          path_fun: path_fun,
           page_range_start: page_range_start,
           pagination_type: pagination_type,
           previous_page: meta.previous_page,
@@ -783,7 +783,7 @@ defmodule Flop.Phoenix do
       else
         previous_cursor = if meta.has_previous_page?, do: meta.start_cursor
         next_cursor = if meta.has_next_page?, do: meta.end_cursor
-        page_link_fun = CursorPagination.build_page_link_fun(meta, path)
+        path_fun = CursorPagination.build_path_fun(meta, path)
 
         {previous_direction, previous_cursor, next_direction, next_cursor} =
           if reverse do
@@ -795,7 +795,7 @@ defmodule Flop.Phoenix do
         %Pagination{
           next_cursor: next_cursor,
           next_direction: next_direction,
-          page_link_fun: page_link_fun,
+          path_fun: path_fun,
           pagination_type: pagination_type,
           previous_cursor: previous_cursor,
           previous_direction: previous_direction
