@@ -83,6 +83,15 @@ defmodule Flop.Phoenix.Pagination do
 
   @doc """
   Returns a `Pagination` struct for the given `Flop.Meta` struct.
+
+  ## Options
+
+  - `page_links` - Defines how many page links to render. Only used for
+    page-based pagination. Default: `5`.
+  - `path` - The path to the current page in the format as accepted by
+    `Flop.Phoenix.build_path/3`. Default: `nil`.
+  - `reverse` - Reverses the position of the previous and next link. Only used
+    for cursor-based pagination. Default: `false`.
   """
   @spec new(Meta.t(), keyword) :: t
   def new(meta, opts \\ [])
