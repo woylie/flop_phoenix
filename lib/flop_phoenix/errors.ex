@@ -102,20 +102,3 @@ defmodule Flop.Phoenix.PathOrJSError do
   defp on_examples(:table), do: "on_sort={JS.push(\"sort-table\")}"
   defp on_examples(_), do: "on_paginate={JS.push(\"paginate\")}"
 end
-
-defmodule Flop.Phoenix.IncorrectPaginationTypeError do
-  @moduledoc """
-  Raised when the pagination type used for a query is not supported by a
-  component.
-  """
-  defexception [:component]
-
-  def message(%{component: _component}) do
-    """
-    Pagination type not supported by component
-
-    - For page-based pagination, use `Flop.Phoenix.pagination/1`.
-    - For cursor-based pagination, use `Flop.Phoenix.cursor_pagination/1`.
-    """
-  end
-end
