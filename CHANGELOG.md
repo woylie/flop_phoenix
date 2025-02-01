@@ -8,6 +8,8 @@
   more easily. Update the existing `Flop.Phoenix.pagination/1` component to it.
 - Add `Flop.Phoenix.Pagination` struct to hold information needed to render
   a pagination component.
+- Add `Flop.Phoenix.Pagination.new/2` to build a `Pagination` struct from a
+  `Flop.Meta` struct.
 - Add `Flop.Phoenix.page_link_range/3` for determining which page links to
   render in a pagination component.
 
