@@ -151,7 +151,6 @@ defmodule Flop.Phoenix do
     ]
 
   alias Flop.Meta
-  alias Flop.Phoenix.CursorPagination
   alias Flop.Phoenix.Misc
   alias Flop.Phoenix.Pagination
   alias Flop.Phoenix.Table
@@ -763,7 +762,7 @@ defmodule Flop.Phoenix do
 
     pagination =
       if pagination_type in [:page, :offset] do
-        path_fun = Pagination.build_path_fun(meta, path)
+        path_fun = build_page_path_fun(meta, path)
 
         {page_range_start, page_range_end} =
           page_link_range(page_links, meta.current_page, meta.total_pages)
@@ -783,7 +782,7 @@ defmodule Flop.Phoenix do
       else
         previous_cursor = if meta.has_previous_page?, do: meta.start_cursor
         next_cursor = if meta.has_next_page?, do: meta.end_cursor
-        path_fun = CursorPagination.build_path_fun(meta, path)
+        path_fun = build_cursor_path_fun(meta, path)
 
         {previous_direction, previous_cursor, next_direction, next_cursor} =
           if reverse do
@@ -834,6 +833,91 @@ defmodule Flop.Phoenix do
 
   defp pagination_type(%Flop{last: last}) when is_integer(last) do
     :last
+  end
+
+  defp build_page_path_fun(_meta, nil), do: fn _ -> nil end
+
+  defp build_page_path_fun(meta, path) do
+    &build_page_path(path, &1, build_page_query_params(meta))
+  end
+
+  defp build_page_query_params(meta) do
+    meta.flop
+    |> ensure_page_based_params()
+    |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
+  end
+
+  defp build_page_path(path, page, query_params) do
+    Flop.Phoenix.build_path(path, maybe_put_page(query_params, page))
+  end
+
+  defp ensure_page_based_params(%Flop{} = flop) do
+    %{
+      flop
+      | after: nil,
+        before: nil,
+        first: nil,
+        last: nil,
+        limit: nil,
+        offset: nil,
+        page_size: flop.page_size || flop.limit,
+        page: flop.page
+    }
+  end
+
+  defp maybe_put_page(params, 1), do: Keyword.delete(params, :page)
+  defp maybe_put_page(params, page), do: Keyword.put(params, :page, page)
+
+  defp build_cursor_path_fun(_meta, nil), do: fn _, _ -> nil end
+
+  defp build_cursor_path_fun(meta, path) do
+    &build_cursor_path(path, &1, &2, build_cursor_query_params(meta))
+  end
+
+  defp build_cursor_query_params(meta) do
+    meta.flop
+    |> ensure_cursor_based_params()
+    |> Flop.Phoenix.to_query(backend: meta.backend, for: meta.schema)
+  end
+
+  defp build_cursor_path(path, cursor, direction, query_params) do
+    Flop.Phoenix.build_path(
+      path,
+      maybe_put_cursor(query_params, cursor, direction)
+    )
+  end
+
+  defp ensure_cursor_based_params(%Flop{} = flop) do
+    %{
+      flop
+      | after: nil,
+        before: nil,
+        limit: nil,
+        offset: nil,
+        page_size: nil,
+        page: nil
+    }
+  end
+
+  defp maybe_put_cursor(query_params, nil, _), do: query_params
+
+  defp maybe_put_cursor(query_params, cursor, :previous) do
+    query_params
+    |> Keyword.merge(
+      before: cursor,
+      last: query_params[:last] || query_params[:first],
+      first: nil
+    )
+    |> Keyword.delete(:first)
+  end
+
+  defp maybe_put_cursor(query_params, cursor, :next) do
+    query_params
+    |> Keyword.merge(
+      after: cursor,
+      first: query_params[:first] || query_params[:last]
+    )
+    |> Keyword.delete(:last)
   end
 
   @doc """
