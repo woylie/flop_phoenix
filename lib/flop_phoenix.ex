@@ -151,8 +151,6 @@ defmodule Flop.Phoenix do
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
 
-  - `:current_link_attrs` - The attributes for the link to the current page.
-    Default: `#{inspect(Pagination.default_opts()[:current_link_attrs])}`.
   - `:disabled_class` - The class which is added to disabled links. Default:
     `#{inspect(Pagination.default_opts()[:disabled_class])}`.
   - `:next_link_attrs` - The attributes for the link to the next page.
@@ -174,8 +172,7 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
   """
   @type pagination_option ::
-          {:current_link_attrs, keyword}
-          | {:disabled_class, String.t()}
+          {:disabled_class, String.t()}
           | {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
@@ -551,6 +548,7 @@ defmodule Flop.Phoenix do
           page={page}
           path={@path_fun.(page)}
           on_paginate={@on_paginate}
+          aria-current={if @current_page == page, do: "page"}
           {Pagination.attrs_for_page_link(page, @current_page, @opts)}
         >
           {page}
