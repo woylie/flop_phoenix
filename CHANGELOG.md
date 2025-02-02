@@ -11,11 +11,13 @@
 
 - Remove `wrapper_attrs` from the pagination options. Pass the attributes
   directly as attributes instead.
-- Remove default `class` from pagination component.
+- Remove default `class` attributes from pagination component.
 - Remove `role` attribute from the pagination component. The `<nav>` element
   already has the implicit ARIA role `navigation`.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
   use the `ellipsis` slot instead.
+- Remove `current_link_attrs` from pagination options. Use
+  `[aria-current="page"]` CSS selector instead.
 
 ### How to upgrade
 

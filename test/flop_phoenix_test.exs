@@ -499,7 +499,6 @@ defmodule Flop.PhoenixTest do
       assert text(link) == "1"
 
       assert link = find_one(html, "li a[aria-label='Go to page 2']")
-      assert attribute(link, "class") == "pagination-link is-current"
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -619,43 +618,9 @@ defmodule Flop.PhoenixTest do
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
       assert attribute(link, "beep") == "boop"
       assert attribute(link, "class") == "p-link"
-
-      # current link attributes are unchanged
-      assert link = find_one(html, "li a[aria-label='Go to page 2']")
-      assert attribute(link, "beep") == nil
-      assert attribute(link, "class") == "pagination-link is-current"
     end
 
-    test "allows to overwrite current attributes" do
-      assigns = %{meta: build(:meta_on_second_page)}
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[current_link_attrs: [class: "link is-active", beep: "boop"]]}
-        />
-        """)
-
-      assert link = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(link, "class") == "pagination-link"
-      assert attribute(link, "data-phx-link") == "patch"
-      assert attribute(link, "data-phx-link-state") == "push"
-      assert attribute(link, "href") == "/pets?page_size=10"
-      assert text(link) == "1"
-
-      assert link = find_one(html, "li a[aria-label='Go to page 2']")
-      assert attribute(link, "beep") == "boop"
-      assert attribute(link, "class") == "link is-active"
-      assert attribute(link, "data-phx-link") == "patch"
-      assert attribute(link, "data-phx-link-state") == "push"
-      assert href = attribute(link, "href")
-      assert_urls_match(href, "/pets?page=2&page_size=10")
-      assert text(link) == "2"
-    end
-
-    test "allows to overwrite pagination link aria label" do
+    test "overrides aria-label for page links" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -667,20 +632,22 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert link = find_one(html, "a[aria-label='On to page 1']")
-      assert attribute(link, "class") == "pagination-link"
-      assert attribute(link, "data-phx-link") == "patch"
-      assert attribute(link, "data-phx-link-state") == "push"
-      assert attribute(link, "href") == "/pets?page_size=10"
-      assert text(link) == "1"
+      assert find_one(html, "a[aria-label='On to page 1']")
+    end
 
-      assert link = find_one(html, "a[aria-label='On to page 2']")
-      assert attribute(link, "class") == "pagination-link is-current"
-      assert attribute(link, "data-phx-link") == "patch"
-      assert attribute(link, "data-phx-link-state") == "push"
-      assert href = attribute(link, "href")
-      assert_urls_match(href, "/pets?page=2&page_size=10")
-      assert text(link) == "2"
+    test "sets aria-current on link in middle section" do
+      assigns = %{meta: build(:meta_on_second_page)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert link = find_one(html, "a[aria-label='Go to page 1']")
+      assert attribute(link, "aria-current") == nil
+
+      assert link = find_one(html, "a[aria-label='Go to page 2']")
+      assert attribute(link, "aria-current") == "page"
     end
 
     test "adds order parameters to links" do
@@ -867,7 +834,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
-      assert html |> Floki.find(".pagination-link") |> length() == 5
+      assert html |> Floki.find("li a") |> length() == 5
 
       # max pages equal to total pages
 
@@ -879,7 +846,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert Floki.find(html, ".pagination-ellipsis") == []
-      assert html |> Floki.find(".pagination-link") |> length() == 5
+      assert html |> Floki.find("li a") |> length() == 5
     end
 
     test "renders end ellipsis and last page link when on page 1" do
@@ -949,7 +916,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 2
-      assert html |> Floki.find(".pagination-link") |> length() == 8
+      assert html |> Floki.find("li a") |> length() == 8
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
       assert find_one(html, "li a[aria-label='Go to page 20']")
@@ -970,7 +937,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 2
-      assert html |> Floki.find(".pagination-link") |> length() == 7
+      assert html |> Floki.find("li a") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
       assert find_one(html, "li a[aria-label='Go to page 20']")
@@ -991,7 +958,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 2
-      assert html |> Floki.find(".pagination-link") |> length() == 7
+      assert html |> Floki.find("li a") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
       assert find_one(html, "li a[aria-label='Go to page 20']")
@@ -1012,7 +979,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 2
-      assert html |> Floki.find(".pagination-link") |> length() == 7
+      assert html |> Floki.find("li a") |> length() == 7
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
       assert find_one(html, "li a[aria-label='Go to page 20']")
@@ -1033,7 +1000,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 1
-      assert html |> Floki.find(".pagination-link") |> length() == 6
+      assert html |> Floki.find("li a") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 20']")
 
@@ -1053,7 +1020,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert html |> Floki.find("li span") |> length() == 1
-      assert html |> Floki.find(".pagination-link") |> length() == 6
+      assert html |> Floki.find("li a") |> length() == 6
 
       assert find_one(html, "li a[aria-label='Go to page 1']")
 

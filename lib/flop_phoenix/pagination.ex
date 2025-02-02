@@ -268,10 +268,6 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
-      current_link_attrs: [
-        class: "pagination-link is-current",
-        aria: [current: "page"]
-      ],
       disabled_class: "disabled",
       next_link_attrs: [
         aria: [label: "Go to next page"],
@@ -299,7 +295,7 @@ defmodule Flop.Phoenix.Pagination do
 
   @doc false
   def attrs_for_page_link(page, page, opts) do
-    add_page_link_aria_label(opts[:current_link_attrs], page, opts)
+    add_page_link_aria_label([], page, opts)
   end
 
   @doc false
