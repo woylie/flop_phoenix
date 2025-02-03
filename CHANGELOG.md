@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Determine pagination type when there is only a `limit`.
+
 ## [0.24.0] - 2025-02-01
 
 ### Added
