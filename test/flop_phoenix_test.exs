@@ -93,6 +93,17 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
+    test "renders pagination when the query only had a limit" do
+      assigns = %{meta: build(:meta_on_first_page, flop: %Flop{limit: 20})}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
+        """)
+
+      assert find_one(html, "nav:root")
+    end
+
     test "allows to overwrite wrapper class" do
       assigns = %{meta: build(:meta_on_first_page)}
 

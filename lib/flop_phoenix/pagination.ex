@@ -161,22 +161,21 @@ defmodule Flop.Phoenix.Pagination do
     %__MODULE__{pagination_type: pagination_type(flop)}
   end
 
-  defp pagination_type(%Flop{limit: limit, offset: offset})
-       when is_integer(limit) and is_integer(offset) do
-    :offset
-  end
-
-  defp pagination_type(%Flop{page: page, page_size: page_size})
-       when is_integer(page) and is_integer(page_size) do
-    :page
-  end
-
   defp pagination_type(%Flop{first: first}) when is_integer(first) do
     :first
   end
 
   defp pagination_type(%Flop{last: last}) when is_integer(last) do
     :last
+  end
+
+  defp pagination_type(%Flop{limit: limit}) when is_integer(limit) do
+    :offset
+  end
+
+  defp pagination_type(%Flop{page_size: page_size})
+       when is_integer(page_size) do
+    :page
   end
 
   defp build_page_path_fun(_meta, nil), do: fn _ -> nil end
