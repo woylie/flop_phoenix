@@ -1320,17 +1320,17 @@ defmodule Flop.Phoenix do
   You can use this for convenience if you have a complex form layout that cannot
   be accomplished with `Flop.Phoenix.filter_fields/1`. Put it as a direct child
   of the `form` component to render the hidden inputs for pagination and order
-  parameters. Then use `PhoenixHTMLHelpers.Form.inputs_for/3` to render a single
-  filter field, and place this component within the anonymous function to render the
-  hidden inputs for the filter field and operator.
+  parameters. Then use `Phoenix.Component.inputs_for/1` to render a single
+  filter field, and place this component within the anonymous function to render
+  the hidden inputs for the filter field and operator.
 
   Since the filters are represented as an array in the params, make sure to
   add the `offset` option so that the `Flop.Meta` can be properly mapped back to
   your input fields. For every call to `inputs_for` always add the length of all
   previous calls to `inputs_for` as offset. Note that the example below uses
-  the old `PhoenixHTMLHelpers.Form.inputs_for/4` function.
-  `Phoenix.Component.inputs_for/1` currently overrides the `index` set by
-  `Flop.Phoenix.FormData`, which leads to duplicate DOM IDs.
+  the old `Phoenix.Component.inputs_for/1` function.
+  Also don't forget to set the `skip_persistent_id` attribute
+  to prevent LiveView from overriding the IDs and causing duplicate DOM IDs.
 
   ```heex
   <.form :let={f} for={@meta}>
@@ -1338,16 +1338,26 @@ defmodule Flop.Phoenix do
 
     <div class="field-group">
       <div class="field">
-        <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [:name]], fn ff -> %>
+        <.inputs_for
+          :let={ff}
+          field={f[:filters]}
+          options={[fields: [:name]]}
+          skip_persistent_id
+        >
           <.hidden_inputs_for_filter form={ff} />
-          <.input label="Name" type="text" field={{ff, :value}} />
-        <% end %>
+          <.input label="Name" type="text" field={ff[:value]} />
+        </.inputs_for>
       </div>
       <div class="field">
-        <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1] fn ff -> %>
+        <.inputs_for
+          :let={ff}
+          field={f[:filters]}
+          options={[fields: [email: [op: :ilike]], offset: 1]}
+          skip_persistent_id
+        >
           <.hidden_inputs_for_filter form={ff} />
-          <.input label="E-mail" type="email" field={{ff, :value}} />
-        <% end %>
+          <.input label="E-mail" type="email" field={ff[:value]} />
+        </.inputs_for>
       </div>
     </div>
   </.form>
