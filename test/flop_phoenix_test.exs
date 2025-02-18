@@ -3136,8 +3136,6 @@ defmodule Flop.PhoenixTest do
       assert attribute(input, "value") == "geo"
     end
 
-    # inputs_for appears to override the ID
-    @tag :skip
     test "renders filters when given a offset", %{
       fields: fields,
       meta: meta
@@ -3150,6 +3148,7 @@ defmodule Flop.PhoenixTest do
           :let={ff}
           field={@form[:filters]}
           options={[fields: @fields, offset: @offset]}
+          skip_persistent_id
         >
           <.hidden_inputs_for_filter form={ff} />
         </.inputs_for>
