@@ -61,7 +61,7 @@ defmodule FlopPhoenix.MixProject do
       {:makeup_eex, "~> 2.0.1", only: :dev},
       {:phoenix, "~> 1.6.0 or ~> 1.7.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_view, "~> 1.0.0"},
+      {:phoenix_live_view, "~> 1.0.6"},
       {:stream_data, "~> 1.0", only: [:dev, :test]}
     ]
   end

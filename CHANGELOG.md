@@ -7,6 +7,11 @@
 - Accept global attributes for pagination component.
 - Add `ellipsis` slot to pagination component.
 
+### Changed
+
+- Update documentation for `hidden_inputs_for_filter/1` to use
+  `Phoenix.Component.inputs_for/1` with the `skip_persistent_id` option.
+
 ### Removed
 
 - Remove `wrapper_attrs` from the pagination options. Pass the attributes
