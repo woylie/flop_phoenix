@@ -1460,7 +1460,7 @@ defmodule Flop.Phoenix do
             <% end %>
           </div>
           <div class="field">
-            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1] fn ff -> %>
+            <%= PhoenixHTMLHelpers.Form.inputs_for f, :filters, [fields: [{:email, op: :ilike}], offset: 1], fn ff -> %>
               <.hidden_inputs_for_filter form={ff} />
               <.input label="E-mail" type="email" field={{ff, :value}} />
             <% end %>
