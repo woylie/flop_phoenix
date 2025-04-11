@@ -16,15 +16,15 @@
   "lockFileMaintenance": {
     "enabled": true
   },
-  "automerge": true,
   "rangeStrategy": "widen",
   "packageRules": [
     {
-      "matchDepTypes": ["dev"],
+      "matchDepTypes": [
+        "dev",
+        "devDependencies"
+      ],
+      "automerge": true,
       "rangeStrategy": "pin"
     }
-  ],
-  "ignoreDeps": [
-    "postgres"
   ]
 }
