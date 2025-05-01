@@ -15,7 +15,8 @@ defmodule MyAppWeb do
     quote do
       use Phoenix.Controller,
         namespace: MyAppWeb,
-        layouts: []
+        layouts: [],
+        formats: []
 
       import Plug.Conn
 
