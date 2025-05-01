@@ -11,6 +11,7 @@
 
 - Update documentation for `hidden_inputs_for_filter/1` to use
   `Phoenix.Component.inputs_for/1` with the `skip_persistent_id` option.
+- Require Phoenix >= 1.6.0 and < 1.9.0.
 
 ### Removed
 
