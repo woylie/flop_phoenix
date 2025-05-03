@@ -138,18 +138,6 @@ defmodule Flop.Phoenix do
   alias Plug.Conn.Query
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.pagination/1`.
-
-  - `:pagination_link_attrs` - The attributes for the pagination links.
-    Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
-  - `:pagination_list_item_attrs` - The attributes for the pagination list items.
-    Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
-  """
-  @type pagination_option ::
-          {:pagination_link_attrs, keyword}
-          | {:pagination_list_item_attrs, keyword}
-
-  @typedoc """
   Defines how many page links to render.
 
   - `:all` - Renders all page links.
@@ -351,21 +339,51 @@ defmodule Flop.Phoenix do
     This attribute is only for for cursor-based pagination.
     """
 
-  attr :opts, :list,
-    default: [],
-    doc: """
-    Options to customize the pagination. See
-    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options. Since these options will
-    likely be the same for all the tables in a project, it is recommended to
-    define them once in a function or set them in a wrapper function as
-    described in the `Customization` section of the module documentation.
-    """
-
-  attr :list_attrs, :list,
+  attr :page_list_attrs, :list,
     default: [],
     doc: """
     Attributes to be added to the `<ul>` that contains the page links.
+    """
+
+  attr :page_list_item_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the `<li>` elements that contain the page links.
+    """
+
+  attr :page_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the page links or buttons.
+
+    These attributes are not applied to previous links, next links, or the
+    current page link.
+    """
+
+  attr :current_page_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the current page link or button.
+
+    Note that the `aria-current` attribute is automatically set.
+
+    It is recommended to define CSS styles using the `[aria-current="page"]`
+    selector instead of using a class.
+    """
+
+  attr :disabled_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to disabled previous/next links or buttons.
+
+    If a `class` is set, it is merged with the class set on the previous/next
+    slot.
+
+    Note that the `disabled` attribute is automatically set for buttons and the
+    `aria-disabled="true" attribute is automatically set for links.
+
+    It is recommended to define CSS styles using the
+    `[disabled], [aria-disabled="true"]` selector instead of using a class.
     """
 
   attr :rest, :global,
@@ -428,7 +446,7 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
-  def pagination(%{opts: opts, previous: previous, next: next} = assigns) do
+  def pagination(%{previous: previous, next: next} = assigns) do
     # Unpack previous and next slot attributes. We can't use :for attribute
     # because the slot is optional.
     previous_attrs =
@@ -447,11 +465,7 @@ defmodule Flop.Phoenix do
       end
 
     assigns =
-      assign(assigns,
-        opts: Pagination.merge_opts(opts),
-        previous_attrs: previous_attrs,
-        next_attrs: next_attrs
-      )
+      assign(assigns, previous_attrs: previous_attrs, next_attrs: next_attrs)
 
     ~H"""
     <.pagination_for
@@ -465,6 +479,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.previous_page)}
+          disabled_link_attrs={@disabled_link_attrs}
           target={@target}
           page={p.previous_page}
           path={p.path_fun.(p.previous_page)}
@@ -477,6 +492,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.next_page)}
+          disabled_link_attrs={@disabled_link_attrs}
           target={@target}
           page={p.next_page}
           path={p.path_fun.(p.next_page)}
@@ -494,13 +510,15 @@ defmodule Flop.Phoenix do
           ellipsis_start?={p.ellipsis_start?}
           on_paginate={@on_paginate}
           page_link_aria_label_fun={@page_link_aria_label_fun}
-          opts={@opts}
           path_fun={p.path_fun}
           page_range_end={p.page_range_end}
           page_range_start={p.page_range_start}
           target={@target}
           total_pages={p.total_pages}
-          {@list_attrs}
+          page_list_item_attrs={@page_list_item_attrs}
+          page_link_attrs={@page_link_attrs}
+          current_page_link_attrs={@current_page_link_attrs}
+          {@page_list_attrs}
         />
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
@@ -509,6 +527,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.previous_cursor)}
+          disabled_link_attrs={@disabled_link_attrs}
           rel="prev"
           {@previous_attrs}
         >
@@ -521,6 +540,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.next_cursor)}
+          disabled_link_attrs={@disabled_link_attrs}
           rel="next"
           {@next_attrs}
         >
@@ -535,8 +555,10 @@ defmodule Flop.Phoenix do
   attr :ellipsis_end?, :boolean, required: true
   attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
+  attr :page_list_item_attrs, :list, required: true
+  attr :page_link_attrs, :list, required: true
+  attr :current_page_link_attrs, :list, required: true
   attr :page_link_aria_label_fun, {:fun, 1}, required: true
-  attr :opts, :list, required: true
   attr :path_fun, :any, required: true
   attr :page_range_end, :integer, required: true
   attr :page_range_start, :integer, required: true
@@ -548,52 +570,52 @@ defmodule Flop.Phoenix do
   defp page_links(assigns) do
     ~H"""
     <ul {@rest}>
-      <li :if={@page_range_start > 1} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_start > 1} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={1}
           path={@path_fun.(1)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(1)}
-          {Pagination.attrs_for_page_link(1, @current_page, @opts)}
+          {(@current_page != 1 && @page_link_attrs) || []}
+          {(@current_page == 1 && @current_page_link_attrs) || []}
         >
           1
         </.pagination_link>
       </li>
 
-      <li :if={@ellipsis_start?} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_start?} {@page_list_item_attrs}>
         <.ellipsis ellipsis={@ellipsis} />
       </li>
 
-      <li
-        :for={page <- @page_range_start..@page_range_end}
-        {@opts[:pagination_list_item_attrs]}
-      >
+      <li :for={page <- @page_range_start..@page_range_end} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={page}
           path={@path_fun.(page)}
           on_paginate={@on_paginate}
-          aria-current={if @current_page == page, do: "page"}
+          aria-current={@current_page == page && "page"}
           aria-label={@page_link_aria_label_fun.(page)}
-          {Pagination.attrs_for_page_link(page, @current_page, @opts)}
+          {(@current_page != page && @page_link_attrs) || []}
+          {(@current_page == page && @current_page_link_attrs) || []}
         >
           {page}
         </.pagination_link>
       </li>
 
-      <li :if={@ellipsis_end?} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_end?} {@page_list_item_attrs}>
         <.ellipsis ellipsis={@ellipsis} />
       </li>
 
-      <li :if={@page_range_end < @total_pages} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_end < @total_pages} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={@total_pages}
           path={@path_fun.(@total_pages)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(@total_pages)}
-          {Pagination.attrs_for_page_link(@total_pages, @current_page, @opts)}
+          {(@current_page != @total_pages && @page_link_attrs) || []}
+          {(@current_page == @total_pages && @current_page_link_attrs) || []}
         >
           {@total_pages}
         </.pagination_link>
@@ -620,27 +642,63 @@ defmodule Flop.Phoenix do
   attr :page, :integer, default: nil
   attr :direction, :atom, default: nil
   attr :disabled, :boolean, default: false
+  attr :disabled_link_attrs, :list, default: []
   attr :rel, :string, default: nil
   attr :rest, :global
   slot :inner_block
 
-  defp pagination_link(%{disabled: true, path: nil} = assigns) do
+  defp pagination_link(
+         %{
+           disabled: true,
+           disabled_link_attrs: disabled_link_attrs,
+           path: nil,
+           rest: rest
+         } = assigns
+       ) do
+    {class, disabled_link_attrs} = Keyword.pop(disabled_link_attrs, :class)
+
+    rest =
+      Map.update(rest, :class, class, fn default_class ->
+        merge_classes(default_class, class)
+      end)
+
+    assigns =
+      assign(assigns, disabled_link_attrs: disabled_link_attrs, rest: rest)
+
     ~H"""
-    <button disabled {@rest}>
+    <button disabled {@disabled_link_attrs} {@rest}>
       {render_slot(@inner_block)}
     </button>
     """
   end
 
-  defp pagination_link(%{disabled: true} = assigns) do
+  defp pagination_link(
+         %{
+           disabled: true,
+           disabled_link_attrs: disabled_link_attrs,
+           rest: rest
+         } =
+           assigns
+       ) do
     # Disabled state of the link is expressed by omission of the href attribute
     # and addition of aria-disabled attribute. Links without href do not
     # implicitly have the role "link", so it needs to be added as an attribute.
     #
     # https://www.w3.org/TR/html-aria/#docconformance
     # https://www.w3.org/TR/html-aria/#example-communicate-a-disabled-link-with-aria
+
+    {class, disabled_link_attrs} = Keyword.pop(disabled_link_attrs, :class)
+
+    rest =
+      Map.update(rest, :class, class, fn default_class ->
+        merge_classes(default_class, class)
+      end)
+
+    assigns =
+      assign(assigns, disabled_link_attrs: disabled_link_attrs, rest: rest)
+
     ~H"""
-    <a role="link" aria-disabled="true" {@rest}>
+    <a role="link" aria-disabled="true" {@disabled_link_attrs} {@rest}>
       {render_slot(@inner_block)}
     </a>
     """
@@ -685,6 +743,13 @@ defmodule Flop.Phoenix do
     </.link>
     """
   end
+
+  defp merge_classes(nil, class), do: class
+  defp merge_classes(class, nil), do: class
+  defp merge_classes([_ | _] = a, [_ | _] = b), do: a ++ b
+  defp merge_classes([_ | _] = a, b), do: a ++ [b]
+  defp merge_classes(a, [_ | _] = b), do: [a] ++ b
+  defp merge_classes(a, b), do: [a, b]
 
   @doc """
   Returns an aria label for a link to the given page number.

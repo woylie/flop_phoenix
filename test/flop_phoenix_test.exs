@@ -495,7 +495,6 @@ defmodule Flop.PhoenixTest do
       assert find_one(html, "ul")
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(link, "class") == "pagination-link"
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert attribute(link, "href") == "/pets?page_size=10"
@@ -509,7 +508,6 @@ defmodule Flop.PhoenixTest do
       assert text(link) == "2"
 
       assert link = find_one(html, "li a[aria-label='Go to page 3']")
-      assert attribute(link, "class") == "pagination-link"
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -585,7 +583,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          list_attrs={[class: "p-list", title: "boop"]}
+          page_list_attrs={[class: "p-list", title: "boop"]}
         />
         """)
 
@@ -595,13 +593,17 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite pagination list item attributes" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
-        opts: [pagination_list_item_attrs: [class: "p-list-item"]]
+        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={6} opts={@opts} />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          page_links={6}
+          page_list_item_attrs={[class: "p-list-item"]}
+        />
         """)
 
       for list_item <- Floki.find(html, "ul li") do
@@ -609,7 +611,7 @@ defmodule Flop.PhoenixTest do
       end
     end
 
-    test "allows to overwrite pagination link attributes" do
+    test "allows to set page link and current page link attributes" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -617,13 +619,17 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          opts={[pagination_link_attrs: [class: "p-link", beep: "boop"]]}
+          page_link_attrs={[class: "p-link", beep: "boop"]}
+          current_page_link_attrs={[class: "is-current"]}
         />
         """)
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
       assert attribute(link, "beep") == "boop"
       assert attribute(link, "class") == "p-link"
+
+      assert link = find_one(html, "li a[aria-label='Go to page 2']")
+      assert attribute(link, "class") == "is-current"
     end
 
     test "overrides aria-label for page links" do
@@ -696,7 +702,6 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert one = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(one, "class") == "pagination-link"
       assert attribute(one, "data-phx-link") == "patch"
       assert attribute(one, "data-phx-link-state") == "push"
       assert href = attribute(one, "href")
@@ -823,7 +828,6 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert one = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(one, "class") == "pagination-link"
       assert attribute(one, "data-phx-link") == "patch"
       assert attribute(one, "data-phx-link-state") == "push"
       assert href = attribute(one, "href")
@@ -1305,6 +1309,26 @@ defmodule Flop.PhoenixTest do
       assert attribute(previous_link, "rel") == nil
     end
 
+    test "can set additional attributes for disabled links" do
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          disabled_link_attrs={[class: "is-disabled"]}
+        />
+        """)
+
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
+
+      assert attribute(previous_link, "class") ==
+               "pagination-previous is-disabled"
+
+      assert attribute(previous_link, "aria-disabled") == "true"
+    end
+
     test "disables previous button if on first page when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
 
@@ -1319,6 +1343,26 @@ defmodule Flop.PhoenixTest do
       assert attribute(previous_button, "href") == nil
       assert attribute(previous_button, "disabled") == "disabled"
       assert attribute(previous_button, "rel") == nil
+    end
+
+    test "can set additional attributes on disabled buttons" do
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          disabled_link_attrs={[class: "is-disabled"]}
+        />
+        """)
+
+      assert previous_button = find_one(html, "button:fl-contains('Previous')")
+
+      assert attribute(previous_button, "class") ==
+               "pagination-previous is-disabled"
+
+      assert attribute(previous_button, "disabled") == "disabled"
     end
 
     test "allows to overwrite previous link class and content if disabled" do
