@@ -453,10 +453,7 @@ defmodule Flop.Phoenix do
           rel="prev"
           {@opts[:previous_link_attrs]}
         >
-          {render_slot(@previous)}
-          <%= if @previous == [] do %>
-            Previous
-          <% end %>
+          {render_slot(@previous) || "Previous"}
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
@@ -468,10 +465,7 @@ defmodule Flop.Phoenix do
           rel="next"
           {@opts[:next_link_attrs]}
         >
-          {render_slot(@next)}
-          <%= if @next == [] do %>
-            Next
-          <% end %>
+          {render_slot(@next) || "Next"}
         </.pagination_link>
         <.page_links
           :if={p.pagination_type in [:page, :offset] and @page_links != :none}
@@ -497,10 +491,7 @@ defmodule Flop.Phoenix do
           rel="prev"
           {@opts[:previous_link_attrs]}
         >
-          {render_slot(@previous)}
-          <%= if @previous == [] do %>
-            Previous
-          <% end %>
+          {render_slot(@previous) || "Previous"}
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
@@ -512,10 +503,7 @@ defmodule Flop.Phoenix do
           rel="next"
           {@opts[:next_link_attrs]}
         >
-          {render_slot(@next)}
-          <%= if @next == [] do %>
-            Next
-          <% end %>
+          {render_slot(@next) || "Next"}
         </.pagination_link>
       </nav>
     </.pagination_for>
