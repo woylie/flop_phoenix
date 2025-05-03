@@ -270,6 +270,12 @@ component:
 </.form>
 ```
 
+## Customization
+
+For customizing the components, it is recommend to define wrapper components
+that set the necessary attributes. Refer to the
+[module documentation](https://hexdocs.pm/flop_phoenix/Flop.Phoenix.html#module-customization) for examples.
+
 ## LiveView streams
 
 To use LiveView streams, you can change your `handle_params/3` function as
