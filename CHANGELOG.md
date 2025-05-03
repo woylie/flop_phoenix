@@ -4,13 +4,21 @@
 
 ### Added
 
-- Accept global attributes for pagination component.
-- Add `previous`, `next`, and `ellipsis` slots to pagination component.
+- Add guide about load-more buttons and infinite scroll.
 
 ### Changed
 
+
+- Remove `opts` attribute from `Flop.Phoenix.pagination/1` and remove
+  configuration of the pagination component via application environment.
+- Remove `wrapper_attrs` from pagination component in favor of global
+  attributes.
 - Set page link aria label function with `page_link_aria_label_fun` attribute
-  on `Flop.Phoenix.pagination/1` component instead of using `opts`.
+  on `Flop.Phoenix.pagination/1` component instead of using
+  `pagination_link_aria_label` option.
+- Set previous and next link attributes and content with slots instead of
+  options.
+- Set ellipsis content with slot instead of option.
 - Set pagination list attributes with `page_list_attrs` attribute instead of
   `pagination_list_attrs` option.
 - Set pagination list item attributes with `page_list_item_attrs` attribute
@@ -21,29 +29,17 @@
   attribute instead of `current_link_attrs` option.
 - Set disabled link attributes with `disabled_link_attrs` attribute instead of
   `disabled_attrs` option.
-- Remove default class for pagination list and pagination links.
+- Remove default classes for pagination root element, pagination list and
+  pagination links.
 - Use `<button>` elements for pagination if no `path` is set.
+- Remove `role` attribute from the pagination component. The `<nav>` element
+  already has the implicit ARIA role `navigation`.
 - Add `rel` attribute to previous/next links.
-- Mark up disabled previous/next links of the pagination as
+- Mark up disabled previous/next links of the pagination component as
   `<a role="link" aria-disabled="true">` instead of `<span>`.
 - Update documentation for `hidden_inputs_for_filter/1` to use
   `Phoenix.Component.inputs_for/1` with the `skip_persistent_id` option.
 - Require Phoenix >= 1.6.0 and < 1.9.0.
-
-### Removed
-
-- Remove `opts` attribute and configuration via application environment from
-  pagination component.
-- Remove `wrapper_attrs` from the pagination options. Pass the attributes
-  directly as attributes instead.
-- Remove default `class` attributes from pagination component.
-- Remove `role` attribute from the pagination component. The `<nav>` element
-  already has the implicit ARIA role `navigation`.
-- Remove `previous_link_attrs`, `previous_link_content`, `next_link_attrs`, and
-  `next_link_content` options from pagination component. Use `previous` and
-  `next` slot instead.
-- Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
-  Use the `ellipsis` slot instead.
 
 ### How to upgrade
 
