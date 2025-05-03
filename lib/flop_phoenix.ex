@@ -474,7 +474,7 @@ defmodule Flop.Phoenix do
           target={@target}
           total_pages={p.total_pages}
         />
-        <.cursor_pagination_link
+        <.pagination_link
           :if={p.pagination_type in [:first, :last]}
           direction={p.previous_direction}
           path={p.path_fun.(p.previous_cursor, p.previous_direction)}
@@ -484,8 +484,8 @@ defmodule Flop.Phoenix do
           {@opts[:previous_link_attrs]}
         >
           {@opts[:previous_link_content]}
-        </.cursor_pagination_link>
-        <.cursor_pagination_link
+        </.pagination_link>
+        <.pagination_link
           :if={p.pagination_type in [:first, :last]}
           direction={p.next_direction}
           path={p.path_fun.(p.next_cursor, p.next_direction)}
@@ -495,7 +495,7 @@ defmodule Flop.Phoenix do
           {@opts[:next_link_attrs]}
         >
           {@opts[:next_link_content]}
-        </.cursor_pagination_link>
+        </.pagination_link>
       </nav>
     </.pagination_for>
     """
@@ -582,7 +582,8 @@ defmodule Flop.Phoenix do
   attr :path, :string
   attr :on_paginate, JS
   attr :target, :string, required: true
-  attr :page, :integer, required: true
+  attr :page, :integer, default: nil
+  attr :direction, :atom, default: nil
   attr :disabled, :boolean, default: false
   attr :rest, :global
   slot :inner_block
@@ -610,50 +611,28 @@ defmodule Flop.Phoenix do
     """
   end
 
-  defp pagination_link(%{} = assigns) do
+  defp pagination_link(%{on_paginate: on_paginate, path: nil} = assigns)
+       when not is_nil(on_paginate) do
+    ~H"""
+    <button
+      phx-click={@on_paginate}
+      phx-target={@target}
+      phx-value-page={@page}
+      phx-value-to={@direction}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
+
+  defp pagination_link(assigns) do
     ~H"""
     <.link
       patch={@path}
       phx-click={@on_paginate}
       phx-target={@target}
       phx-value-page={@page}
-      {@rest}
-    >
-      {render_slot(@inner_block)}
-    </.link>
-    """
-  end
-
-  attr :direction, :atom, required: true
-  attr :path, :string
-  attr :on_paginate, JS
-  attr :target, :string, required: true
-  attr :disabled, :boolean, default: false
-  attr :rest, :global
-  slot :inner_block
-
-  defp cursor_pagination_link(%{disabled: true} = assigns) do
-    ~H"""
-    <a role="link" aria-disabled="true" {@rest}>
-      {render_slot(@inner_block)}
-    </a>
-    """
-  end
-
-  defp cursor_pagination_link(%{on_paginate: nil} = assigns) do
-    ~H"""
-    <.link patch={@path} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
-    """
-  end
-
-  defp cursor_pagination_link(assigns) do
-    ~H"""
-    <.link
-      patch={@path}
-      phx-click={@on_paginate}
-      phx-target={@target}
       phx-value-to={@direction}
       {@rest}
     >

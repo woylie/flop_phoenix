@@ -137,14 +137,14 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={@on_paginate} />
         """)
 
-      a = find_one(html, "a:fl-contains('Previous')")
+      button = find_one(html, "button:fl-contains('Previous')")
 
-      assert attribute(a, "class") == "pagination-previous"
-      assert attribute(a, "data-phx-link") == nil
-      assert attribute(a, "data-phx-link-state") == nil
-      assert attribute(a, "href") == "#"
-      assert attribute(a, "phx-value-page") == "1"
-      assert phx_click = attribute(a, "phx-click")
+      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "data-phx-link") == nil
+      assert attribute(button, "data-phx-link-state") == nil
+      assert attribute(button, "href") == nil
+      assert attribute(button, "phx-value-page") == "1"
+      assert phx_click = attribute(button, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
@@ -210,7 +210,7 @@ defmodule Flop.PhoenixTest do
       assert attribute(a, "href") == "/pets?page_size=10"
     end
 
-    test "renders previous link when using on_paginate" do
+    test "renders previous button when using on_paginate" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -218,15 +218,18 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert a = find_one(html, "a:fl-contains('Previous')")
+      assert button = find_one(html, "button:fl-contains('Previous')")
 
-      assert attribute(a, "class") == "pagination-previous"
-      assert attribute(a, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
-      assert attribute(a, "phx-value-page") == "1"
-      assert attribute(a, "href") == "#"
+      assert attribute(button, "class") == "pagination-previous"
+
+      assert attribute(button, "phx-click") ==
+               ~s|[["push",{"event":"paginate"}]]|
+
+      assert attribute(button, "phx-value-page") == "1"
+      assert attribute(button, "href") == nil
     end
 
-    test "adds phx-target to previous link" do
+    test "adds phx-target to previous button" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -238,8 +241,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert a = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(a, "phx-target") == "here"
+      assert button = find_one(html, "button:fl-contains('Previous')")
+      assert attribute(button, "phx-target") == "here"
     end
 
     test "merges query parameters into existing parameters" do
@@ -389,18 +392,18 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Next')")
+      assert button = find_one(html, "button:fl-contains('Next')")
 
-      assert attribute(link, "class") == "pagination-next"
+      assert attribute(button, "class") == "pagination-next"
 
-      assert attribute(link, "phx-click") ==
+      assert attribute(button, "phx-click") ==
                ~s|[[\"push\",{\"event\":\"paginate\"}]]|
 
-      assert attribute(link, "phx-value-page") == "3"
-      assert attribute(link, "href") == "#"
+      assert attribute(button, "phx-value-page") == "3"
+      assert attribute(button, "href") == nil
     end
 
-    test "adds phx-target to next link" do
+    test "adds phx-target to next button" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -412,8 +415,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Next')")
-      assert attribute(link, "phx-target") == "here"
+      assert button = find_one(html, "button:fl-contains('Next')")
+      assert attribute(button, "phx-target") == "here"
     end
 
     test "allows to overwrite next link attributes and content" do
@@ -535,14 +538,17 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert link = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(link, "href") == "#"
-      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
-      assert attribute(link, "phx-value-page") == "1"
-      assert text(link) =~ "1"
+      assert button = find_one(html, "li button[aria-label='Go to page 1']")
+      assert attribute(button, "href") == nil
+
+      assert attribute(button, "phx-click") ==
+               ~s|[["push",{"event":"paginate"}]]|
+
+      assert attribute(button, "phx-value-page") == "1"
+      assert text(button) =~ "1"
     end
 
-    test "adds phx-target to page link" do
+    test "adds phx-target to page button" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -554,8 +560,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert link = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(link, "phx-target") == "here"
+      assert button = find_one(html, "li button[aria-label='Go to page 1']")
+      assert attribute(button, "phx-target") == "here"
     end
 
     test "doesn't render pagination links if set to none" do
@@ -751,11 +757,14 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(link, "class") == "pagination-previous"
-      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
-      assert attribute(link, "phx-value-page") == "1"
-      assert attribute(link, "href") == "#"
+      assert button = find_one(html, "button:fl-contains('Previous')")
+      assert attribute(button, "class") == "pagination-previous"
+
+      assert attribute(button, "phx-click") ==
+               ~s|[["push",{"event":"paginate"}]]|
+
+      assert attribute(button, "phx-value-page") == "1"
+      assert attribute(button, "href") == nil
     end
 
     test "raises if neither path nor on_paginate are passed" do
@@ -1090,7 +1099,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?last=10&before=B")
     end
 
-    test "uses phx-click with on_paginate without path" do
+    test "uses button with phx-click with on_paginate without path" do
       assigns = %{meta: build(:meta_with_cursors), js: JS.push("paginate")}
 
       html =
@@ -1098,17 +1107,17 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={@js} />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(link, "class") == "pagination-previous"
-      assert attribute(link, "data-phx-link") == nil
-      assert attribute(link, "data-phx-link-state") == nil
-      assert attribute(link, "href") == "#"
-      assert attribute(link, "phx-value-to") == "previous"
-      assert phx_click = attribute(link, "phx-click")
+      assert button = find_one(html, "button:fl-contains('Previous')")
+      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "data-phx-link") == nil
+      assert attribute(button, "data-phx-link-state") == nil
+      assert attribute(button, "href") == nil
+      assert attribute(button, "phx-value-to") == "previous"
+      assert phx_click = attribute(button, "phx-click")
       assert Jason.decode!(phx_click) == [["push", %{"event" => "paginate"}]]
     end
 
-    test "uses phx-click with on_paginate and path" do
+    test "uses link with phx-click with on_paginate and path" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
@@ -1175,7 +1184,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?before=B&last=10")
     end
 
-    test "renders previous link when using on_paginate" do
+    test "renders previous button when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
@@ -1183,14 +1192,17 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(link, "class") == "pagination-previous"
-      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
-      assert attribute(link, "phx-value-to") == "previous"
-      assert attribute(link, "href") == "#"
+      assert button = find_one(html, "button:fl-contains('Previous')")
+      assert attribute(button, "class") == "pagination-previous"
+
+      assert attribute(button, "phx-click") ==
+               ~s|[["push",{"event":"paginate"}]]|
+
+      assert attribute(button, "phx-value-to") == "previous"
+      assert attribute(button, "href") == nil
     end
 
-    test "adds phx-target to previous link" do
+    test "adds phx-target to previous button" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
@@ -1202,8 +1214,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(link, "phx-target") == "here"
+      assert button = find_one(html, "button:fl-contains('Previous')")
+      assert attribute(button, "phx-target") == "here"
     end
 
     test "switches next and previous link" do
@@ -1353,7 +1365,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets?first=10&after=C")
     end
 
-    test "renders next link when using on_paginate" do
+    test "renders next button when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
@@ -1361,15 +1373,17 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Next')")
-      assert attribute(link, "class") == "pagination-next"
+      assert button = find_one(html, "button:fl-contains('Next')")
+      assert attribute(button, "class") == "pagination-next"
 
-      assert attribute(link, "phx-click") == ~s|[["push",{"event":"paginate"}]]|
-      assert attribute(link, "phx-value-to") == "next"
-      assert attribute(link, "href") == "#"
+      assert attribute(button, "phx-click") ==
+               ~s|[["push",{"event":"paginate"}]]|
+
+      assert attribute(button, "phx-value-to") == "next"
+      assert attribute(button, "href") == nil
     end
 
-    test "adds phx-target to next link" do
+    test "adds phx-target to next button" do
       assigns = %{meta: build(:meta_with_cursors)}
 
       html =
@@ -1381,8 +1395,8 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert link = find_one(html, "a:fl-contains('Next')")
-      assert attribute(link, "phx-target") == "here"
+      assert button = find_one(html, "button:fl-contains('Next')")
+      assert attribute(button, "phx-target") == "here"
     end
 
     test "allows to overwrite next link attributes and content" do

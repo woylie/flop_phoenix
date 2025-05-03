@@ -9,6 +9,7 @@
 
 ### Changed
 
+- Use `<button>` elements for pagination if no `path` is set.
 - Mark up disabled previous/next links of the pagination as
   `<a role="link" aria-disabled="true">` instead of `<span>`.
 - Update documentation for `hidden_inputs_for_filter/1` to use
@@ -90,7 +91,7 @@ Remove the `:disabled_attrs` option. Select disabled links in CSS with
 - Add `Flop.Phoenix.Pagination.new/2` to build a `Pagination` struct from a
   `Flop.Meta` struct.
 - Add `Flop.Phoenix.pagination_for/1` for building custom pagination components.
-  Update the existing `Flop.Phoenix.pagination/1` component to it.
+  Update the existing `Flop.Phoenix.pagination/1` component to use it.
 - Add `Flop.Phoenix.page_link_range/3` for determining which page links to
   render in a pagination component.
 
