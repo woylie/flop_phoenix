@@ -495,7 +495,6 @@ defmodule Flop.PhoenixTest do
       assert find_one(html, "ul")
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(link, "class") == "pagination-link"
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert attribute(link, "href") == "/pets?page_size=10"
@@ -509,7 +508,6 @@ defmodule Flop.PhoenixTest do
       assert text(link) == "2"
 
       assert link = find_one(html, "li a[aria-label='Go to page 3']")
-      assert attribute(link, "class") == "pagination-link"
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -621,7 +619,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          opts={[pagination_link_attrs: [class: "p-link", beep: "boop"]]}
+          page_link_attrs={[class: "p-link", beep: "boop"]}
         />
         """)
 
@@ -700,7 +698,6 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert one = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(one, "class") == "pagination-link"
       assert attribute(one, "data-phx-link") == "patch"
       assert attribute(one, "data-phx-link-state") == "push"
       assert href = attribute(one, "href")
@@ -827,7 +824,6 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert one = find_one(html, "li a[aria-label='Go to page 1']")
-      assert attribute(one, "class") == "pagination-link"
       assert attribute(one, "data-phx-link") == "patch"
       assert attribute(one, "data-phx-link-state") == "push"
       assert href = attribute(one, "href")

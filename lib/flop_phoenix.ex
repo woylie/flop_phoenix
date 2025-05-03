@@ -138,15 +138,6 @@ defmodule Flop.Phoenix do
   alias Plug.Conn.Query
 
   @typedoc """
-  Defines the available options for `Flop.Phoenix.pagination/1`.
-
-  - `:pagination_link_attrs` - The attributes for the pagination links.
-    Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
-  """
-  @type pagination_option ::
-          {:pagination_link_attrs, keyword}
-
-  @typedoc """
   Defines how many page links to render.
 
   - `:all` - Renders all page links.
@@ -348,17 +339,6 @@ defmodule Flop.Phoenix do
     This attribute is only for for cursor-based pagination.
     """
 
-  attr :opts, :list,
-    default: [],
-    doc: """
-    Options to customize the pagination. See
-    `t:Flop.Phoenix.pagination_option/0`. Note that the options passed to the
-    function are deep merged into the default options. Since these options will
-    likely be the same for all the tables in a project, it is recommended to
-    define them once in a function or set them in a wrapper function as
-    described in the `Customization` section of the module documentation.
-    """
-
   attr :page_list_attrs, :list,
     default: [],
     doc: """
@@ -369,6 +349,15 @@ defmodule Flop.Phoenix do
     default: [],
     doc: """
     Attributes to be added to the `<li>` elements that contain the page links.
+    """
+
+  attr :page_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the page links or buttons.
+
+    These attributes are not applied to previous links, next links, or the
+    current page link.
     """
 
   attr :rest, :global,
@@ -431,7 +420,7 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
-  def pagination(%{opts: opts, previous: previous, next: next} = assigns) do
+  def pagination(%{previous: previous, next: next} = assigns) do
     # Unpack previous and next slot attributes. We can't use :for attribute
     # because the slot is optional.
     previous_attrs =
@@ -450,11 +439,7 @@ defmodule Flop.Phoenix do
       end
 
     assigns =
-      assign(assigns,
-        opts: Pagination.merge_opts(opts),
-        previous_attrs: previous_attrs,
-        next_attrs: next_attrs
-      )
+      assign(assigns, previous_attrs: previous_attrs, next_attrs: next_attrs)
 
     ~H"""
     <.pagination_for
@@ -497,13 +482,13 @@ defmodule Flop.Phoenix do
           ellipsis_start?={p.ellipsis_start?}
           on_paginate={@on_paginate}
           page_link_aria_label_fun={@page_link_aria_label_fun}
-          opts={@opts}
           path_fun={p.path_fun}
           page_range_end={p.page_range_end}
           page_range_start={p.page_range_start}
           target={@target}
           total_pages={p.total_pages}
           page_list_item_attrs={@page_list_item_attrs}
+          page_link_attrs={@page_link_attrs}
           {@page_list_attrs}
         />
         <.pagination_link
@@ -540,8 +525,8 @@ defmodule Flop.Phoenix do
   attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
   attr :page_list_item_attrs, :list, required: true
+  attr :page_link_attrs, :list, required: true
   attr :page_link_aria_label_fun, {:fun, 1}, required: true
-  attr :opts, :list, required: true
   attr :path_fun, :any, required: true
   attr :page_range_end, :integer, required: true
   attr :page_range_start, :integer, required: true
@@ -560,7 +545,7 @@ defmodule Flop.Phoenix do
           path={@path_fun.(1)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(1)}
-          {Pagination.attrs_for_page_link(1, @current_page, @opts)}
+          {@current_page != 1 && @page_link_attrs}
         >
           1
         </.pagination_link>
@@ -576,9 +561,9 @@ defmodule Flop.Phoenix do
           page={page}
           path={@path_fun.(page)}
           on_paginate={@on_paginate}
-          aria-current={if @current_page == page, do: "page"}
+          aria-current={@current_page == page && "page"}
           aria-label={@page_link_aria_label_fun.(page)}
-          {Pagination.attrs_for_page_link(page, @current_page, @opts)}
+          {(@current_page != page && @page_link_attrs) || []}
         >
           {page}
         </.pagination_link>
@@ -595,7 +580,7 @@ defmodule Flop.Phoenix do
           path={@path_fun.(@total_pages)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(@total_pages)}
-          {Pagination.attrs_for_page_link(@total_pages, @current_page, @opts)}
+          {@current_page != @total_pages && @page_link_attrs}
         >
           {@total_pages}
         </.pagination_link>

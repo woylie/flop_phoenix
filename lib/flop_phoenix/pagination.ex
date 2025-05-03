@@ -5,7 +5,6 @@ defmodule Flop.Phoenix.Pagination do
   """
 
   alias Flop.Meta
-  alias Flop.Phoenix.Misc
 
   require Logger
 
@@ -262,30 +261,5 @@ defmodule Flop.Phoenix.Pagination do
       first: query_params[:first] || query_params[:last]
     )
     |> Keyword.delete(:last)
-  end
-
-  @doc false
-  @spec default_opts() :: [Flop.Phoenix.pagination_option()]
-  def default_opts do
-    [
-      pagination_link_attrs: [class: "pagination-link"]
-    ]
-  end
-
-  @doc false
-  def merge_opts(opts) do
-    default_opts()
-    |> Misc.deep_merge(Misc.get_global_opts(:pagination))
-    |> Misc.deep_merge(opts)
-  end
-
-  @doc false
-  def attrs_for_page_link(page, page, _opts) do
-    []
-  end
-
-  @doc false
-  def attrs_for_page_link(_page, _current_page, opts) do
-    opts[:pagination_link_attrs]
   end
 end
