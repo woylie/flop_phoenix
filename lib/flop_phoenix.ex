@@ -28,6 +28,7 @@ defmodule Flop.Phoenix do
     def pagination(assigns) do
       ~H\"""
       <Flop.Phoenix.pagination
+        class="pagination"
         meta={@meta}
         path={@path}
         on_paginate={@on_paginate}
@@ -141,14 +142,11 @@ defmodule Flop.Phoenix do
 
   - `:pagination_link_attrs` - The attributes for the pagination links.
     Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
-  - `:pagination_list_attrs` - The attributes for the pagination list.
-    Default: `#{inspect(Pagination.default_opts()[:pagination_list_attrs])}`.
   - `:pagination_list_item_attrs` - The attributes for the pagination list items.
     Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
   """
   @type pagination_option ::
           {:pagination_link_attrs, keyword}
-          | {:pagination_list_attrs, keyword}
           | {:pagination_list_item_attrs, keyword}
 
   @typedoc """
@@ -364,6 +362,12 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
+  attr :list_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the `<ul>` that contains the page links.
+    """
+
   attr :rest, :global,
     default: %{"aria-label": "Pagination"},
     doc: """
@@ -496,6 +500,7 @@ defmodule Flop.Phoenix do
           page_range_start={p.page_range_start}
           target={@target}
           total_pages={p.total_pages}
+          {@list_attrs}
         />
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
@@ -538,10 +543,11 @@ defmodule Flop.Phoenix do
   attr :target, :string, required: true
   attr :total_pages, :integer, required: true
   attr :ellipsis, :any
+  attr :rest, :global
 
   defp page_links(assigns) do
     ~H"""
-    <ul {@opts[:pagination_list_attrs]}>
+    <ul {@rest}>
       <li :if={@page_range_start > 1} {@opts[:pagination_list_item_attrs]}>
         <.pagination_link
           target={@target}

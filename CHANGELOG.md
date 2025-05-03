@@ -11,6 +11,9 @@
 
 - Set page link aria label function with `page_link_aria_label_fun` attribute
   on `Flop.Phoenix.pagination/1` component instead of using `opts`.
+- Set pagination list attributes with `list_attrs` attribute instead of
+  `pagination_list_attrs` option.
+- Remove default class for pagination list.
 - Use `<button>` elements for pagination if no `path` is set.
 - Add `rel` attribute to previous/next links.
 - Mark up disabled previous/next links of the pagination as
@@ -128,6 +131,20 @@ Remove the `:pagination_link_aria_label` option and set the
 -     pagination_link_aria_label: &"#{&1}ページ目へ"
     ]}
 +     page_link_aria_label_fun={&"#{&1}ページ目へ"}
+  >
+```
+
+Remove the `:pagination_list_attrs` option and set the `list_attrs` attribute
+instead. If you relied on the default class, set it explicitly.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+    opts={[
+-     pagination_list_attrs: [class: "pagination-list"]
+    ]}
++     list_attrs={[class: "pagination-list"]}
   >
 ```
 
