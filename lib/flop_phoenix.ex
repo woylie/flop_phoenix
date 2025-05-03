@@ -588,6 +588,14 @@ defmodule Flop.Phoenix do
   attr :rest, :global
   slot :inner_block
 
+  defp pagination_link(%{disabled: true, path: nil} = assigns) do
+    ~H"""
+    <button disabled {@rest}>
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
+
   defp pagination_link(%{disabled: true} = assigns) do
     # Disabled state of the link is expressed by omission of the href attribute
     # and addition of aria-disabled attribute. Links without href do not
