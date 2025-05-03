@@ -294,14 +294,10 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[
-            previous_link_attrs: [class: "prev", title: "p-p-previous"]
-          ]}
-        >
-          <:previous><i class="fas fa-chevron-left" /></:previous>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:previous attrs={[class: "prev", title: "p-p-previous"]}>
+            <i class="fas fa-chevron-left" />
+          </:previous>
         </Flop.Phoenix.pagination>
         """)
 
@@ -352,14 +348,8 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[
-            previous_link_attrs: [class: "prev", title: "no"]
-          ]}
-        >
-          <:previous>Prev</:previous>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:previous attrs={[class: "prev", title: "no"]}>Prev</:previous>
         </Flop.Phoenix.pagination>
         """)
 
@@ -430,14 +420,10 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[
-            next_link_attrs: [class: "next", title: "n-n-next"]
-          ]}
-        >
-          <:next><i class="fas fa-chevron-right" /></:next>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:next attrs={[class: "next", title: "n-n-next"]}>
+            <i class="fas fa-chevron-right" />
+          </:next>
         </Flop.Phoenix.pagination>
         """)
 
@@ -485,14 +471,8 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[
-            next_link_attrs: [class: "next", title: "no"]
-          ]}
-        >
-          <:next>N-n-next</:next>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:next attrs={[class: "next", title: "no"]}>N-n-next</:next>
         </Flop.Phoenix.pagination>
         """)
 
@@ -707,6 +687,7 @@ defmodule Flop.PhoenixTest do
       end
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
+      assert attribute(previous, "aria-label") == "Go to previous page"
       assert attribute(previous, "class") == "pagination-previous"
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
@@ -722,6 +703,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "aria-label") == "Go to next page"
       assert attribute(next, "class") == "pagination-next"
       assert attribute(next, "data-phx-link") == "patch"
       assert attribute(next, "data-phx-link-state") == "push"
@@ -1286,17 +1268,14 @@ defmodule Flop.PhoenixTest do
     end
 
     test "allows to overwrite previous link attributes and content" do
-      assigns = %{
-        meta: build(:meta_with_cursors),
-        opts: [
-          previous_link_attrs: [class: "prev", title: "p-p-previous"]
-        ]
-      }
+      assigns = %{meta: build(:meta_with_cursors)}
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts}>
-          <:previous><i class="fas fa-chevron-left" /></:previous>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:previous attrs={[class: "prev", title: "p-p-previous"]}>
+            <i class="fas fa-chevron-left" />
+          </:previous>
         </Flop.Phoenix.pagination>
         """)
 
@@ -1347,14 +1326,8 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          on_paginate={JS.push("paginate")}
-          opts={[
-            previous_link_attrs: [class: "prev", title: "no"]
-          ]}
-        >
-          <:previous>Prev</:previous>
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")}>
+          <:previous attrs={[class: "prev", title: "no"]}>Prev</:previous>
         </Flop.Phoenix.pagination>
         """)
 
@@ -1421,14 +1394,10 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          path="/pets"
-          opts={[
-            next_link_attrs: [class: "next", title: "n-n-next"]
-          ]}
-        >
-          <:next><i class="fas fa-chevron-right" /></:next>
+        <Flop.Phoenix.pagination meta={@meta} path="/pets">
+          <:next attrs={[class: "next", title: "n-n-next"]}>
+            <i class="fas fa-chevron-right" />
+          </:next>
         </Flop.Phoenix.pagination>
         """)
 
@@ -1476,14 +1445,8 @@ defmodule Flop.PhoenixTest do
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination
-          meta={@meta}
-          on_paginate={JS.push("paginate")}
-          opts={[
-            next_link_attrs: [class: "next", title: "no"]
-          ]}
-        >
-          <:next>N-n-next</:next>
+        <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("pamginate")}>
+          <:next attrs={[class: "next", title: "no"]}>N-n-next</:next>
         </Flop.Phoenix.pagination>
         """)
 

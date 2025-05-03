@@ -24,8 +24,9 @@
 - Remove default `class` attributes from pagination component.
 - Remove `role` attribute from the pagination component. The `<nav>` element
   already has the implicit ARIA role `navigation`.
-- Remove `previous_link_content` and `next_link_content` options from pagination
-  component. Use `previous` and `next` slot instead.
+- Remove `previous_link_attrs`, `previous_link_content`, `next_link_attrs`, and
+  `next_link_content` options from pagination component. Use `previous` and
+  `next` slot instead.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
   Use the `ellipsis` slot instead.
 - Remove `current_link_attrs` from pagination options. Use
@@ -34,6 +35,11 @@
   CSS selector instead.
 
 ### How to upgrade
+
+The configuration via `pagination_opts` is deprecated. Instead of referencing a
+function that returns the pagination opts, it is recommended to define a
+component that wraps the `Flop.Phoenix.pagination/1` component and sets the
+necessary attributes.
 
 Remove the `wrapper_opts` from your pagination options and pass them directly
 as attributes instead.
@@ -53,21 +59,27 @@ as attributes instead.
   />
 ```
 
-Replace the `:previous_link_content` and `next_link_content` attributes with
-the `previous` and `next` slots.
+Replace the `:previous_link_attrs`, `:previous_link_content`, `next_link_attrs`,
+and `next_link_content` attributes with the `previous` and `next` slots.
 
 ```diff
   <Flop.Phoenix.pagination
     meta={@meta}
     path={@path}
     opts={[
+-     previous_link_attrs: [class: "previous"],
 -     previous_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />)),
+-     next_link_attrs: [class: "next"],
 -     next_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-right" />))
     ]}
 - />
 + >
-+   <:previous><i class="fas fa-chevron-left" /></:previous>
-+   <:next><i class="fas fa-chevron-right" /></:next>
++   <:previous attrs={[class: "previous"]}>
++     <i class="fas fa-chevron-left" />
++   </:previous>
++   <:next attrs={[class: "next"]}>
++     <i class="fas fa-chevron-right" />
++   </:next>
 + </Flop.Phoenix.pagination>
 ```
 

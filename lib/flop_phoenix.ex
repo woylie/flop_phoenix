@@ -33,27 +33,19 @@ defmodule Flop.Phoenix do
         on_paginate={@on_paginate}
         target={@target}
         opts={[
-          next_link_attrs: [class: "next"],
           pagination_link_aria_label: &"\#{&1}ページ目へ",
-          previous_link_attrs: [class: "prev"]
         ]}
-      />
-      \"""
-    end
-
-    defp next_icon do
-      assigns = %{}
-
-      ~H\"""
-      <i class="fas fa-chevron-right"/>
-      \"""
-    end
-
-    defp previous_icon do
-      assigns = %{}
-
-      ~H\"""
-      <i class="fas fa-chevron-left"/>
+      >
+        <:previous attrs={[class: "previous"]}>
+          <i class="fas fa-chevron-left"/>
+        </:previous>
+        <:next attrs={[class: "next"]}>
+          <i class="fas fa-chevron-right"/>
+        </:next>
+        <:ellipsis>
+          <span class="ellipsis">‥</span>
+        </:ellipsis>
+      </Flop.Phoenix.pagination>
       \"""
     end
   end
@@ -149,8 +141,6 @@ defmodule Flop.Phoenix do
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
 
-  - `:next_link_attrs` - The attributes for the link to the next page.
-    Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:pagination_link_aria_label` - 1-arity function that takes a page number
     and returns an aria label for the corresponding page link.
     Default: `&"Go to page \#{&1}"`.
@@ -160,16 +150,12 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:pagination_list_attrs])}`.
   - `:pagination_list_item_attrs` - The attributes for the pagination list items.
     Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
-  - `:previous_link_attrs` - The attributes for the link to the previous page.
-    Default: `#{inspect(Pagination.default_opts()[:previous_link_attrs])}`.
   """
   @type pagination_option ::
-          {:next_link_attrs, keyword}
-          | {:pagination_link_aria_label, (pos_integer -> binary)}
+          {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
           | {:pagination_list_item_attrs, keyword}
-          | {:previous_link_attrs, keyword}
 
   @typedoc """
   Defines how many page links to render.
@@ -405,14 +391,30 @@ defmodule Flop.Phoenix do
     The content of the pagination link or button to the previous page.
 
     If the slot is not used, the text "Previous" is rendered.
-    """
+    """ do
+    attr :attrs, :list,
+      doc: """
+      Any additional attributes to add to the link or button.
+
+      Defaults to
+      `[class: "pagination-previous", aria: [label: "Go to previous page"]]`.
+      """
+  end
 
   slot :next,
     doc: """
     The content of the pagination link or button to the next page.
 
     If the slot is not used, the text "Next" is rendered.
-    """
+    """ do
+    attr :attrs, :list,
+      doc: """
+      Any additional attributes to add to the link or button.
+
+      Defaults to
+      `[class: "pagination-next", aria: [label: "Go to next page"]]`.
+      """
+  end
 
   slot :ellipsis,
     doc: """
@@ -431,8 +433,30 @@ defmodule Flop.Phoenix do
     raise Flop.Phoenix.PathOrJSError, component: :pagination
   end
 
-  def pagination(%{opts: opts} = assigns) do
-    assigns = assign(assigns, :opts, Pagination.merge_opts(opts))
+  def pagination(%{opts: opts, previous: previous, next: next} = assigns) do
+    # Unpack previous and next slot attributes. We can't use :for attribute
+    # because the slot is optional.
+    previous_attrs =
+      case previous do
+        [%{attrs: attrs}] ->
+          attrs
+
+        _ ->
+          [class: "pagination-previous", aria: [label: "Go to previous page"]]
+      end
+
+    next_attrs =
+      case next do
+        [%{attrs: attrs}] -> attrs
+        _ -> [class: "pagination-next", aria: [label: "Go to next page"]]
+      end
+
+    assigns =
+      assign(assigns,
+        opts: Pagination.merge_opts(opts),
+        previous_attrs: previous_attrs,
+        next_attrs: next_attrs
+      )
 
     ~H"""
     <.pagination_for
@@ -451,12 +475,9 @@ defmodule Flop.Phoenix do
           path={p.path_fun.(p.previous_page)}
           on_paginate={@on_paginate}
           rel="prev"
-          {@opts[:previous_link_attrs]}
+          {@previous_attrs}
         >
-          {render_slot(@previous)}
-          <%= if @previous == [] do %>
-            Previous
-          <% end %>
+          {render_slot(@previous) || "Previous"}
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
@@ -466,12 +487,9 @@ defmodule Flop.Phoenix do
           path={p.path_fun.(p.next_page)}
           on_paginate={@on_paginate}
           rel="next"
-          {@opts[:next_link_attrs]}
+          {@next_attrs}
         >
-          {render_slot(@next)}
-          <%= if @next == [] do %>
-            Next
-          <% end %>
+          {render_slot(@next) || "Next"}
         </.pagination_link>
         <.page_links
           :if={p.pagination_type in [:page, :offset] and @page_links != :none}
@@ -495,12 +513,9 @@ defmodule Flop.Phoenix do
           target={@target}
           disabled={is_nil(p.previous_cursor)}
           rel="prev"
-          {@opts[:previous_link_attrs]}
+          {@previous_attrs}
         >
-          {render_slot(@previous)}
-          <%= if @previous == [] do %>
-            Previous
-          <% end %>
+          {render_slot(@previous) || "Previous"}
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
@@ -510,12 +525,9 @@ defmodule Flop.Phoenix do
           target={@target}
           disabled={is_nil(p.next_cursor)}
           rel="next"
-          {@opts[:next_link_attrs]}
+          {@next_attrs}
         >
-          {render_slot(@next)}
-          <%= if @next == [] do %>
-            Next
-          <% end %>
+          {render_slot(@next) || "Next"}
         </.pagination_link>
       </nav>
     </.pagination_for>
