@@ -298,11 +298,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           opts={[
-            previous_link_attrs: [class: "prev", title: "p-p-previous"],
-            previous_link_content:
-              Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />))
+            previous_link_attrs: [class: "prev", title: "p-p-previous"]
           ]}
-        />
+        >
+          <:previous><i class="fas fa-chevron-left" /></:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert link = find_one(html, "a[title='p-p-previous']")
@@ -356,10 +356,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           opts={[
-            previous_link_attrs: [class: "prev", title: "no"],
-            previous_link_content: "Prev"
+            previous_link_attrs: [class: "prev", title: "no"]
           ]}
-        />
+        >
+          <:previous>Prev</:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert previous_link = find_one(html, "a:fl-contains('Prev')")
@@ -433,10 +434,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           opts={[
-            next_link_attrs: [class: "next", title: "n-n-next"],
-            next_link_content: Phoenix.HTML.raw(~s("<i class="fas fa-chevron-right" />))
+            next_link_attrs: [class: "next", title: "n-n-next"]
           ]}
-        />
+        >
+          <:next><i class="fas fa-chevron-right" /></:next>
+        </Flop.Phoenix.pagination>
         """)
 
       assert link = find_one(html, "a[title='n-n-next']")
@@ -487,10 +489,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           opts={[
-            next_link_attrs: [class: "next", title: "no"],
-            next_link_content: "N-n-next"
+            next_link_attrs: [class: "next", title: "no"]
           ]}
-        />
+        >
+          <:next>N-n-next</:next>
+        </Flop.Phoenix.pagination>
         """)
 
       assert next_link = find_one(html, "a:fl-contains('N-n-next')")
@@ -1286,15 +1289,15 @@ defmodule Flop.PhoenixTest do
       assigns = %{
         meta: build(:meta_with_cursors),
         opts: [
-          previous_link_attrs: [class: "prev", title: "p-p-previous"],
-          previous_link_content:
-            Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />))
+          previous_link_attrs: [class: "prev", title: "p-p-previous"]
         ]
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts} />
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" opts={@opts}>
+          <:previous><i class="fas fa-chevron-left" /></:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert link = find_one(html, "a[title='p-p-previous']")
@@ -1348,10 +1351,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           on_paginate={JS.push("paginate")}
           opts={[
-            previous_link_attrs: [class: "prev", title: "no"],
-            previous_link_content: "Prev"
+            previous_link_attrs: [class: "prev", title: "no"]
           ]}
-        />
+        >
+          <:previous>Prev</:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert previous_button = find_one(html, "button:fl-contains('Prev')")
@@ -1421,10 +1425,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           opts={[
-            next_link_attrs: [class: "next", title: "n-n-next"],
-            next_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-right" />))
+            next_link_attrs: [class: "next", title: "n-n-next"]
           ]}
-        />
+        >
+          <:next><i class="fas fa-chevron-right" /></:next>
+        </Flop.Phoenix.pagination>
         """)
 
       assert link = find_one(html, "a[title='n-n-next']")
@@ -1475,10 +1480,11 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           on_paginate={JS.push("paginate")}
           opts={[
-            next_link_attrs: [class: "next", title: "no"],
-            next_link_content: "N-n-next"
+            next_link_attrs: [class: "next", title: "no"]
           ]}
-        />
+        >
+          <:next>N-n-next</:next>
+        </Flop.Phoenix.pagination>
         """)
 
       assert next_button = find_one(html, "button:fl-contains('N-n-next')")

@@ -272,7 +272,6 @@ defmodule Flop.Phoenix.Pagination do
         aria: [label: "Go to next page"],
         class: "pagination-next"
       ],
-      next_link_content: "Next",
       pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
@@ -280,8 +279,7 @@ defmodule Flop.Phoenix.Pagination do
       previous_link_attrs: [
         aria: [label: "Go to previous page"],
         class: "pagination-previous"
-      ],
-      previous_link_content: "Previous"
+      ]
     ]
   end
 

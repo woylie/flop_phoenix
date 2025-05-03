@@ -34,10 +34,8 @@ defmodule Flop.Phoenix do
         target={@target}
         opts={[
           next_link_attrs: [class: "next"],
-          next_link_content: next_icon(),
           pagination_link_aria_label: &"\#{&1}ページ目へ",
-          previous_link_attrs: [class: "prev"],
-          previous_link_content: previous_icon()
+          previous_link_attrs: [class: "prev"]
         ]}
       />
       \"""
@@ -153,8 +151,6 @@ defmodule Flop.Phoenix do
 
   - `:next_link_attrs` - The attributes for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
-  - `:next_link_content` - The content for the link to the next page.
-    Default: `#{inspect(Pagination.default_opts()[:next_link_content])}`.
   - `:pagination_link_aria_label` - 1-arity function that takes a page number
     and returns an aria label for the corresponding page link.
     Default: `&"Go to page \#{&1}"`.
@@ -166,18 +162,14 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
   - `:previous_link_attrs` - The attributes for the link to the previous page.
     Default: `#{inspect(Pagination.default_opts()[:previous_link_attrs])}`.
-  - `:previous_link_content` - The content for the link to the previous page.
-    Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
   """
   @type pagination_option ::
           {:next_link_attrs, keyword}
-          | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
           | {:pagination_list_item_attrs, keyword}
           | {:previous_link_attrs, keyword}
-          | {:previous_link_content, Phoenix.HTML.safe() | binary}
 
   @typedoc """
   Defines how many page links to render.
@@ -283,8 +275,7 @@ defmodule Flop.Phoenix do
   ## Previous/next links
 
   By default, the previous and next links contain the texts `Previous` and
-  `Next`. To change this, you can pass the `:previous_link_content` and
-  `:next_link_content` options.
+  `Next`. To change this, you can use the `:previous` and `:next` slots.
   """
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
@@ -409,6 +400,20 @@ defmodule Flop.Phoenix do
     a distinct aria label.
     """
 
+  slot :previous,
+    doc: """
+    The content of the pagination link or button to the previous page.
+
+    If the slot is not used, the text "Previous" is rendered.
+    """
+
+  slot :next,
+    doc: """
+    The content of the pagination link or button to the next page.
+
+    If the slot is not used, the text "Next" is rendered.
+    """
+
   slot :ellipsis,
     doc: """
     The content of the `<li>` element that usually shows an ellipsis and is
@@ -448,7 +453,10 @@ defmodule Flop.Phoenix do
           rel="prev"
           {@opts[:previous_link_attrs]}
         >
-          {@opts[:previous_link_content]}
+          {render_slot(@previous)}
+          <%= if @previous == [] do %>
+            Previous
+          <% end %>
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
@@ -460,7 +468,10 @@ defmodule Flop.Phoenix do
           rel="next"
           {@opts[:next_link_attrs]}
         >
-          {@opts[:next_link_content]}
+          {render_slot(@next)}
+          <%= if @next == [] do %>
+            Next
+          <% end %>
         </.pagination_link>
         <.page_links
           :if={p.pagination_type in [:page, :offset] and @page_links != :none}
@@ -486,7 +497,10 @@ defmodule Flop.Phoenix do
           rel="prev"
           {@opts[:previous_link_attrs]}
         >
-          {@opts[:previous_link_content]}
+          {render_slot(@previous)}
+          <%= if @previous == [] do %>
+            Previous
+          <% end %>
         </.pagination_link>
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
@@ -498,7 +512,10 @@ defmodule Flop.Phoenix do
           rel="next"
           {@opts[:next_link_attrs]}
         >
-          {@opts[:next_link_content]}
+          {render_slot(@next)}
+          <%= if @next == [] do %>
+            Next
+          <% end %>
         </.pagination_link>
       </nav>
     </.pagination_for>
