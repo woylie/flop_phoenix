@@ -785,6 +785,11 @@ defmodule Flop.Phoenix do
   Returns an aria label for a link to the given page number.
 
   This is the default function used by `pagination/1`.
+
+  ## Example
+
+      iex> page_link_aria_label(5)
+      "Go to page 5"
   """
   @spec page_link_aria_label(integer) :: String.t()
   def page_link_aria_label(n) when is_integer(n) do
