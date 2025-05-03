@@ -380,7 +380,7 @@ defmodule Flop.Phoenix do
     slot.
 
     Note that the `disabled` attribute is automatically set for buttons and the
-    `aria-disabled="true" attribute is automatically set for links.
+    `aria-disabled="true"` attribute is automatically set for links.
 
     It is recommended to define CSS styles using the
     `[disabled], [aria-disabled="true"]` selector instead of using a class.
