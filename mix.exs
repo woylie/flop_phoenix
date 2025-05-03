@@ -88,9 +88,16 @@ defmodule FlopPhoenix.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: [
+        "guides/recipes/load_more_and_infinite_scroll.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
       source_ref: @version,
       skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
+      groups_for_extras: [
+        Recipes: ~r/recipes\/.?/
+      ],
       groups_for_docs: [
         Components: &(&1[:section] == :components)
       ]
