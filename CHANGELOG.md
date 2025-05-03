@@ -113,9 +113,12 @@ Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
 + </Flop.Phoenix.pagination>
 ```
 
-Remove the `:disabled_attrs` option. Select disabled links in CSS with
-`a:[aria-disabled="true"]`. Note that the `disabled` and `aria-disabled`
-attributes are set automatically and do not need to be passed here.
+Remove the `:disabled_attrs` option. Note that the `disabled` and
+`aria-disabled` attributes are set automatically and do not need to be passed
+here.
+
+To style disabled links/buttons without a CSS class, use the CSS selector
+`[disabled], [aria-disabled="true"]`.
 
 ```diff
   <Flop.Phoenix.pagination
@@ -149,6 +152,9 @@ Remove the `:pagination_list_attrs`, `:pagination_list_item_attrs`,
 list class and page link classes, set them explicitly. Note that the
 `aria-current` attribute is set automatically and does not need to be set here.
 
+To style the current page link without a CSS class, use the CSS selector
+`[aria-current="page"]`.
+
 ```diff
   <Flop.Phoenix.pagination
     meta={@meta}
@@ -168,6 +174,10 @@ list class and page link classes, set them explicitly. Note that the
 +     current_page_link_attrs={[class: "pagination-link is-current"]}
   >
 ```
+
+Ensure that your CSS styles work with both `<a>` elements (used when a `path` is
+set) and `<button>` elements (used when no `path` is set). Check the appearance
+of the component carefully
 
 ## [0.24.0] - 2025-02-01
 
