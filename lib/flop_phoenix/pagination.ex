@@ -268,18 +268,10 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
-      next_link_attrs: [
-        aria: [label: "Go to next page"],
-        class: "pagination-next"
-      ],
       pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
-      pagination_list_item_attrs: [],
-      previous_link_attrs: [
-        aria: [label: "Go to previous page"],
-        class: "pagination-previous"
-      ]
+      pagination_list_item_attrs: []
     ]
   end
 
