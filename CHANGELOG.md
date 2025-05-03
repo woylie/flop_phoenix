@@ -19,7 +19,9 @@
   instead of `pagination_link_attrs` option.
 - Set current pagination link attributes with `current_page_link_attrs`
   attribute instead of `current_link_attrs` option.
-- Remove default class for pagination list.
+- Set disabled link attributes with `disabled_link_attrs` attribute instead of
+  `disabled_attrs` option.
+- Remove default class for pagination list and pagination links.
 - Use `<button>` elements for pagination if no `path` is set.
 - Add `rel` attribute to previous/next links.
 - Mark up disabled previous/next links of the pagination as
@@ -30,6 +32,8 @@
 
 ### Removed
 
+- Remove `opts` attribute and configuration via application environment from
+  pagination component.
 - Remove `wrapper_attrs` from the pagination options. Pass the attributes
   directly as attributes instead.
 - Remove default `class` attributes from pagination component.
@@ -40,8 +44,6 @@
   `next` slot instead.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
   Use the `ellipsis` slot instead.
-- Remove `disabled_attrs` from pagination options. Use `[aria-disabled="true"]`
-  CSS selector instead.
 
 ### How to upgrade
 
@@ -112,7 +114,8 @@ Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
 ```
 
 Remove the `:disabled_attrs` option. Select disabled links in CSS with
-`a:[aria-disabled="true"]`.
+`a:[aria-disabled="true"]`. Note that the `disabled` and `aria-disabled`
+attributes are set automatically and do not need to be passed here.
 
 ```diff
   <Flop.Phoenix.pagination
@@ -121,6 +124,7 @@ Remove the `:disabled_attrs` option. Select disabled links in CSS with
     opts={[
 -     disabled_attrs: [class: "is-disabled"]
     ]}
++     disabled_link_attrs: [class: "is-disabled"]
   >
 ```
 
@@ -138,11 +142,12 @@ Remove the `:pagination_link_aria_label` option and set the
   >
 ```
 
-Remove the `:pagination_list_attrs`, `:pagination_list_item_attrs`, and
-`:pagination_link_attrs` options and set the `page_list_attrs`,
-`page_list_item_attrs`, and `page_link_attrs` attributes instead. If
-you relied on the default page list class and page link classes, set them
-explicitly.
+Remove the `:pagination_list_attrs`, `:pagination_list_item_attrs`,
+`:pagination_link_attrs`, and `:current_link_attrs` options and set the
+`page_list_attrs`, `page_list_item_attrs`, `page_link_attrs`, and
+`current_page_link_attrs` attributes instead. If you relied on the default page
+list class and page link classes, set them explicitly. Note that the
+`aria-current` attribute is set automatically and does not need to be set here.
 
 ```diff
   <Flop.Phoenix.pagination
@@ -152,10 +157,15 @@ explicitly.
 -     pagination_list_attrs: [class: "pagination-list"]
 -     pagination_list_item_attrs: [class: "pagination-list-item"]
 -     pagination_link_attrs: [class: "pagination-link"]
+-     current_link_attrs: [
+-       class: "pagination-link is-current",
+-       aria: [current: "page"]
+-     ]
     ]}
 +     page_list_attrs={[class: "pagination-list"]}
 +     page_list_item_attrs={[class: "pagination-list-item"]}
 +     page_link_attrs={[class: "pagination-link"]}
++     current_page_link_attrs={[class: "pagination-link is-current"]}
   >
 ```
 

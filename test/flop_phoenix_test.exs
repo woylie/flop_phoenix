@@ -1309,6 +1309,26 @@ defmodule Flop.PhoenixTest do
       assert attribute(previous_link, "rel") == nil
     end
 
+    test "can set additional attributes for disabled links" do
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          disabled_link_attrs={[class: "is-disabled"]}
+        />
+        """)
+
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
+
+      assert attribute(previous_link, "class") ==
+               "pagination-previous is-disabled"
+
+      assert attribute(previous_link, "aria-disabled") == "true"
+    end
+
     test "disables previous button if on first page when using on_paginate" do
       assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
 
@@ -1323,6 +1343,26 @@ defmodule Flop.PhoenixTest do
       assert attribute(previous_button, "href") == nil
       assert attribute(previous_button, "disabled") == "disabled"
       assert attribute(previous_button, "rel") == nil
+    end
+
+    test "can set additional attributes on disabled buttons" do
+      assigns = %{meta: build(:meta_with_cursors, has_previous_page?: false)}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          on_paginate={JS.push("paginate")}
+          disabled_link_attrs={[class: "is-disabled"]}
+        />
+        """)
+
+      assert previous_button = find_one(html, "button:fl-contains('Previous')")
+
+      assert attribute(previous_button, "class") ==
+               "pagination-previous is-disabled"
+
+      assert attribute(previous_button, "disabled") == "disabled"
     end
 
     test "allows to overwrite previous link class and content if disabled" do

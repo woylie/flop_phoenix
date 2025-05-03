@@ -371,6 +371,21 @@ defmodule Flop.Phoenix do
     selector instead of using a class.
     """
 
+  attr :disabled_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to disabled previous/next links or buttons.
+
+    If a `class` is set, it is merged with the class set on the previous/next
+    slot.
+
+    Note that the `disabled` attribute is automatically set for buttons and the
+    `aria-disabled="true" attribute is automatically set for links.
+
+    It is recommended to define CSS styles using the
+    `[disabled], [aria-disabled="true"]` selector instead of using a class.
+    """
+
   attr :rest, :global,
     default: %{"aria-label": "Pagination"},
     doc: """
@@ -464,6 +479,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.previous_page)}
+          disabled_link_attrs={@disabled_link_attrs}
           target={@target}
           page={p.previous_page}
           path={p.path_fun.(p.previous_page)}
@@ -476,6 +492,7 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.next_page)}
+          disabled_link_attrs={@disabled_link_attrs}
           target={@target}
           page={p.next_page}
           path={p.path_fun.(p.next_page)}
@@ -510,6 +527,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.previous_cursor)}
+          disabled_link_attrs={@disabled_link_attrs}
           rel="prev"
           {@previous_attrs}
         >
@@ -522,6 +540,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.next_cursor)}
+          disabled_link_attrs={@disabled_link_attrs}
           rel="next"
           {@next_attrs}
         >
@@ -623,27 +642,63 @@ defmodule Flop.Phoenix do
   attr :page, :integer, default: nil
   attr :direction, :atom, default: nil
   attr :disabled, :boolean, default: false
+  attr :disabled_link_attrs, :list, default: []
   attr :rel, :string, default: nil
   attr :rest, :global
   slot :inner_block
 
-  defp pagination_link(%{disabled: true, path: nil} = assigns) do
+  defp pagination_link(
+         %{
+           disabled: true,
+           disabled_link_attrs: disabled_link_attrs,
+           path: nil,
+           rest: rest
+         } = assigns
+       ) do
+    {class, disabled_link_attrs} = Keyword.pop(disabled_link_attrs, :class)
+
+    rest =
+      Map.update(rest, :class, class, fn default_class ->
+        merge_classes(default_class, class)
+      end)
+
+    assigns =
+      assign(assigns, disabled_link_attrs: disabled_link_attrs, rest: rest)
+
     ~H"""
-    <button disabled {@rest}>
+    <button disabled {@disabled_link_attrs} {@rest}>
       {render_slot(@inner_block)}
     </button>
     """
   end
 
-  defp pagination_link(%{disabled: true} = assigns) do
+  defp pagination_link(
+         %{
+           disabled: true,
+           disabled_link_attrs: disabled_link_attrs,
+           rest: rest
+         } =
+           assigns
+       ) do
     # Disabled state of the link is expressed by omission of the href attribute
     # and addition of aria-disabled attribute. Links without href do not
     # implicitly have the role "link", so it needs to be added as an attribute.
     #
     # https://www.w3.org/TR/html-aria/#docconformance
     # https://www.w3.org/TR/html-aria/#example-communicate-a-disabled-link-with-aria
+
+    {class, disabled_link_attrs} = Keyword.pop(disabled_link_attrs, :class)
+
+    rest =
+      Map.update(rest, :class, class, fn default_class ->
+        merge_classes(default_class, class)
+      end)
+
+    assigns =
+      assign(assigns, disabled_link_attrs: disabled_link_attrs, rest: rest)
+
     ~H"""
-    <a role="link" aria-disabled="true" {@rest}>
+    <a role="link" aria-disabled="true" {@disabled_link_attrs} {@rest}>
       {render_slot(@inner_block)}
     </a>
     """
@@ -688,6 +743,13 @@ defmodule Flop.Phoenix do
     </.link>
     """
   end
+
+  defp merge_classes(nil, class), do: class
+  defp merge_classes(class, nil), do: class
+  defp merge_classes([_ | _] = a, [_ | _] = b), do: a ++ b
+  defp merge_classes([_ | _] = a, b), do: a ++ [b]
+  defp merge_classes(a, [_ | _] = b), do: [a] ++ b
+  defp merge_classes(a, b), do: [a, b]
 
   @doc """
   Returns an aria label for a link to the given page number.
