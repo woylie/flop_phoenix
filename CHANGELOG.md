@@ -52,6 +52,10 @@ function that returns the pagination opts, it is recommended to define a
 component that wraps the `Flop.Phoenix.pagination/1` component and sets the
 necessary attributes.
 
+Follow the upgrade guide of version 0.24.0 to update the pagination component
+configuration, including the removal of the application configuration, if you
+haven't done so already.
+
 Remove the `wrapper_opts` from your pagination options and pass them directly
 as attributes instead.
 
