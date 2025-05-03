@@ -5,7 +5,7 @@
 ### Added
 
 - Accept global attributes for pagination component.
-- Add `ellipsis` slot to pagination component.
+- Add `previous`, `next`, and `ellipsis` slots to pagination component.
 
 ### Changed
 
@@ -24,6 +24,8 @@
 - Remove default `class` attributes from pagination component.
 - Remove `role` attribute from the pagination component. The `<nav>` element
   already has the implicit ARIA role `navigation`.
+- Remove `previous_link_content` and `next_link_content` options from pagination
+  component. Use `previous` and `next` slot instead.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
   Use the `ellipsis` slot instead.
 - Remove `current_link_attrs` from pagination options. Use
@@ -49,6 +51,24 @@ as attributes instead.
 +   class="pagination"
 +   aria-label="Quppernerit"
   />
+```
+
+Replace the `:previous_link_content` and `next_link_content` attributes with
+the `previous` and `next` slots.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+    opts={[
+-     previous_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-left" />)),
+-     next_link_content: Phoenix.HTML.raw(~s(<i class="fas fa-chevron-right" />))
+    ]}
+- />
++ >
++   <:previous><i class="fas fa-chevron-left" /></:previous>
++   <:next><i class="fas fa-chevron-right" /></:next>
++ </Flop.Phoenix.pagination>
 ```
 
 Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
