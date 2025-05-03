@@ -611,7 +611,7 @@ defmodule Flop.PhoenixTest do
       end
     end
 
-    test "allows to overwrite pagination link attributes" do
+    test "allows to set page link and current page link attributes" do
       assigns = %{meta: build(:meta_on_second_page)}
 
       html =
@@ -620,12 +620,16 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           page_link_attrs={[class: "p-link", beep: "boop"]}
+          current_page_link_attrs={[class: "is-current"]}
         />
         """)
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
       assert attribute(link, "beep") == "boop"
       assert attribute(link, "class") == "p-link"
+
+      assert link = find_one(html, "li a[aria-label='Go to page 2']")
+      assert attribute(link, "class") == "is-current"
     end
 
     test "overrides aria-label for page links" do

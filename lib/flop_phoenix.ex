@@ -360,6 +360,17 @@ defmodule Flop.Phoenix do
     current page link.
     """
 
+  attr :current_page_link_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the current page link or button.
+
+    Note that the `aria-current` attribute is automatically set.
+
+    It is recommended to define CSS styles using the `[aria-current="page"]`
+    selector instead of using a class.
+    """
+
   attr :rest, :global,
     default: %{"aria-label": "Pagination"},
     doc: """
@@ -489,6 +500,7 @@ defmodule Flop.Phoenix do
           total_pages={p.total_pages}
           page_list_item_attrs={@page_list_item_attrs}
           page_link_attrs={@page_link_attrs}
+          current_page_link_attrs={@current_page_link_attrs}
           {@page_list_attrs}
         />
         <.pagination_link
@@ -526,6 +538,7 @@ defmodule Flop.Phoenix do
   attr :on_paginate, JS
   attr :page_list_item_attrs, :list, required: true
   attr :page_link_attrs, :list, required: true
+  attr :current_page_link_attrs, :list, required: true
   attr :page_link_aria_label_fun, {:fun, 1}, required: true
   attr :path_fun, :any, required: true
   attr :page_range_end, :integer, required: true
@@ -545,7 +558,8 @@ defmodule Flop.Phoenix do
           path={@path_fun.(1)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(1)}
-          {@current_page != 1 && @page_link_attrs}
+          {(@current_page != 1 && @page_link_attrs) || []}
+          {(@current_page == 1 && @current_page_link_attrs) || []}
         >
           1
         </.pagination_link>
@@ -564,6 +578,7 @@ defmodule Flop.Phoenix do
           aria-current={@current_page == page && "page"}
           aria-label={@page_link_aria_label_fun.(page)}
           {(@current_page != page && @page_link_attrs) || []}
+          {(@current_page == page && @current_page_link_attrs) || []}
         >
           {page}
         </.pagination_link>
@@ -580,7 +595,8 @@ defmodule Flop.Phoenix do
           path={@path_fun.(@total_pages)}
           on_paginate={@on_paginate}
           aria-label={@page_link_aria_label_fun.(@total_pages)}
-          {@current_page != @total_pages && @page_link_attrs}
+          {(@current_page != @total_pages && @page_link_attrs) || []}
+          {(@current_page == @total_pages && @current_page_link_attrs) || []}
         >
           {@total_pages}
         </.pagination_link>

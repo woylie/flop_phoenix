@@ -17,6 +17,8 @@
   instead of `pagination_list_item_attrs` option.
 - Set pagination link attributes with `page_link_attrs` attribute
   instead of `pagination_link_attrs` option.
+- Set current pagination link attributes with `current_page_link_attrs`
+  attribute instead of `current_link_attrs` option.
 - Remove default class for pagination list.
 - Use `<button>` elements for pagination if no `path` is set.
 - Add `rel` attribute to previous/next links.
@@ -38,8 +40,6 @@
   `next` slot instead.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
   Use the `ellipsis` slot instead.
-- Remove `current_link_attrs` from pagination options. Use
-  `[aria-current="page"]` CSS selector instead.
 - Remove `disabled_attrs` from pagination options. Use `[aria-disabled="true"]`
   CSS selector instead.
 
