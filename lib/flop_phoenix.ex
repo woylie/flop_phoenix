@@ -611,6 +611,21 @@ defmodule Flop.Phoenix do
     """
   end
 
+  defp pagination_link(%{on_paginate: on_paginate, path: nil} = assigns)
+       when not is_nil(on_paginate) do
+    ~H"""
+    <button
+      phx-click={@on_paginate}
+      phx-target={@target}
+      phx-value-page={@page}
+      phx-value-to={@direction}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
+
   defp pagination_link(assigns) do
     ~H"""
     <.link
