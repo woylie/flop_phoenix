@@ -230,6 +230,36 @@ defmodule Flop.Phoenix do
     path={{Routes, :pet_path, [@socket, :index]}}
   />
   ```
+
+  With all attributes and slots:
+
+  ```heex
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={~p"/pets"}
+    on_paginate={JS.dispatch("my_app:scroll_to", to: "#pet-table")}
+    target={@myself}
+    class="pagination"
+    page_link_aria_label_fun={&"\#{&1}ページ目へ"}
+    page_links={5}
+    page_list_attrs={[class: "pagination-list"]}
+    page_list_item_attrs={[class: "pagination-item"]}
+    page_link_attrs={[class: "pagination-link"]}
+    current_page_link_attrs={[class: "pagination-link is-current"]}
+    disabled_link_attrs={[class: "is-disabled"]}
+    reverse
+  >
+    <:previous attrs={[class: "pagination-previous"]}>
+      Previous
+    </:previous>
+    <:next attrs={[class: "pagination-next"]}>
+      Next
+    </:next>
+    <:ellipsis>
+      <span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>
+    </:ellipsis>
+  </Flop.Phoenix.pagination>
+  ```
   """
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
