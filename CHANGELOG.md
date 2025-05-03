@@ -177,7 +177,7 @@ To style the current page link without a CSS class, use the CSS selector
 
 Ensure that your CSS styles work with both `<a>` elements (used when a `path` is
 set) and `<button>` elements (used when no `path` is set). Check the appearance
-of the component carefully
+of the pagination component carefully.
 
 ## [0.24.0] - 2025-02-01
 
