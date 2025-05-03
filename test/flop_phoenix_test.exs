@@ -585,7 +585,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          list_attrs={[class: "p-list", title: "boop"]}
+          page_list_attrs={[class: "p-list", title: "boop"]}
         />
         """)
 

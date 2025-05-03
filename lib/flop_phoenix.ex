@@ -362,7 +362,7 @@ defmodule Flop.Phoenix do
     described in the `Customization` section of the module documentation.
     """
 
-  attr :list_attrs, :list,
+  attr :page_list_attrs, :list,
     default: [],
     doc: """
     Attributes to be added to the `<ul>` that contains the page links.
@@ -500,7 +500,7 @@ defmodule Flop.Phoenix do
           page_range_start={p.page_range_start}
           target={@target}
           total_pages={p.total_pages}
-          {@list_attrs}
+          {@page_list_attrs}
         />
         <.pagination_link
           :if={p.pagination_type in [:first, :last]}
