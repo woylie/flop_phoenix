@@ -492,7 +492,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert find_one(html, "ul[class='pagination-links']")
+      assert find_one(html, "ul")
 
       assert link = find_one(html, "li a[aria-label='Go to page 1']")
       assert attribute(link, "class") == "pagination-link"
@@ -585,7 +585,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          opts={[pagination_list_attrs: [class: "p-list", title: "boop"]]}
+          list_attrs={[class: "p-list", title: "boop"]}
         />
         """)
 
