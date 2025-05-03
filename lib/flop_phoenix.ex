@@ -445,6 +445,7 @@ defmodule Flop.Phoenix do
           page={p.previous_page}
           path={p.path_fun.(p.previous_page)}
           on_paginate={@on_paginate}
+          rel="prev"
           {@opts[:previous_link_attrs]}
         >
           {@opts[:previous_link_content]}
@@ -456,6 +457,7 @@ defmodule Flop.Phoenix do
           page={p.next_page}
           path={p.path_fun.(p.next_page)}
           on_paginate={@on_paginate}
+          rel="next"
           {@opts[:next_link_attrs]}
         >
           {@opts[:next_link_content]}
@@ -481,6 +483,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.previous_cursor)}
+          rel="prev"
           {@opts[:previous_link_attrs]}
         >
           {@opts[:previous_link_content]}
@@ -492,6 +495,7 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.next_cursor)}
+          rel="next"
           {@opts[:next_link_attrs]}
         >
           {@opts[:next_link_content]}
@@ -585,8 +589,17 @@ defmodule Flop.Phoenix do
   attr :page, :integer, default: nil
   attr :direction, :atom, default: nil
   attr :disabled, :boolean, default: false
+  attr :rel, :string, default: nil
   attr :rest, :global
   slot :inner_block
+
+  defp pagination_link(%{disabled: true, path: nil} = assigns) do
+    ~H"""
+    <button disabled {@rest}>
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
 
   defp pagination_link(%{disabled: true} = assigns) do
     # Disabled state of the link is expressed by omission of the href attribute
@@ -605,7 +618,7 @@ defmodule Flop.Phoenix do
   defp pagination_link(%{on_paginate: nil, path: path} = assigns)
        when is_binary(path) do
     ~H"""
-    <.link patch={@path} {@rest}>
+    <.link patch={@path} rel={@rel} {@rest}>
       {render_slot(@inner_block)}
     </.link>
     """
@@ -630,6 +643,7 @@ defmodule Flop.Phoenix do
     ~H"""
     <.link
       patch={@path}
+      rel={@rel}
       phx-click={@on_paginate}
       phx-target={@target}
       phx-value-page={@page}

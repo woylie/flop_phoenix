@@ -10,6 +10,7 @@
 ### Changed
 
 - Use `<button>` elements for pagination if no `path` is set.
+- Add `rel` attribute to previous/next links.
 - Mark up disabled previous/next links of the pagination as
   `<a role="link" aria-disabled="true">` instead of `<span>`.
 - Update documentation for `hidden_inputs_for_filter/1` to use
