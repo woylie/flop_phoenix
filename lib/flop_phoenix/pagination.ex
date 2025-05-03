@@ -268,7 +268,6 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
-      pagination_link_aria_label: &"Go to page #{&1}",
       pagination_link_attrs: [class: "pagination-link"],
       pagination_list_attrs: [class: "pagination-list"],
       pagination_list_item_attrs: []
@@ -283,23 +282,12 @@ defmodule Flop.Phoenix.Pagination do
   end
 
   @doc false
-  def attrs_for_page_link(page, page, opts) do
-    add_page_link_aria_label([], page, opts)
+  def attrs_for_page_link(page, page, _opts) do
+    []
   end
 
   @doc false
-  def attrs_for_page_link(page, _current_page, opts) do
-    add_page_link_aria_label(opts[:pagination_link_attrs], page, opts)
-  end
-
-  defp add_page_link_aria_label(attrs, page, opts) do
-    aria_label = opts[:pagination_link_aria_label].(page)
-
-    Keyword.update(
-      attrs,
-      :aria,
-      [label: aria_label],
-      &Keyword.put(&1, :label, aria_label)
-    )
+  def attrs_for_page_link(_page, _current_page, opts) do
+    opts[:pagination_link_attrs]
   end
 end

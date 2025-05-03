@@ -634,7 +634,7 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination
           meta={@meta}
           path="/pets"
-          opts={[pagination_link_aria_label: &"On to page #{&1}"]}
+          page_link_aria_label_fun={&"On to page #{&1}"}
         />
         """)
 

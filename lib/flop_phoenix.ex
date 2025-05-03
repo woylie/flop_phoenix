@@ -32,9 +32,7 @@ defmodule Flop.Phoenix do
         path={@path}
         on_paginate={@on_paginate}
         target={@target}
-        opts={[
-          pagination_link_aria_label: &"\#{&1}ページ目へ",
-        ]}
+        page_link_aria_label_fun={&"\#{&1}ページ目へ"}
       >
         <:previous attrs={[class: "previous"]}>
           <i class="fas fa-chevron-left"/>
@@ -141,9 +139,6 @@ defmodule Flop.Phoenix do
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
 
-  - `:pagination_link_aria_label` - 1-arity function that takes a page number
-    and returns an aria label for the corresponding page link.
-    Default: `&"Go to page \#{&1}"`.
   - `:pagination_link_attrs` - The attributes for the pagination links.
     Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
   - `:pagination_list_attrs` - The attributes for the pagination list.
@@ -152,8 +147,7 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
   """
   @type pagination_option ::
-          {:pagination_link_aria_label, (pos_integer -> binary)}
-          | {:pagination_link_attrs, keyword}
+          {:pagination_link_attrs, keyword}
           | {:pagination_list_attrs, keyword}
           | {:pagination_list_item_attrs, keyword}
 
@@ -250,18 +244,6 @@ defmodule Flop.Phoenix do
     path={{Routes, :pet_path, [@socket, :index]}}
   />
   ```
-
-  ## Pagination link aria label
-
-  For the page links, there is the `:pagination_link_aria_label` option to set
-  the aria label. Since the page number is usually part of the aria label, you
-  need to pass a function that takes the page number as an integer and returns
-  the label as a string. The default is `&"Goto page \#{&1}"`.
-
-  ## Previous/next links
-
-  By default, the previous and next links contain the texts `Previous` and
-  `Next`. To change this, you can use the `:previous` and `:next` slots.
   """
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
@@ -337,6 +319,15 @@ defmodule Flop.Phoenix do
     doc: """
     Sets the `phx-target` attribute for the pagination links.
     """
+
+  attr :page_link_aria_label_fun, {:fun, 1},
+    doc: """
+    Function that returns an aria label for the page link or button to the
+    given page number.
+
+    The returned label should be localized and start with a capital letter.
+    """,
+    default: &Flop.Phoenix.page_link_aria_label/1
 
   attr :page_links, :any,
     default: 5,
@@ -498,6 +489,7 @@ defmodule Flop.Phoenix do
           ellipsis_end?={p.ellipsis_end?}
           ellipsis_start?={p.ellipsis_start?}
           on_paginate={@on_paginate}
+          page_link_aria_label_fun={@page_link_aria_label_fun}
           opts={@opts}
           path_fun={p.path_fun}
           page_range_end={p.page_range_end}
@@ -538,6 +530,7 @@ defmodule Flop.Phoenix do
   attr :ellipsis_end?, :boolean, required: true
   attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
+  attr :page_link_aria_label_fun, {:fun, 1}, required: true
   attr :opts, :list, required: true
   attr :path_fun, :any, required: true
   attr :page_range_end, :integer, required: true
@@ -555,6 +548,7 @@ defmodule Flop.Phoenix do
           page={1}
           path={@path_fun.(1)}
           on_paginate={@on_paginate}
+          aria-label={@page_link_aria_label_fun.(1)}
           {Pagination.attrs_for_page_link(1, @current_page, @opts)}
         >
           1
@@ -575,6 +569,7 @@ defmodule Flop.Phoenix do
           path={@path_fun.(page)}
           on_paginate={@on_paginate}
           aria-current={if @current_page == page, do: "page"}
+          aria-label={@page_link_aria_label_fun.(page)}
           {Pagination.attrs_for_page_link(page, @current_page, @opts)}
         >
           {page}
@@ -591,6 +586,7 @@ defmodule Flop.Phoenix do
           page={@total_pages}
           path={@path_fun.(@total_pages)}
           on_paginate={@on_paginate}
+          aria-label={@page_link_aria_label_fun.(@total_pages)}
           {Pagination.attrs_for_page_link(@total_pages, @current_page, @opts)}
         >
           {@total_pages}
@@ -682,6 +678,16 @@ defmodule Flop.Phoenix do
       {render_slot(@inner_block)}
     </.link>
     """
+  end
+
+  @doc """
+  Returns an aria label for a link to the given page number.
+
+  This is the default function used by `pagination/1`.
+  """
+  @spec page_link_aria_label(integer) :: String.t()
+  def page_link_aria_label(n) when is_integer(n) do
+    "Go to page #{n}"
   end
 
   @doc """
