@@ -316,10 +316,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") ==
-               "pagination-previous disabled"
+      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "aria-disabled") == "true"
+      assert attribute(previous_link, "href") == nil
+      assert attribute(previous_link, "role") == "link"
     end
 
     test "disables previous link if on first page when using on_paginate" do
@@ -330,10 +332,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") ==
-               "pagination-previous disabled"
+      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "href") == nil
+      assert attribute(previous_link, "aria-disabled") == "true"
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -351,9 +354,12 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Prev')")
+      assert previous_link = find_one(html, "a:fl-contains('Prev')")
 
-      assert attribute(previous_link, "class") == "prev disabled"
+      assert attribute(previous_link, "class") == "prev"
+      assert attribute(previous_link, "href") == nil
+      assert attribute(previous_link, "aria-disabled") == "true"
+      assert attribute(previous_link, "role") == "link"
       assert attribute(previous_link, "title") == "no"
       assert text(previous_link) == "Prev"
     end
@@ -443,9 +449,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert next = find_one(html, "span:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next disabled"
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
       assert attribute(next, "href") == nil
+      assert attribute(next, "aria-disabled") == "true"
+      assert attribute(next, "role") == "link"
     end
 
     test "renders next link on last page when using on_paginate" do
@@ -456,9 +464,11 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert next = find_one(html, "span:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next disabled"
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
       assert attribute(next, "href") == nil
+      assert attribute(next, "role") == "link"
+      assert attribute(next, "aria-disabled") == "true"
     end
 
     test "allows to overwrite next link attributes and content when disabled" do
@@ -476,8 +486,11 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert next_link = find_one(html, "span:fl-contains('N-n-next')")
-      assert attribute(next_link, "class") == "next disabled"
+      assert next_link = find_one(html, "a:fl-contains('N-n-next')")
+      assert attribute(next_link, "class") == "next"
+      assert attribute(next_link, "href") == nil
+      assert attribute(next_link, "aria-disabled") == "true"
+      assert attribute(next_link, "role") == "link"
       assert attribute(next_link, "title") == "no"
     end
 
@@ -1278,10 +1291,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") ==
-               "pagination-previous disabled"
+      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "aria-disabled") == "true"
     end
 
     test "disables previous link if on first page when using on_paginate" do
@@ -1292,10 +1305,12 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Previous')")
+      assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") ==
-               "pagination-previous disabled"
+      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "href") == nil
+      assert attribute(previous_link, "aria-disabled") == "true"
+      assert attribute(previous_link, "role") == "link"
     end
 
     test "allows to overwrite previous link class and content if disabled" do
@@ -1313,9 +1328,12 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert previous_link = find_one(html, "span:fl-contains('Prev')")
-      assert attribute(previous_link, "class") == "prev disabled"
+      assert previous_link = find_one(html, "a:fl-contains('Prev')")
+      assert attribute(previous_link, "class") == "prev"
       assert attribute(previous_link, "title") == "no"
+      assert attribute(previous_link, "href") == nil
+      assert attribute(previous_link, "aria-disabled") == "true"
+      assert attribute(previous_link, "role") == "link"
       assert text(previous_link) == "Prev"
     end
 
@@ -1401,9 +1419,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} path="/pets" />
         """)
 
-      assert next = find_one(html, "span:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next disabled"
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
       assert attribute(next, "href") == nil
+      assert attribute(next, "aria-disabled") == "true"
     end
 
     test "renders next link on last page when using on_paginate" do
@@ -1414,8 +1433,10 @@ defmodule Flop.PhoenixTest do
         <Flop.Phoenix.pagination meta={@meta} on_paginate={JS.push("paginate")} />
         """)
 
-      assert next = find_one(html, "span:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next disabled"
+      assert next = find_one(html, "a:fl-contains('Next')")
+      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "aria-disabled") == "true"
+      assert attribute(next, "role") == "link"
       assert attribute(next, "href") == nil
     end
 
@@ -1434,8 +1455,10 @@ defmodule Flop.PhoenixTest do
         />
         """)
 
-      assert next_link = find_one(html, "span:fl-contains('N-n-next')")
-      assert attribute(next_link, "class") == "next disabled"
+      assert next_link = find_one(html, "a:fl-contains('N-n-next')")
+      assert attribute(next_link, "class") == "next"
+      assert attribute(next_link, "aria-disabled") == "true"
+      assert attribute(next_link, "href") == nil
       assert attribute(next_link, "title") == "no"
     end
 

@@ -151,8 +151,6 @@ defmodule Flop.Phoenix do
   @typedoc """
   Defines the available options for `Flop.Phoenix.pagination/1`.
 
-  - `:disabled_class` - The class which is added to disabled links. Default:
-    `#{inspect(Pagination.default_opts()[:disabled_class])}`.
   - `:next_link_attrs` - The attributes for the link to the next page.
     Default: `#{inspect(Pagination.default_opts()[:next_link_attrs])}`.
   - `:next_link_content` - The content for the link to the next page.
@@ -172,8 +170,7 @@ defmodule Flop.Phoenix do
     Default: `#{inspect(Pagination.default_opts()[:previous_link_content])}`.
   """
   @type pagination_option ::
-          {:disabled_class, String.t()}
-          | {:next_link_attrs, keyword}
+          {:next_link_attrs, keyword}
           | {:next_link_content, Phoenix.HTML.safe() | binary}
           | {:pagination_link_aria_label, (pos_integer -> binary)}
           | {:pagination_link_attrs, keyword}
@@ -444,7 +441,6 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.previous_page)}
-          disabled_class={@opts[:disabled_class]}
           target={@target}
           page={p.previous_page}
           path={p.path_fun.(p.previous_page)}
@@ -456,7 +452,6 @@ defmodule Flop.Phoenix do
         <.pagination_link
           :if={p.pagination_type in [:page, :offset]}
           disabled={is_nil(p.next_page)}
-          disabled_class={@opts[:disabled_class]}
           target={@target}
           page={p.next_page}
           path={p.path_fun.(p.next_page)}
@@ -486,7 +481,6 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.previous_cursor)}
-          disabled_class={@opts[:disabled_class]}
           {@opts[:previous_link_attrs]}
         >
           {@opts[:previous_link_content]}
@@ -498,7 +492,6 @@ defmodule Flop.Phoenix do
           on_paginate={@on_paginate}
           target={@target}
           disabled={is_nil(p.next_cursor)}
-          disabled_class={@opts[:disabled_class]}
           {@opts[:next_link_attrs]}
         >
           {@opts[:next_link_content]}
@@ -591,24 +584,20 @@ defmodule Flop.Phoenix do
   attr :target, :string, required: true
   attr :page, :integer, required: true
   attr :disabled, :boolean, default: false
-  attr :disabled_class, :string
   attr :rest, :global
   slot :inner_block
 
-  defp pagination_link(
-         %{disabled: true, disabled_class: disabled_class} = assigns
-       ) do
-    rest =
-      Map.update(assigns.rest, :class, disabled_class, fn class ->
-        [class, disabled_class]
-      end)
-
-    assigns = assign(assigns, :rest, rest)
-
+  defp pagination_link(%{disabled: true} = assigns) do
+    # Disabled state of the link is expressed by omission of the href attribute
+    # and addition of aria-disabled attribute. Links without href do not
+    # implicitly have the role "link", so it needs to be added as an attribute.
+    #
+    # https://www.w3.org/TR/html-aria/#docconformance
+    # https://www.w3.org/TR/html-aria/#example-communicate-a-disabled-link-with-aria
     ~H"""
-    <span {@rest} class={@disabled_class}>
+    <a role="link" aria-disabled="true" {@rest}>
       {render_slot(@inner_block)}
-    </span>
+    </a>
     """
   end
 
@@ -640,24 +629,14 @@ defmodule Flop.Phoenix do
   attr :on_paginate, JS
   attr :target, :string, required: true
   attr :disabled, :boolean, default: false
-  attr :disabled_class, :string, required: true
   attr :rest, :global
   slot :inner_block
 
-  defp cursor_pagination_link(
-         %{disabled: true, disabled_class: disabled_class} = assigns
-       ) do
-    rest =
-      Map.update(assigns.rest, :class, disabled_class, fn class ->
-        [class, disabled_class]
-      end)
-
-    assigns = assign(assigns, :rest, rest)
-
+  defp cursor_pagination_link(%{disabled: true} = assigns) do
     ~H"""
-    <span {@rest} class={@disabled_class}>
+    <a role="link" aria-disabled="true" {@rest}>
       {render_slot(@inner_block)}
-    </span>
+    </a>
     """
   end
 

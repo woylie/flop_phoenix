@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Mark up disabled previous/next links of the pagination as
+  `<a role="link" aria-disabled="true">` instead of `<span>`.
 - Update documentation for `hidden_inputs_for_filter/1` to use
   `Phoenix.Component.inputs_for/1` with the `skip_persistent_id` option.
 - Require Phoenix >= 1.6.0 and < 1.9.0.
@@ -21,9 +23,11 @@
 - Remove `role` attribute from the pagination component. The `<nav>` element
   already has the implicit ARIA role `navigation`.
 - Remove `ellipsis_attrs` and `ellipsis_content` from the pagination options.
-  use the `ellipsis` slot instead.
+  Use the `ellipsis` slot instead.
 - Remove `current_link_attrs` from pagination options. Use
   `[aria-current="page"]` CSS selector instead.
+- Remove `disabled_attrs` from pagination options. Use `[aria-disabled="true"]`
+  CSS selector instead.
 
 ### How to upgrade
 
@@ -62,6 +66,19 @@ Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
 +     <span class="ellipsis" aria-hidden="true">‥</span>
 +   </:ellipsis>
 + </Flop.Phoenix.pagination>
+```
+
+Remove the `:disabled_attrs` option. Select disabled links in CSS with
+`a:[aria-disabled="true"]`.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+    opts={[
+-     disabled_attrs: [class: "is-disabled"],
+    ]}
+  >
 ```
 
 ## [0.24.0] - 2025-02-01

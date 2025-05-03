@@ -268,7 +268,6 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
-      disabled_class: "disabled",
       next_link_attrs: [
         aria: [label: "Go to next page"],
         class: "pagination-next"
