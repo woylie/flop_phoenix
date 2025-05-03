@@ -59,6 +59,7 @@ defmodule FlopPhoenix.MixProject do
       {:jason, "== 1.4.4", only: [:dev, :test]},
       {:makeup_diff, "== 0.1.1", only: :dev, runtime: false},
       {:makeup_eex, "== 2.0.2", only: :dev},
+      {:makeup_html, "== 0.2.0", only: :dev},
       {:phoenix, ">= 1.6.0 and < 1.9.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_view, "~> 1.0.6"},
