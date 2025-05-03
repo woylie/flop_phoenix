@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Set page link aria label function with `page_link_aria_label_fun` attribute
+  on `Flop.Phoenix.pagination/1` component instead of using `opts`.
 - Use `<button>` elements for pagination if no `path` is set.
 - Add `rel` attribute to previous/next links.
 - Mark up disabled previous/next links of the pagination as
@@ -110,8 +112,22 @@ Remove the `:disabled_attrs` option. Select disabled links in CSS with
     meta={@meta}
     path={@path}
     opts={[
--     disabled_attrs: [class: "is-disabled"],
+-     disabled_attrs: [class: "is-disabled"]
     ]}
+  >
+```
+
+Remove the `:pagination_link_aria_label` option and set the
+`page_link_aria_label_fun` attribute instead.
+
+```diff
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={@path}
+    opts={[
+-     pagination_link_aria_label: &"#{&1}ページ目へ"
+    ]}
++     page_link_aria_label_fun={&"#{&1}ページ目へ"}
   >
 ```
 
