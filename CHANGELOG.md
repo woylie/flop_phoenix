@@ -13,6 +13,8 @@
   on `Flop.Phoenix.pagination/1` component instead of using `opts`.
 - Set pagination list attributes with `page_list_attrs` attribute instead of
   `pagination_list_attrs` option.
+- Set pagination list item attributes with `page_list_item_attrs` attribute
+  instead of `pagination_list_item_attrs` option.
 - Remove default class for pagination list.
 - Use `<button>` elements for pagination if no `path` is set.
 - Add `rel` attribute to previous/next links.
@@ -134,8 +136,9 @@ Remove the `:pagination_link_aria_label` option and set the
   >
 ```
 
-Remove the `:pagination_list_attrs` option and set the `page_list_attrs`
-attribute instead. If you relied on the default class, set it explicitly.
+Remove the `:pagination_list_attrs` and `:pagination_list_attrs_item` options
+and set the `page_list_attrs` and `page_list_item_attrs` attributes instead. If
+you relied on the default page list class, set it explicitly.
 
 ```diff
   <Flop.Phoenix.pagination
@@ -143,8 +146,10 @@ attribute instead. If you relied on the default class, set it explicitly.
     path={@path}
     opts={[
 -     pagination_list_attrs: [class: "pagination-list"]
+-     pagination_list_item_attrs: [class: "pagination-list-item"]
     ]}
 +     page_list_attrs={[class: "pagination-list"]}
++     page_list_item_attrs={[class: "pagination-list-item"]}
   >
 ```
 

@@ -268,8 +268,7 @@ defmodule Flop.Phoenix.Pagination do
   @spec default_opts() :: [Flop.Phoenix.pagination_option()]
   def default_opts do
     [
-      pagination_link_attrs: [class: "pagination-link"],
-      pagination_list_item_attrs: []
+      pagination_link_attrs: [class: "pagination-link"]
     ]
   end
 

@@ -142,12 +142,9 @@ defmodule Flop.Phoenix do
 
   - `:pagination_link_attrs` - The attributes for the pagination links.
     Default: `#{inspect(Pagination.default_opts()[:pagination_link_attrs])}`.
-  - `:pagination_list_item_attrs` - The attributes for the pagination list items.
-    Default: `#{inspect(Pagination.default_opts()[:pagination_list_item_attrs])}`.
   """
   @type pagination_option ::
           {:pagination_link_attrs, keyword}
-          | {:pagination_list_item_attrs, keyword}
 
   @typedoc """
   Defines how many page links to render.
@@ -368,6 +365,12 @@ defmodule Flop.Phoenix do
     Attributes to be added to the `<ul>` that contains the page links.
     """
 
+  attr :page_list_item_attrs, :list,
+    default: [],
+    doc: """
+    Attributes to be added to the `<li>` elements that contain the page links.
+    """
+
   attr :rest, :global,
     default: %{"aria-label": "Pagination"},
     doc: """
@@ -500,6 +503,7 @@ defmodule Flop.Phoenix do
           page_range_start={p.page_range_start}
           target={@target}
           total_pages={p.total_pages}
+          page_list_item_attrs={@page_list_item_attrs}
           {@page_list_attrs}
         />
         <.pagination_link
@@ -535,6 +539,7 @@ defmodule Flop.Phoenix do
   attr :ellipsis_end?, :boolean, required: true
   attr :ellipsis_start?, :boolean, required: true
   attr :on_paginate, JS
+  attr :page_list_item_attrs, :list, required: true
   attr :page_link_aria_label_fun, {:fun, 1}, required: true
   attr :opts, :list, required: true
   attr :path_fun, :any, required: true
@@ -548,7 +553,7 @@ defmodule Flop.Phoenix do
   defp page_links(assigns) do
     ~H"""
     <ul {@rest}>
-      <li :if={@page_range_start > 1} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_start > 1} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={1}
@@ -561,14 +566,11 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
 
-      <li :if={@ellipsis_start?} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_start?} {@page_list_item_attrs}>
         <.ellipsis ellipsis={@ellipsis} />
       </li>
 
-      <li
-        :for={page <- @page_range_start..@page_range_end}
-        {@opts[:pagination_list_item_attrs]}
-      >
+      <li :for={page <- @page_range_start..@page_range_end} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={page}
@@ -582,11 +584,11 @@ defmodule Flop.Phoenix do
         </.pagination_link>
       </li>
 
-      <li :if={@ellipsis_end?} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@ellipsis_end?} {@page_list_item_attrs}>
         <.ellipsis ellipsis={@ellipsis} />
       </li>
 
-      <li :if={@page_range_end < @total_pages} {@opts[:pagination_list_item_attrs]}>
+      <li :if={@page_range_end < @total_pages} {@page_list_item_attrs}>
         <.pagination_link
           target={@target}
           page={@total_pages}

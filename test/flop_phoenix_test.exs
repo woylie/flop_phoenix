@@ -595,13 +595,17 @@ defmodule Flop.PhoenixTest do
 
     test "allows to overwrite pagination list item attributes" do
       assigns = %{
-        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20),
-        opts: [pagination_list_item_attrs: [class: "p-list-item"]]
+        meta: build(:meta_on_first_page, current_page: 12, total_pages: 20)
       }
 
       html =
         parse_heex(~H"""
-        <Flop.Phoenix.pagination meta={@meta} path="/pets" page_links={6} opts={@opts} />
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path="/pets"
+          page_links={6}
+          page_list_item_attrs={[class: "p-list-item"]}
+        />
         """)
 
       for list_item <- Floki.find(html, "ul li") do
