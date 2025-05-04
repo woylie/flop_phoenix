@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.25.0] - 2025-05-04
+
 ### Added
 
 - Add guide about load-more buttons and infinite scroll.
