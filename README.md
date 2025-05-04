@@ -209,7 +209,7 @@ component:
     value={@meta.page_size}
   />
 
-  <button class="button" name="reset">reset</button>
+  <button name="reset">reset</button>
 </.form>
 ```
 
