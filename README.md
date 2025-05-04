@@ -22,9 +22,7 @@ end
 Next, set up your business logic following the
 [Flop documentation](https://hex.pm/packages/flop).
 
-## Usage
-
-### Context
+## Context
 
 Define a context function that performs a list query using Flop.
 
@@ -41,7 +39,7 @@ end
 Note the usage of the `replace_invalid_params` option, which lets Flop ignore
 invalid parameters instead of producing an error.
 
-### LiveView
+## LiveView
 
 In the `handle_params` function of your LiveView module, pass the parameters
 to the list function to fetch the data and assign both the data and the meta
@@ -61,7 +59,7 @@ defmodule MyAppWeb.PetLive.Index do
 end
 ```
 
-### Sortable table and pagination
+## Sortable table and pagination
 
 Add a sortable table and pagination to your HEEx template:
 
@@ -98,7 +96,7 @@ The pagination component can be used for both page-based pagination and
 cursor-based pagination. It chooses the pagination type based on the information
 from the `Flop.Meta` struct.
 
-### Event-based pagination and sorting
+## Event-based pagination and sorting
 
 In the example above, the pagination, sorting, and filtering parameters are
 appended to the URL as query parameters. Most of the time, this provides a
@@ -115,7 +113,7 @@ the `path` attribute and handle these events with the `handle_event` callback.
 Refer to the "Using JS commands" section in the `Flop.Phoenix` module
 documentation for an example.
 
-### Filter forms
+## Filter forms
 
 Flop Phoenix implements the `Phoenix.HTML.FormData` for the `Flop.Meta` struct.
 As such, you can easily pass the struct to Phoenix form functions. One
@@ -185,7 +183,7 @@ filter inputs with your own input component.
 You can pass additional options for each field. Refer to the
 `Flop.Phoenix.filter_fields/1` documentation for details.
 
-#### Adding visible inputs for meta parameters
+### Adding visible inputs for meta parameters
 
 If you want to render visible inputs instead of relying on the hidden inputs
 that are automatically added to the form, you can just add them to the form
@@ -215,12 +213,6 @@ component:
 
 `Phoenix.LiveView.JS` command as an attribute to the components in that case.
 
-## Customization
-
-For customizing the components, it is recommend to define wrapper components
-that set the necessary attributes. Refer to the
-[module documentation](https://hexdocs.pm/flop_phoenix/Flop.Phoenix.html#module-customization) for examples.
-
 ## LiveView streams
 
 To use LiveView streams, you can change your `handle_params/3` function as
@@ -246,3 +238,9 @@ within the `:let` attributes of the table component.
   <:col :let={{_, pet}} label="Age" field={:age}>{pet.age}</:col>
 </Flop.Phoenix.table>
 ```
+
+## Customization
+
+For customizing the components, it is recommend to define wrapper components
+that set the necessary attributes. Refer to the
+[module documentation](https://hexdocs.pm/flop_phoenix/Flop.Phoenix.html#module-customization) for examples.
