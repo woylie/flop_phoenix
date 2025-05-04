@@ -11,6 +11,7 @@
 
 - Remove `opts` attribute from `Flop.Phoenix.pagination/1` and remove
   configuration of the pagination component via application environment.
+- Remove all default classes from pagination component.
 - Remove `wrapper_attrs` from pagination component in favor of global
   attributes.
 - Set page link aria label function with `page_link_aria_label_fun` attribute

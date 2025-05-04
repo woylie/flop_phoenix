@@ -121,7 +121,7 @@ defmodule Flop.PhoenixTest do
       a = find_one(html, "a:fl-contains('Previous')")
 
       assert attribute(a, "rel") == "prev"
-      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "class") == nil
       assert attribute(a, "data-phx-link") == "patch"
       assert attribute(a, "data-phx-link-state") == "push"
       assert attribute(a, "href") == "/pets?page_size=10"
@@ -141,7 +141,7 @@ defmodule Flop.PhoenixTest do
       button = find_one(html, "button:fl-contains('Previous')")
 
       assert attribute(button, "rel") == nil
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
       assert attribute(button, "data-phx-link") == nil
       assert attribute(button, "data-phx-link-state") == nil
       assert attribute(button, "href") == nil
@@ -165,7 +165,7 @@ defmodule Flop.PhoenixTest do
       a = find_one(html, "a:fl-contains('Previous')")
 
       assert attribute(a, "rel") == "prev"
-      assert attribute(a, "class") == "pagination-previous"
+      assert attribute(a, "class") == nil
       assert attribute(a, "data-phx-link") == "patch"
       assert attribute(a, "data-phx-link-state") == "push"
       assert attribute(a, "href") == "/pets?page_size=10"
@@ -223,7 +223,7 @@ defmodule Flop.PhoenixTest do
 
       assert button = find_one(html, "button:fl-contains('Previous')")
 
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
 
       assert attribute(button, "phx-click") ==
                ~s|[["push",{"event":"paginate"}]]|
@@ -261,7 +261,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "class") == nil
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
 
@@ -281,7 +281,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "class") == nil
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
 
@@ -321,7 +321,7 @@ defmodule Flop.PhoenixTest do
 
       assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "class") == nil
       assert attribute(previous_link, "aria-disabled") == "true"
       assert attribute(previous_link, "href") == nil
       assert attribute(previous_link, "role") == "link"
@@ -338,7 +338,7 @@ defmodule Flop.PhoenixTest do
 
       assert button = find_one(html, "button:fl-contains('Previous')")
 
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
       assert attribute(button, "href") == nil
       assert attribute(button, "disabled") == "disabled"
     end
@@ -373,7 +373,7 @@ defmodule Flop.PhoenixTest do
 
       assert link = find_one(html, "a:fl-contains('Next')")
 
-      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "class") == nil
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -390,7 +390,7 @@ defmodule Flop.PhoenixTest do
 
       assert button = find_one(html, "button:fl-contains('Next')")
 
-      assert attribute(button, "class") == "pagination-next"
+      assert attribute(button, "class") == nil
 
       assert attribute(button, "phx-click") ==
                ~s|[[\"push\",{\"event\":\"paginate\"}]]|
@@ -446,7 +446,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert next = find_one(html, "a:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "href") == nil
       assert attribute(next, "aria-disabled") == "true"
       assert attribute(next, "role") == "link"
@@ -461,7 +461,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert next = find_one(html, "button:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "href") == nil
       assert attribute(next, "disabled") == "disabled"
     end
@@ -694,7 +694,7 @@ defmodule Flop.PhoenixTest do
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
       assert attribute(previous, "aria-label") == "Go to previous page"
-      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "class") == nil
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
       assert attribute(previous, "rel") == "prev"
@@ -709,7 +709,7 @@ defmodule Flop.PhoenixTest do
 
       assert next = find_one(html, "a:fl-contains('Next')")
       assert attribute(next, "aria-label") == "Go to next page"
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "data-phx-link") == "patch"
       assert attribute(next, "data-phx-link-state") == "push"
       assert attribute(next, "rel") == "next"
@@ -754,7 +754,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert button = find_one(html, "button:fl-contains('Previous')")
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
 
       assert attribute(button, "phx-click") ==
                ~s|[["push",{"event":"paginate"}]]|
@@ -821,7 +821,7 @@ defmodule Flop.PhoenixTest do
       end
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "class") == nil
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
       assert href = attribute(previous, "href")
@@ -834,7 +834,7 @@ defmodule Flop.PhoenixTest do
       assert_urls_match(href, "/pets", expected_query.(1))
 
       assert next = find_one(html, "a:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "data-phx-link") == "patch"
       assert attribute(next, "data-phx-link-state") == "push"
       assert href = attribute(next, "href")
@@ -1087,7 +1087,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert link = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "class") == nil
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -1103,7 +1103,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert button = find_one(html, "button:fl-contains('Previous')")
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
       assert attribute(button, "data-phx-link") == nil
       assert attribute(button, "data-phx-link-state") == nil
       assert attribute(button, "href") == nil
@@ -1127,7 +1127,7 @@ defmodule Flop.PhoenixTest do
 
       assert link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(link, "class") == "pagination-previous"
+      assert attribute(link, "class") == nil
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert attribute(link, "rel") == "prev"
@@ -1190,7 +1190,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert button = find_one(html, "button:fl-contains('Previous')")
-      assert attribute(button, "class") == "pagination-previous"
+      assert attribute(button, "class") == nil
 
       assert attribute(button, "phx-click") ==
                ~s|[["push",{"event":"paginate"}]]|
@@ -1263,7 +1263,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert previous = find_one(html, "a:fl-contains('Previous')")
-      assert attribute(previous, "class") == "pagination-previous"
+      assert attribute(previous, "class") == nil
       assert attribute(previous, "data-phx-link") == "patch"
       assert attribute(previous, "data-phx-link-state") == "push"
 
@@ -1304,7 +1304,7 @@ defmodule Flop.PhoenixTest do
 
       assert previous_link = find_one(html, "a:fl-contains('Previous')")
 
-      assert attribute(previous_link, "class") == "pagination-previous"
+      assert attribute(previous_link, "class") == nil
       assert attribute(previous_link, "aria-disabled") == "true"
       assert attribute(previous_link, "rel") == nil
     end
@@ -1318,7 +1318,9 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           path="/pets"
           disabled_link_attrs={[class: "is-disabled"]}
-        />
+        >
+          <:previous attrs={[class: "pagination-previous"]}>Previous</:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert previous_link = find_one(html, "a:fl-contains('Previous')")
@@ -1339,7 +1341,7 @@ defmodule Flop.PhoenixTest do
 
       assert previous_button = find_one(html, "button:fl-contains('Previous')")
 
-      assert attribute(previous_button, "class") == "pagination-previous"
+      assert attribute(previous_button, "class") == nil
       assert attribute(previous_button, "href") == nil
       assert attribute(previous_button, "disabled") == "disabled"
       assert attribute(previous_button, "rel") == nil
@@ -1354,7 +1356,9 @@ defmodule Flop.PhoenixTest do
           meta={@meta}
           on_paginate={JS.push("paginate")}
           disabled_link_attrs={[class: "is-disabled"]}
-        />
+        >
+          <:previous attrs={[class: "pagination-previous"]}>Previous</:previous>
+        </Flop.Phoenix.pagination>
         """)
 
       assert previous_button = find_one(html, "button:fl-contains('Previous')")
@@ -1392,7 +1396,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert link = find_one(html, "a:fl-contains('Next')")
-      assert attribute(link, "class") == "pagination-next"
+      assert attribute(link, "class") == nil
       assert attribute(link, "data-phx-link") == "patch"
       assert attribute(link, "data-phx-link-state") == "push"
       assert href = attribute(link, "href")
@@ -1408,7 +1412,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert button = find_one(html, "button:fl-contains('Next')")
-      assert attribute(button, "class") == "pagination-next"
+      assert attribute(button, "class") == nil
 
       assert attribute(button, "phx-click") ==
                ~s|[["push",{"event":"paginate"}]]|
@@ -1465,7 +1469,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert next = find_one(html, "a:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "href") == nil
       assert attribute(next, "aria-disabled") == "true"
     end
@@ -1479,7 +1483,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert next = find_one(html, "button:fl-contains('Next')")
-      assert attribute(next, "class") == "pagination-next"
+      assert attribute(next, "class") == nil
       assert attribute(next, "disabled") == "disabled"
       assert attribute(next, "href") == nil
     end
