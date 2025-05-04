@@ -1064,7 +1064,7 @@ defmodule Flop.Phoenix do
 
     Example:
 
-    ```elixir
+    ```heex
     row_click={&JS.navigate(~p"/users/\#{&1}")}
     ```
     """
@@ -1081,7 +1081,7 @@ defmodule Flop.Phoenix do
     doc: """
     For each column to render, add one `<:col>` element.
 
-    ```elixir
+    ```heex
     <:col :let={pet} label="Name" field={:name} col_style="width: 20%;">
       {pet.name}
     </:col>
@@ -1153,7 +1153,7 @@ defmodule Flop.Phoenix do
     do not receive the `row_click` attribute.
 
 
-    ```elixir
+    ```heex
     <:action :let={user}>
       <.link navigate={~p"/users/\#{user}"}>Show</.link>
     </:action>

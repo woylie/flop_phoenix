@@ -6,6 +6,7 @@
 
 - Add guide about load-more buttons and infinite scroll.
 - Add guide about CSS styles.
+- Add guide about page size controls.
 
 ### Changed
 
@@ -715,7 +716,7 @@ version 0.15.0.
 
 Previously, you would render a filter form like this:
 
-```elixir
+```heex
 <.form :let={f} for={@meta}>
   <Flop.Phoenix.filter_fields :let={entry} form={f} fields={[:name, :email]}>
     <div class="field">
@@ -729,7 +730,7 @@ Previously, you would render a filter form like this:
 In this example, `entry.label` and `entry.input` are complete `<label>` and
 `<input>` elements with all attributes set. You will need to change this to:
 
-```elixir
+```heex
 <.form :let={f} for={@meta}>
   <.filter_fields :let={i} form={f} fields={[:name, :email]}>
     <.input

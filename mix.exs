@@ -92,6 +92,7 @@ defmodule FlopPhoenix.MixProject do
       extras: [
         "guides/recipes/css_styles.md",
         "guides/recipes/load_more_and_infinite_scroll.md",
+        "guides/recipes/page_size_control.md",
         "README.md",
         "CHANGELOG.md"
       ],
