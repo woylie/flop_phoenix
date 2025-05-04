@@ -449,8 +449,7 @@ defmodule Flop.Phoenix do
       doc: """
       Any additional attributes to add to the link or button.
 
-      Defaults to
-      `[class: "pagination-previous", aria: [label: "Go to previous page"]]`.
+      Defaults to `[aria: [label: "Go to previous page"]]`.
       """
   end
 
@@ -464,8 +463,7 @@ defmodule Flop.Phoenix do
       doc: """
       Any additional attributes to add to the link or button.
 
-      Defaults to
-      `[class: "pagination-next", aria: [label: "Go to next page"]]`.
+      Defaults to `[aria: [label: "Go to next page"]]`.
       """
   end
 
@@ -491,17 +489,14 @@ defmodule Flop.Phoenix do
     # because the slot is optional.
     previous_attrs =
       case previous do
-        [%{attrs: attrs}] ->
-          attrs
-
-        _ ->
-          [class: "pagination-previous", aria: [label: "Go to previous page"]]
+        [%{attrs: attrs}] -> attrs
+        _ -> [aria: [label: "Go to previous page"]]
       end
 
     next_attrs =
       case next do
         [%{attrs: attrs}] -> attrs
-        _ -> [class: "pagination-next", aria: [label: "Go to next page"]]
+        _ -> [aria: [label: "Go to next page"]]
       end
 
     assigns =
