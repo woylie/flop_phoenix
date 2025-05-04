@@ -3,3 +3,4 @@ _build
 cover
 deps
 doc
+renovate.json
