@@ -5,9 +5,9 @@
 ### Added
 
 - Add guide about load-more buttons and infinite scroll.
+- Add guide about CSS styles.
 
 ### Changed
-
 
 - Remove `opts` attribute from `Flop.Phoenix.pagination/1` and remove
   configuration of the pagination component via application environment.

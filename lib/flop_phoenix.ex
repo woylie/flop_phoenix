@@ -16,7 +16,7 @@ defmodule Flop.Phoenix do
   For example, to customize the `pagination` component, define your own
   `pagination` component:
 
-  ```heex
+  ```elixir
   defmodule MyAppWeb.CoreComponents do
     use Phoenix.Component
 
