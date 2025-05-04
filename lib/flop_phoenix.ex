@@ -25,6 +25,15 @@ defmodule Flop.Phoenix do
     attr :on_paginate, JS, default: nil
     attr :target, :string, default: nil
 
+    attr :aria_label, :string,
+      default: "Pagination",
+      doc: \"""
+      Aria label for the `<nav>` element. The value should be localized. In
+      languages with latin characters, the first letter should be capitalized.
+      If multiple pagination components are rendered on the same page, each one
+      should have a distinct aria label.
+      \"""
+
     def pagination(assigns) do
       ~H\"""
       <Flop.Phoenix.pagination
@@ -33,6 +42,7 @@ defmodule Flop.Phoenix do
         path={@path}
         on_paginate={@on_paginate}
         target={@target}
+        aria-label={@aria_label}
         page_link_aria_label_fun={&"\#{&1}ページ目へ"}
       >
         <:previous attrs={[class: "previous"]}>
