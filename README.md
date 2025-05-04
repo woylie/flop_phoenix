@@ -199,7 +199,7 @@ component:
   phx-change={@on_change}
   phx-submit={@on_change}
 >
-  <%!-- ... %>
+  <%!-- ... --%>
 
   <label for="filter-form-page-size">Page size</label>
   <input
