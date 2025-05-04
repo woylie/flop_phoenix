@@ -90,6 +90,7 @@ defmodule FlopPhoenix.MixProject do
     [
       main: "readme",
       extras: [
+        "guides/recipes/css_styles.md",
         "guides/recipes/load_more_and_infinite_scroll.md",
         "README.md",
         "CHANGELOG.md"
