@@ -60,26 +60,21 @@ defmodule Flop.Phoenix do
   end
   ```
 
-  The given `opts` attributes are deep-merged into the default options.
+  Refer to the documentation of `Flop.Phoenix.pagination/1` for available
+  attributes and slots on the pagination component and to `t:table_option/0` for
+  a list of available options and defaults for the table component.
 
-  Refer to `t:pagination_option/0` and `t:table_option/0` for a list of
-  available options and defaults.
+  ## Using links
 
-  ## Hiding default parameters
+  If the `path` attribute is set on the pagination and table component,
+  pagination and sorting is handled via query parameters. You will need to
+  handle those parameters in the `c:Phoenix.LiveView.handle_params/3` callback
+  of your LiveView module.
 
-  Default values for page size and ordering are omitted from the query
-  parameters. If you pass the `:for` assign, the Flop.Phoenix function will
-  pick up the default values from the schema module deriving `Flop.Schema`.
-
-  ## Links
-
-  Links are generated with `Phoenix.Components.link/1`. This will
-  lead to `<a>` tags with `data-phx-link` and `data-phx-link-state` attributes,
-  which will be ignored outside of LiveViews and LiveComponents.
-
-  When used within a LiveView or LiveComponent, you will need to handle the new
-  params in the `c:Phoenix.LiveView.handle_params/3` callback of your LiveView
-  module.
+      def handle_params(params, _, socket) do
+        {pets, meta} = Pets.list_pets(params)
+        {:noreply, assign(socket, pets: pets, meta: meta)}
+      end
 
   ## Using JS commands
 
@@ -87,13 +82,14 @@ defmodule Flop.Phoenix do
   attributes.
 
   If used with the `path` attribute, the URL will be patched _and_ the given
-  JS command will be executed.
+  JS command will be executed. This can be used to scroll to the top after a
+  pagination or sorting event, for example.
 
   If used without the `path` attribute, you will need to include a `push`
   command to trigger an event when a pagination or sort link is clicked.
 
-  You can set a different target setting the `target` attribute. The value
-  will be used as the `phx-target` attribute.
+  You can set a different target with the `target` attribute, which will be used
+  as `phx-target`.
 
   ```heex
   <Flop.Phoenix.table
@@ -114,20 +110,29 @@ defmodule Flop.Phoenix do
   or `c:Phoenix.LiveComponent.handle_event/3` callback of your
   LiveView or LiveComponent module.
 
+      # for page-based pagination
       def handle_event("paginate-pets", %{"page" => page}, socket) do
         flop = Flop.set_page(socket.assigns.meta.flop, page)
+        {pets, meta} = Pets.list_pets(flop)
+        {:noreply, assign(socket, pets: pets, meta: meta)}
+      end
 
-        with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
-          {:noreply, assign(socket, pets: pets, meta: meta)}
-        end
+      # for cursor-based pagination
+      def handle_event("paginate-pets", %{"to" => direction}, socket) do
+        flop =
+          case direction do
+            :previous -> Flop.to_previous_cursor(socket.assigns.meta)
+            :next -> Flop.to_next_cursor(socket.assigns.meta)
+          end
+
+        {pets, meta} = Pets.list_pets(flop)
+        {:noreply, assign(socket, pets: pets, meta: meta)}
       end
 
       def handle_event("sort-pets", %{"order" => order}, socket) do
         flop = Flop.push_order(socket.assigns.meta.flop, order)
-
-        with {:ok, {pets, meta}} <- Pets.list_pets(flop) do
-          {:noreply, assign(socket, pets: pets, meta: meta)}
-        end
+        {pets, meta} = Pets.list_pets(flop)
+        {:noreply, assign(socket, pets: pets, meta: meta)}
       end
   """
 
@@ -229,6 +234,15 @@ defmodule Flop.Phoenix do
   <Flop.Phoenix.pagination
     meta={@meta}
     path={~p"/pets"}
+  />
+  ```
+
+  With an event:
+
+  ```heex
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    on_paginate={JS.push("paginate")}
   />
   ```
 
@@ -376,7 +390,7 @@ defmodule Flop.Phoenix do
     parameter set to the start cursor. If `reverse` is set to `true`, the
     destinations of the links are switched.
 
-    This attribute is only for for cursor-based pagination.
+    This attribute is only for cursor-based pagination.
     """
 
   attr :page_list_attrs, :list,
@@ -819,7 +833,7 @@ defmodule Flop.Phoenix do
     page_links={4}
     path={~p"/birds"}
   >
-    <%!-- put together your component here %>
+    <%!-- put together your component here --%>
   </.pagination_for>
   ```
 
