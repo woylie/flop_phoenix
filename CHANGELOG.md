@@ -114,7 +114,7 @@ Replace the `:ellipsis_attrs` and `:ellipsis_content` attributes with the
     path={@path}
     opts={[
 -     ellipsis_attrs: [class: "ellipsis", aria-hidden: "true"],
--     elipsis_content: "‥"
+-     ellipsis_content: "‥"
     ]}
 - />
 + >
