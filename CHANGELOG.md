@@ -131,7 +131,7 @@ To style disabled links/buttons without a CSS class, use the CSS selector
     opts={[
 -     disabled_attrs: [class: "is-disabled"]
     ]}
-+     disabled_link_attrs: [class: "is-disabled"]
++     disabled_link_attrs={[class: "is-disabled"]}
   >
 ```
 
