@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.25.1] - 2025-05-05
+
 ### Fixed
 
 - Function clause error when no pagination parameters are passed and no
