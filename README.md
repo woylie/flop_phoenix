@@ -220,7 +220,7 @@ follows:
 
 ```elixir
 def handle_params(params, _, socket) do
-  {:ok, {pets, meta}} = Pets.list_pets(params)
+  {pets, meta} = Pets.list_pets(params)
   {:noreply, socket |> assign(:meta, meta) |> stream(:pets, pets, reset: true)}
 end
 ```
