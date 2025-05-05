@@ -91,6 +91,21 @@ defmodule Flop.PhoenixTest do
              """) == []
     end
 
+    test "renders pagination with flop without offset" do
+      # offset can be nil if default_pagination_type is not set and no
+      # pagination parameters are passed
+      assigns = %{
+        meta: build(:meta_on_first_page, flop: %Flop{limit: 50, offset: nil})
+      }
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.pagination meta={@meta} path="/pets" />
+        """)
+
+      assert find_one(html, "nav:root")
+    end
+
     test "allows to set global attributes" do
       assigns = %{meta: build(:meta_on_first_page)}
 
