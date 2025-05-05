@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Function clause error when no pagination parameters are passed and no
+  `default_pagination_type` is set.
+
 ## [0.25.0] - 2025-05-04
 
 ### Added
