@@ -604,6 +604,19 @@ defmodule Flop.Phoenix.FormDataTest do
         assert input_validations(filter_form, :value) == [maxlength: 100]
       end
     end
+
+    test "can override text input maxlength" do
+      meta =
+        build(:meta_on_first_page,
+          flop: %Flop{filters: []},
+          schema: __MODULE__.TestSchema
+        )
+
+      opts = [fields: [string: [type: "text", maxlength: 20]]]
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, opts)
+      assert input_validations(filter_form, :value) == [maxlength: 20]
+    end
   end
 
   describe "input_value/2" do

@@ -274,7 +274,9 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   def input_validations(_meta, %{options: options}, :value) do
-    if options[:type] == "text", do: [maxlength: 100], else: []
+    if options[:type] == "text",
+      do: [maxlength: Keyword.get(options, :maxlength, 100)],
+      else: []
   end
 
   def input_validations(_meta, _form, _field), do: []
