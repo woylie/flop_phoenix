@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.25.2] - 2025-06-25
+
+### Fixed
+
+- Allow overriding `maxlength` attribute in filter value field.
+
 ## [0.25.1] - 2025-05-05
 
 ### Fixed
