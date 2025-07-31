@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.25.2"
+  @version "0.25.3"
 
   def project do
     [
@@ -63,7 +63,7 @@ defmodule FlopPhoenix.MixProject do
       {:makeup_html, "== 0.2.0", only: :dev, runtime: false},
       {:phoenix, ">= 1.6.0 and < 1.9.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_view, "~> 1.0.6"},
+      {:phoenix_live_view, "~> 1.0.6 or ~> 1.1.0"},
       {:stream_data, "== 1.2.0", only: [:dev, :test]}
     ]
   end

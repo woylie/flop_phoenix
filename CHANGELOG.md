@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.25.3] - 2025-07-31
+
+### Changed
+
+- Require `phoenix_live_view` `~> 1.0.6 or ~> 1.1.0`.
+
 ## [0.25.2] - 2025-06-25
 
 ### Fixed
