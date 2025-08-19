@@ -2365,10 +2365,8 @@ defmodule Flop.PhoenixTest do
           }
         })
 
-      assert Floki.find(
-               html,
-               "a:fl-contains('Email')"
-             )
+      assert html
+             |> find_one("th a:fl-contains('Email')")
              |> Floki.find("span.order-direction") == []
 
       html =
@@ -2379,10 +2377,8 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(
-                 html,
-                 "th a:fl-contains('Email')"
-               )
+               html
+               |> find_one("th a:fl-contains('Email')")
                |> Floki.find("span.order-direction")
 
       assert text(span) == "▴"
@@ -2395,10 +2391,8 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(
-                 html,
-                 "th a:fl-contains('Email')"
-               )
+               html
+               |> find_one("th a:fl-contains('Email')")
                |> Floki.find("span.order-direction")
 
       assert text(span) == "▾"
@@ -2416,18 +2410,14 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(
-                 html,
-                 "th a:fl-contains('Name')"
-               )
+               html
+               |> find_one("th a:fl-contains('Name')")
                |> Floki.find("span.order-direction")
 
       assert text(span) == "▴"
 
-      assert Floki.find(
-               html,
-               "a:fl-contains('Email')"
-             )
+      assert html
+             |> Floki.find("a:fl-contains('Email')")
              |> Floki.find("span.order-direction") == []
     end
 
@@ -2477,10 +2467,8 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(
-                 html,
-                 "th a:fl-contains('Email')"
-               )
+               html
+               |> find_one("th a:fl-contains('Email')")
                |> Floki.find("span.order-direction")
 
       assert text(span) == "random"
