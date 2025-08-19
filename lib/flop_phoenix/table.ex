@@ -203,14 +203,15 @@ defmodule Flop.Phoenix.Table do
           field={@field}
           label={@label}
           target={@target}
-        />
-        <.arrow
-          direction={@order_direction}
-          symbol_asc={@symbol_asc}
-          symbol_desc={@symbol_desc}
-          symbol_unsorted={@symbol_unsorted}
-          {@symbol_attrs}
-        />
+        >
+          <.arrow
+            direction={@order_direction}
+            symbol_asc={@symbol_asc}
+            symbol_desc={@symbol_desc}
+            symbol_unsorted={@symbol_unsorted}
+            {@symbol_attrs}
+          />
+        </.sort_link>
       </span>
     </th>
     """
@@ -260,10 +261,12 @@ defmodule Flop.Phoenix.Table do
   attr :on_sort, JS
   attr :target, :string
 
+  slot :inner_block
+
   defp sort_link(%{on_sort: nil, path: path} = assigns)
        when is_binary(path) do
     ~H"""
-    <.link patch={@path}>{@label}</.link>
+    <.link patch={@path}>{@label}{render_slot(@inner_block)}</.link>
     """
   end
 
@@ -275,7 +278,7 @@ defmodule Flop.Phoenix.Table do
       phx-target={@target}
       phx-value-order={@field}
     >
-      {@label}
+      {@label}{render_slot(@inner_block)}
     </.link>
     """
   end

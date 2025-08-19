@@ -2367,8 +2367,9 @@ defmodule Flop.PhoenixTest do
 
       assert Floki.find(
                html,
-               "a:fl-contains('Email') + span.order-direction"
-             ) == []
+               "a:fl-contains('Email')"
+             )
+             |> Floki.find("span.order-direction") == []
 
       html =
         render_table(%{
@@ -2380,8 +2381,9 @@ defmodule Flop.PhoenixTest do
       assert span =
                find_one(
                  html,
-                 "th a:fl-contains('Email') + span.order-direction"
+                 "th a:fl-contains('Email')"
                )
+               |> Floki.find("span.order-direction")
 
       assert text(span) == "▴"
 
@@ -2395,8 +2397,9 @@ defmodule Flop.PhoenixTest do
       assert span =
                find_one(
                  html,
-                 "th a:fl-contains('Email') + span.order-direction"
+                 "th a:fl-contains('Email')"
                )
+               |> Floki.find("span.order-direction")
 
       assert text(span) == "▾"
     end
@@ -2415,15 +2418,17 @@ defmodule Flop.PhoenixTest do
       assert span =
                find_one(
                  html,
-                 "th a:fl-contains('Name') + span.order-direction"
+                 "th a:fl-contains('Name')"
                )
+               |> Floki.find("span.order-direction")
 
       assert text(span) == "▴"
 
       assert Floki.find(
                html,
-               "a:fl-contains('Email') + span.order-direction"
-             ) == []
+               "a:fl-contains('Email')"
+             )
+             |> Floki.find("span.order-direction") == []
     end
 
     test "allows to set symbol class" do
@@ -2474,8 +2479,9 @@ defmodule Flop.PhoenixTest do
       assert span =
                find_one(
                  html,
-                 "th a:fl-contains('Email') + span.order-direction"
+                 "th a:fl-contains('Email')"
                )
+               |> Floki.find("span.order-direction")
 
       assert text(span) == "random"
     end
