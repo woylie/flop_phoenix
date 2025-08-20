@@ -1925,63 +1925,6 @@ defmodule Flop.PhoenixTest do
                find_one(html, "th:last-child")
     end
 
-    test "evaluates table th_wrapper_attrs" do
-      assigns = %{
-        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        items: [%{name: "George", age: 8}],
-        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
-      }
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table
-          items={@items}
-          meta={@meta}
-          on_sort={JS.push("sort")}
-          opts={@opts}
-        >
-          <:col :let={i} field={:name}>{i.name}</:col>
-          <:col :let={i}>{i.age}</:col>
-        </Flop.Phoenix.table>
-        """)
-
-      assert {"th", [], [{"span", [{"class", "default-th-wrapper-class"}], _}]} =
-               find_one(html, "th:first-child")
-    end
-
-    test "overrides th_wrapper_attrs" do
-      assigns = %{
-        meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
-        items: [%{name: "George", age: 8}],
-        opts: [th_wrapper_attrs: [class: "default-th-wrapper-class"]]
-      }
-
-      html =
-        parse_heex(~H"""
-        <Flop.Phoenix.table
-          items={@items}
-          meta={@meta}
-          on_sort={JS.push("sort")}
-          opts={@opts}
-        >
-          <:col
-            :let={i}
-            field={:name}
-            th_wrapper_attrs={[class: "name-th-wrapper-class"]}
-          >
-            {i.name}
-          </:col>
-          <:col :let={i} field={:age}>{i.age}</:col>
-        </Flop.Phoenix.table>
-        """)
-
-      assert {"th", [], [{"span", [{"class", "name-th-wrapper-class"}], _}]} =
-               find_one(html, "th:first-child")
-
-      assert {"th", [], [{"span", [{"class", "default-th-wrapper-class"}], _}]} =
-               find_one(html, "th:last-child")
-    end
-
     test "overrides table_td_attrs with tbody_td_attrs in col" do
       assigns = %{
         meta: %Flop.Meta{flop: %Flop{}, schema: MyApp.Pet},
@@ -2093,7 +2036,7 @@ defmodule Flop.PhoenixTest do
     test "displays headers with sorting function" do
       html = render_table(%{})
 
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
       assert attribute(a, "data-phx-link") == "patch"
       assert attribute(a, "data-phx-link-state") == "push"
 
@@ -2108,7 +2051,7 @@ defmodule Flop.PhoenixTest do
           on_sort: JS.push("sort")
         })
 
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
       assert attribute(a, "data-phx-link") == nil
       assert attribute(a, "data-phx-link-state") == nil
       assert attribute(a, "href") == "#"
@@ -2162,7 +2105,7 @@ defmodule Flop.PhoenixTest do
 
       ttfb_sort_href =
         html
-        |> find_one("thead th a:fl-contains('TTFB')")
+        |> find_one("thead th a:has(span:fl-contains('TTFB'))")
         |> attribute("href")
 
       %URI{query: query} = URI.parse(ttfb_sort_href)
@@ -2177,14 +2120,14 @@ defmodule Flop.PhoenixTest do
 
     test "supports a function/args tuple as path" do
       html = render_table(%{path: {&route_helper/3, @route_helper_opts}})
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
       assert href = attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
     end
 
     test "supports a function as path" do
       html = render_table(%{path: &path_func/1})
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
 
       assert href = attribute(a, "href")
       assert_urls_match(href, "/pets?order_directions[]=asc&order_by[]=name")
@@ -2192,7 +2135,7 @@ defmodule Flop.PhoenixTest do
 
     test "supports a URI string as path" do
       html = render_table(%{path: "/pets"})
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
 
       href = attribute(a, "href")
       uri = URI.parse(href)
@@ -2245,8 +2188,7 @@ defmodule Flop.PhoenixTest do
         </Flop.Phoenix.table>
         """)
 
-      assert span = find_one(html, "th a span")
-      assert text(span) == "Hello"
+      assert find_one(html, "th a span:fl-contains('Hello')")
     end
 
     test "adds aria-sort attribute to first ordered field" do
@@ -2299,12 +2241,12 @@ defmodule Flop.PhoenixTest do
     test "renders links with on_sort" do
       html = render_table(%{on_sort: JS.push("sort"), path: nil})
 
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
       assert attribute(a, "href") == "#"
       assert attribute(a, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(a, "phx-value-order") == "name"
 
-      assert a = find_one(html, "th a:fl-contains('Email')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Email'))")
       assert attribute(a, "href") == "#"
       assert attribute(a, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(a, "phx-value-order") == "email"
@@ -2314,7 +2256,7 @@ defmodule Flop.PhoenixTest do
       html =
         render_table(%{on_sort: JS.push("sort"), path: nil, target: "here"})
 
-      assert a = find_one(html, "th a:fl-contains('Name')")
+      assert a = find_one(html, "th a:has(span:fl-contains('Name'))")
       assert attribute(a, "href") == "#"
       assert attribute(a, "phx-target") == "here"
       assert attribute(a, "phx-value-order") == "name"
@@ -2324,14 +2266,14 @@ defmodule Flop.PhoenixTest do
       # without :for option
       html = render_table(%{})
 
-      assert find_one(html, "a:fl-contains('Name')")
-      assert find_one(html, "a:fl-contains('Species')")
+      assert find_one(html, "a:has(span:fl-contains('Name'))")
+      assert find_one(html, "a:has(span:fl-contains('Species'))")
 
       # with :for assign
       html = render_table(%{meta: %Flop.Meta{flop: %Flop{}, schema: Pet}})
 
-      assert find_one(html, "a:fl-contains('Name')")
-      assert [] = Floki.find(html, "a:fl-contains('Species')")
+      assert find_one(html, "a:has(span:fl-contains('Name'))")
+      assert [] = Floki.find(html, "a:has(span:fl-contains('Species'))")
     end
 
     test "hides default order and limit" do
@@ -2349,7 +2291,7 @@ defmodule Flop.PhoenixTest do
             )
         })
 
-      assert link = find_one(html, "a:fl-contains('Name')")
+      assert link = find_one(html, "a:has(span:fl-contains('Name'))")
       assert href = attribute(link, "href")
 
       refute href =~ "page_size="
@@ -2365,7 +2307,10 @@ defmodule Flop.PhoenixTest do
           }
         })
 
-      assert Floki.find(html, "th a:fl-contains('Email') span.order-direction") ==
+      assert Floki.find(
+               html,
+               "th a:has(span:fl-contains('Email')) span.order-direction"
+             ) ==
                []
 
       html =
@@ -2376,7 +2321,10 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(html, "th a:fl-contains('Email') span.order-direction")
+               find_one(
+                 html,
+                 "th a:has(span:fl-contains('Email')) span.order-direction"
+               )
 
       assert text(span) == "▴"
 
@@ -2388,7 +2336,10 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(html, "th a:fl-contains('Email') span.order-direction")
+               find_one(
+                 html,
+                 "th a:has(span:fl-contains('Email')) span.order-direction"
+               )
 
       assert text(span) == "▾"
     end
@@ -2405,11 +2356,17 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(html, "th a:fl-contains('Name') span.order-direction")
+               find_one(
+                 html,
+                 "th a:has(span:fl-contains('Name')) span.order-direction"
+               )
 
       assert text(span) == "▴"
 
-      assert Floki.find(html, "a:fl-contains('Email') span.order-direction") ==
+      assert Floki.find(
+               html,
+               "a:has(span:fl-contains('Email')) span.order-direction"
+             ) ==
                []
     end
 
@@ -2459,7 +2416,10 @@ defmodule Flop.PhoenixTest do
         })
 
       assert span =
-               find_one(html, "th a:fl-contains('Email') span.order-direction")
+               find_one(
+                 html,
+                 "th a:has(span:fl-contains('Email')) span.order-direction"
+               )
 
       assert text(span) == "random"
     end
@@ -2733,7 +2693,7 @@ defmodule Flop.PhoenixTest do
     test "does not require path when passing on_sort" do
       html = render_table(%{on_sort: JS.push("sort"), path: nil})
 
-      assert link = find_one(html, "a:fl-contains('Name')")
+      assert link = find_one(html, "a:has(span:fl-contains('Name'))")
       assert attribute(link, "phx-click") == ~s|[["push",{"event":"sort"}]]|
       assert attribute(link, "href") == "#"
     end

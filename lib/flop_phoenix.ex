@@ -173,9 +173,6 @@ defmodule Flop.Phoenix do
     results. Default: `<p>No results.</p>`.
   - `:table_attrs` - The attributes for the `<table>` element.
     Default: `#{inspect(Table.default_opts()[:table_attrs])}`.
-  - `:th_wrapper_attrs` - The attributes for the `<span>` element that wraps the
-    header link and the order direction symbol.
-    Default: `#{inspect(Table.default_opts()[:th_wrapper_attrs])}`.
   - `:symbol_asc` - The symbol that is used to indicate that the column is
     sorted in ascending order.
     Default: `#{inspect(Table.default_opts()[:symbol_asc])}`.
@@ -215,7 +212,6 @@ defmodule Flop.Phoenix do
           | {:thead_attrs, keyword}
           | {:tbody_td_attrs, keyword}
           | {:tbody_tr_attrs, keyword | (any -> keyword)}
-          | {:th_wrapper_attrs, keyword}
           | {:thead_th_attrs, keyword}
           | {:thead_tr_attrs, keyword}
 
@@ -1142,14 +1138,6 @@ defmodule Flop.Phoenix do
       Additional attributes to pass to the `<th>` element as a static keyword
       list. Note that these attributes will override any conflicting
       `thead_th_attrs` that are set at the table level.
-      """
-
-    attr :th_wrapper_attrs, :list,
-      doc: """
-      Additional attributes for the `<span>` element that wraps the
-      header link and the order direction symbol. Note that these attributes
-      will override any conflicting `th_wrapper_attrs` that are set at the table
-      level.
       """
 
     attr :tbody_td_attrs, :any,
