@@ -23,7 +23,6 @@ defmodule Flop.Phoenix.Table do
       tbody_td_attrs: [],
       tbody_tr_attrs: [],
       thead_attrs: [],
-      th_wrapper_attrs: [],
       thead_th_attrs: [],
       thead_tr_attrs: []
     ]
@@ -77,9 +76,6 @@ defmodule Flop.Phoenix.Table do
             symbol_desc={@opts[:symbol_desc]}
             symbol_unsorted={@opts[:symbol_unsorted]}
             symbol_attrs={@opts[:symbol_attrs]}
-            th_wrapper_attrs={
-              merge_attrs(@opts[:th_wrapper_attrs], col, :th_wrapper_attrs)
-            }
             path={@path}
             target={@target}
           />
@@ -173,7 +169,6 @@ defmodule Flop.Phoenix.Table do
   attr :symbol_desc, :any
   attr :symbol_unsorted, :any
   attr :symbol_attrs, :list
-  attr :th_wrapper_attrs, :list
 
   defp header_column(%{sortable: true} = assigns) do
     direction = order_direction(assigns.meta.flop, assigns.field)
@@ -196,14 +191,13 @@ defmodule Flop.Phoenix.Table do
 
     ~H"""
     <th {@thead_th_attrs} aria-sort={aria_sort(@order_direction)}>
-      <span {@th_wrapper_attrs}>
-        <.sort_link
-          path={@sort_path}
-          on_sort={@on_sort}
-          field={@field}
-          label={@label}
-          target={@target}
-        />
+      <.sort_link
+        path={@sort_path}
+        on_sort={@on_sort}
+        field={@field}
+        label={@label}
+        target={@target}
+      >
         <.arrow
           direction={@order_direction}
           symbol_asc={@symbol_asc}
@@ -211,7 +205,7 @@ defmodule Flop.Phoenix.Table do
           symbol_unsorted={@symbol_unsorted}
           {@symbol_attrs}
         />
-      </span>
+      </.sort_link>
     </th>
     """
   end
@@ -260,10 +254,15 @@ defmodule Flop.Phoenix.Table do
   attr :on_sort, JS
   attr :target, :string
 
+  slot :inner_block
+
   defp sort_link(%{on_sort: nil, path: path} = assigns)
        when is_binary(path) do
     ~H"""
-    <.link patch={@path}>{@label}</.link>
+    <.link patch={@path}>
+      <span>{@label}</span>
+      {render_slot(@inner_block)}
+    </.link>
     """
   end
 
@@ -275,7 +274,8 @@ defmodule Flop.Phoenix.Table do
       phx-target={@target}
       phx-value-order={@field}
     >
-      {@label}
+      <span>{@label}</span>
+      {render_slot(@inner_block)}
     </.link>
     """
   end
