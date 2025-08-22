@@ -2522,6 +2522,35 @@ defmodule Flop.PhoenixTest do
       assert [_, _, _, _, _] = Floki.find(rows, "td")
     end
 
+    test "renders table head" do
+      assigns = %{}
+
+      html =
+        parse_heex(~H"""
+        <Flop.Phoenix.table
+          on_sort={JS.push("sort")}
+          id="user-table"
+          items={[%{name: "George"}]}
+          meta={%Flop.Meta{flop: %Flop{}}}
+        >
+          <:head>
+            <tr>
+              <td>snap</td>
+            </tr>
+          </:head>
+          <:col :let={pet} label="Name" field={:name}>{pet.name}</:col>
+        </Flop.Phoenix.table>
+        """)
+
+      assert [
+               {"table", _,
+                [
+                  {"thead", [], [_, {"tr", [], [{"td", [], ["snap"]}]}]},
+                  {"tbody", _, _}
+                ]}
+             ] = html
+    end
+
     test "renders table foot" do
       assigns = %{}
 
