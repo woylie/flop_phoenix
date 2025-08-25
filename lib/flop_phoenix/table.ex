@@ -44,6 +44,7 @@ defmodule Flop.Phoenix.Table do
   attr :col, :any
   attr :items, :list, required: true
   attr :foot, :any, required: true
+  attr :head, :any, required: true
   attr :row_id, :any, default: nil
   attr :row_click, JS, default: nil
   attr :row_item, :any, required: true
@@ -92,6 +93,9 @@ defmodule Flop.Phoenix.Table do
             target={@target}
           />
         </tr>
+        <%= if @head != [] do %>
+          {render_slot(@head)}
+        <% end %>
       </thead>
       <tbody
         id={@id <> "-tbody"}

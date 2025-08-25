@@ -1206,6 +1206,20 @@ defmodule Flop.Phoenix do
     ```
     """
 
+  slot :head,
+    doc: """
+    You can optionally add a 2nd `head`. The inner block will be rendered inside
+    the `thead` element and below the table header of the `col` slots.
+
+    ```heex
+    <Flop.Phoenix.table>
+      <:head>
+        <tr><td>Total: <span class="total">{@total}</span></td></tr>
+      </:head>
+    </Flop.Phoenix.table>
+    ```
+    """
+
   def table(%{path: nil, on_sort: nil}) do
     raise Flop.Phoenix.PathOrJSError, component: :table
   end
@@ -1226,6 +1240,7 @@ defmodule Flop.Phoenix do
             caption={@caption}
             col={@col}
             foot={@foot}
+            head={@head}
             on_sort={@on_sort}
             id={@id}
             items={@items}
@@ -1244,6 +1259,7 @@ defmodule Flop.Phoenix do
           caption={@caption}
           col={@col}
           foot={@foot}
+          head={@head}
           on_sort={@on_sort}
           id={@id}
           items={@items}
