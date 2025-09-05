@@ -96,9 +96,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
       field_opts =
         field_opts
         |> Keyword.put_new(:type, input_type(data, meta.schema))
-        |> Keyword.put_new_lazy(:label, fn ->
-          filter |> get_field() |> humanize()
-        end)
+        |> put_label_if_not_explicitly_nil(filter)
 
       %Phoenix.HTML.Form{
         source: meta,
@@ -214,6 +212,18 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         raise ArgumentError,
               "#{inspect(key)} is not supported on inputs_for with Flop.Meta."
       end
+    end
+  end
+
+  defp put_label_if_not_explicitly_nil(field_opts, filter) do
+    if Keyword.has_key?(field_opts, :label) do
+      # label key is present (could be nil or a value), keep as is
+      field_opts
+    else
+      # label key is not present, set default
+      Keyword.put_new_lazy(field_opts, :label, fn ->
+        filter |> get_field() |> humanize()
+      end)
     end
   end
 

@@ -3236,6 +3236,34 @@ defmodule Flop.PhoenixTest do
         """)
       end
     end
+
+    test "does not render label when label is explicitly set to nil", %{
+      meta: meta
+    } do
+      fields = [
+        {:email, label: nil},
+        {:phone, label: "Phone Number"},
+        :name
+      ]
+
+      html = render_form(%{fields: fields, meta: meta})
+
+      # no label should be rendered for email field (label: nil)
+      assert [] = Floki.find(html, "label[for='flop_filters_0_value']")
+
+      # label should be rendered for phone field (explicit label)
+      assert label = find_one(html, "label[for='flop_filters_1_value']")
+      assert text(label) == "Phone Number"
+
+      # label should be rendered for name field (default humanized label)
+      assert label = find_one(html, "label[for='flop_filters_2_value']")
+      assert text(label) == "Name"
+
+      # all inputs should still be rendered
+      assert find_one(html, "input[id='flop_filters_0_value']")
+      assert find_one(html, "input[id='flop_filters_1_value']")
+      assert find_one(html, "input[id='flop_filters_2_value']")
+    end
   end
 
   defmodule TestBackend do

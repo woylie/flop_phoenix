@@ -1340,12 +1340,13 @@ defmodule Flop.Phoenix do
             {gettext("young"), :young},
             {gettext("old"), :old)}
           ]
-        ]
+        ],
+        hidden_field: [label: nil, type: "hidden"]
       ]}
 
   Available options:
 
-  - `label` - Defaults to the humanized field name.
+  - `label` - Defaults to the humanized field name. Set to `nil` to skip rendering a label.
   - `op` - Defaults to `:==`.
   - `type` - Defaults to an input type depending on the Ecto type of the filter
     field.
@@ -1402,11 +1403,18 @@ defmodule Flop.Phoenix do
     </.filter_fields>
     ```
 
+    Note: If you set `label: nil` for a field, make sure your input component
+    handles `nil` labels properly by conditionally rendering the label element:
+
+    ```heex
+    <label :if={@label} for={@id}>{@label}</label>
+    ```
+
     The options passed to the inner block are:
 
     - `field` - A `Phoenix.HTML.FormField` struct.
     - `type` - The input type as a string.
-    - `label` - The label text as a string.
+    - `label` - The label text as a string, or `nil` if no label should be rendered.
     - `rest` - Any additional options passed in the field options.
     """
 
@@ -1424,15 +1432,20 @@ defmodule Flop.Phoenix do
       options={[dynamic: @dynamic, fields: @fields]}
     >
       <.hidden_inputs_for_filter form={ff} />
-      {render_slot(@inner_block, %{
-        field: ff[:value],
-        label: ff.options[:label],
-        type: ff.options[:type],
-        rest: Keyword.drop(ff.options, [:label, :op, :type])
-      })}
+      {render_slot(
+        @inner_block,
+        %{
+          field: ff[:value],
+          type: ff.options[:type],
+          rest: Keyword.drop(ff.options, [:label, :op, :type])
+        }
+        |> maybe_put_label(ff.options[:label])
+      )}
     </.inputs_for>
     """
   end
+
+  defp maybe_put_label(assigns, label), do: Map.put(assigns, :label, label)
 
   defp normalize_filter_fields(fields) do
     Enum.map(fields, fn
