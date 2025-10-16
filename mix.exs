@@ -54,9 +54,9 @@ defmodule FlopPhoenix.MixProject do
 
   defp deps do
     [
-      {:credo, "== 1.7.12", only: [:test], runtime: false},
-      {:dialyxir, "== 1.4.5", only: [:test], runtime: false},
-      {:ex_doc, "== 0.38.2", only: :dev, runtime: false},
+      {:credo, "== 1.7.13", only: [:test], runtime: false},
+      {:dialyxir, "== 1.4.6", only: [:test], runtime: false},
+      {:ex_doc, "== 0.38.4", only: :dev, runtime: false},
       {:ex_machina, "== 2.8.0", only: :test},
       {:excoveralls, "== 0.18.5", only: :test},
       {:floki, "== 0.38.0", only: :test},
