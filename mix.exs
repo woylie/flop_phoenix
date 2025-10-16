@@ -13,15 +13,6 @@ defmodule FlopPhoenix.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test,
-        "coveralls.github": :test,
-        credo: :test,
-        dialyzer: :test
-      ],
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
@@ -40,6 +31,20 @@ defmodule FlopPhoenix.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.github": :test,
+        credo: :test,
+        dialyzer: :test
+      ]
+    ]
+  end
 
   def application do
     [
