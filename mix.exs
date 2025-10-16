@@ -13,15 +13,6 @@ defmodule FlopPhoenix.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test,
-        "coveralls.github": :test,
-        credo: :test,
-        dialyzer: :test
-      ],
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
@@ -41,6 +32,20 @@ defmodule FlopPhoenix.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.github": :test,
+        credo: :test,
+        dialyzer: :test
+      ]
+    ]
+  end
+
   def application do
     [
       extra_applications: [:logger]
@@ -49,9 +54,9 @@ defmodule FlopPhoenix.MixProject do
 
   defp deps do
     [
-      {:credo, "== 1.7.12", only: [:test], runtime: false},
-      {:dialyxir, "== 1.4.5", only: [:test], runtime: false},
-      {:ex_doc, "== 0.38.2", only: :dev, runtime: false},
+      {:credo, "== 1.7.13", only: [:test], runtime: false},
+      {:dialyxir, "== 1.4.6", only: [:test], runtime: false},
+      {:ex_doc, "== 0.38.4", only: :dev, runtime: false},
       {:ex_machina, "== 2.8.0", only: :test},
       {:excoveralls, "== 0.18.5", only: :test},
       {:floki, "== 0.38.0", only: :test},
