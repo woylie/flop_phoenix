@@ -1338,7 +1338,7 @@ defmodule Flop.Phoenix do
           prompt: "",
           options: [
             {gettext("young"), :young},
-            {gettext("old"), :old)}
+            {gettext("old"), :old}
           ]
         ]
       ]}
