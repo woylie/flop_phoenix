@@ -54,23 +54,23 @@ defmodule FlopPhoenix.MixProject do
 
   defp deps do
     [
-      {:credo, "== 1.7.13", only: [:test], runtime: false},
-      {:dialyxir, "== 1.4.6", only: [:test], runtime: false},
-      {:ex_doc, "== 0.39.1", only: :dev, runtime: false},
-      {:ex_machina, "== 2.8.0", only: :test},
-      {:excoveralls, "== 0.18.5", only: :test},
-      {:floki, "== 0.38.0", only: :test},
-      {:lazy_html, "== 0.1.8", only: :test},
+      {:credo, "1.7.13", only: [:test], runtime: false},
+      {:dialyxir, "1.4.6", only: [:test], runtime: false},
+      {:ex_doc, "0.39.1", only: :dev, runtime: false},
+      {:ex_machina, "2.8.0", only: :test},
+      {:excoveralls, "0.18.5", only: :test},
+      {:floki, "0.38.0", only: :test},
+      {:lazy_html, "0.1.8", only: :test},
       {:flop, ">= 0.23.0 and < 0.27.0"},
-      {:jason, "== 1.4.4", only: [:dev, :test]},
-      {:makeup_css, "== 0.2.3", only: :dev, runtime: false},
-      {:makeup_diff, "== 0.1.1", only: :dev, runtime: false},
-      {:makeup_eex, "== 2.0.2", only: :dev, runtime: false},
-      {:makeup_html, "== 0.2.0", only: :dev, runtime: false},
+      {:jason, "1.4.4", only: [:dev, :test]},
+      {:makeup_css, "0.2.3", only: :dev, runtime: false},
+      {:makeup_diff, "0.1.1", only: :dev, runtime: false},
+      {:makeup_eex, "2.0.2", only: :dev, runtime: false},
+      {:makeup_html, "0.2.0", only: :dev, runtime: false},
       {:phoenix, ">= 1.6.0 and < 1.9.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_view, "~> 1.0.6 or ~> 1.1.0"},
-      {:stream_data, "== 1.2.0", only: [:dev, :test]}
+      {:stream_data, "1.2.0", only: [:dev, :test]}
     ]
   end
 
