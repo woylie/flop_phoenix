@@ -6,8 +6,6 @@ defmodule Flop.Phoenix.Pagination do
 
   alias Flop.Meta
 
-  require Logger
-
   @typedoc """
   Describes the data needed to render a pagination component.
 

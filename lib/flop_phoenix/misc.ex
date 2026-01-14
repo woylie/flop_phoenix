@@ -1,8 +1,6 @@
 defmodule Flop.Phoenix.Misc do
   @moduledoc false
 
-  require Logger
-
   @doc """
   Deep merge for keyword lists.
 

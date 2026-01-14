@@ -6,8 +6,6 @@ defmodule Flop.Phoenix.Table do
   alias Flop.Phoenix.Misc
   alias Phoenix.LiveView.JS
 
-  require Logger
-
   @spec default_opts() :: [Flop.Phoenix.table_option()]
   def default_opts do
     [
