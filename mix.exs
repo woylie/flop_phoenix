@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.25.3"
+  @version "0.26.0"
 
   def project do
     [
