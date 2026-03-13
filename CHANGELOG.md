@@ -2,6 +2,43 @@
 
 ## Unreleased
 
+## [0.26.0] - 2026-03-13
+
+### Changed
+
+- **Breaking:** Wrap the sorting indicator in the table header inside the sort
+  link. Remove wrapper `span` and the `th_wrapper_attrs` option. Please check
+  your table styles when upgrading (see HTML differences below).
+- Add `head` slot to `Flop.Phoenix.table/1`.
+
+### Fixed
+
+- Remove unused require Logger warnings in Elixir 1.20.
+
+### Changed table header markup
+
+Sortable table header markup before the change:
+
+```html
+<th aria-sort="ascending">
+  <span>
+    <a href="/">Name</a>
+    <span class="order-direction">▴</span>
+  </span>
+</th>
+```
+
+Sortable table header markup after the change:
+
+```html
+<th aria-sort="ascending">
+  <a href="/">
+    <span>Name</span>
+    <span class="order-direction">▴</span>
+  </a>
+</th>
+```
+
 ## [0.25.3] - 2025-07-31
 
 ### Changed
