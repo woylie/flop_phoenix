@@ -59,7 +59,7 @@ defmodule FlopPhoenix.MixProject do
       {:ex_doc, "0.40.1", only: :dev, runtime: false},
       {:ex_machina, "2.8.0", only: :test},
       {:excoveralls, "0.18.5", only: :test},
-      {:floki, "0.38.0", only: :test},
+      {:floki, "== 0.38.1", only: :test},
       {:lazy_html, "0.1.10", only: :test},
       {:flop, ">= 0.23.0 and < 0.27.0"},
       {:jason, "1.4.4", only: [:dev, :test]},
