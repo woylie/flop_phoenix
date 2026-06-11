@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.26.1] - 2026-06-11
+
+### Changed
+
+- Loosen `phoenix_live_view` version requirement to ~> 1.1.
+
 ## [0.26.0] - 2026-03-13
 
 ### Changed
