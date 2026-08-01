@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Allow explicitly rendering the table empty state when using a LiveView
+  stream.
+
 ## [0.26.1] - 2026-06-11
 
 ### Changed
