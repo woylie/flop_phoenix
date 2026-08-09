@@ -211,8 +211,6 @@ component:
 </.form>
 ```
 
-`Phoenix.LiveView.JS` command as an attribute to the components in that case.
-
 ## LiveView streams
 
 To use LiveView streams, you can change your `handle_params/3` function as
