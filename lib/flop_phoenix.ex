@@ -281,6 +281,7 @@ defmodule Flop.Phoenix do
   </Flop.Phoenix.pagination>
   ```
   """
+  @doc since: "0.1.0"
   @doc section: :components
   @spec pagination(map) :: Phoenix.LiveView.Rendered.t()
 
@@ -806,6 +807,7 @@ defmodule Flop.Phoenix do
       iex> page_link_aria_label(5)
       "Go to page 5"
   """
+  @doc since: "0.25.0"
   @spec page_link_aria_label(integer) :: String.t()
   def page_link_aria_label(n) when is_integer(n) do
     "Go to page #{n}"
