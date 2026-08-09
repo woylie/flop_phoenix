@@ -14,6 +14,14 @@ defmodule FlopPhoenix.MixProject do
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
+        flags: [
+          :error_handling,
+          :extra_return,
+          :missing_return,
+          :underspecs,
+          :unmatched_returns,
+          :unknown
+        ],
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
         plt_file: {:no_warn, ".plts/dialyzer.plt"},
