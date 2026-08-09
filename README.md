@@ -22,6 +22,11 @@ end
 Next, set up your business logic following the
 [Flop documentation](https://hex.pm/packages/flop).
 
+### Supported versions
+
+Flop Phoenix is tested against the Elixir and OTP versions that are still
+maintained. `mix.exs` allows older Elixir versions, but they are untested.
+
 ## Context
 
 Define a context function that performs a list query using Flop.
@@ -210,8 +215,6 @@ component:
   <button name="reset">reset</button>
 </.form>
 ```
-
-`Phoenix.LiveView.JS` command as an attribute to the components in that case.
 
 ## LiveView streams
 

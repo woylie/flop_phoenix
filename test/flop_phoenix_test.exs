@@ -1,5 +1,5 @@
 defmodule Flop.PhoenixTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Phoenix.Component
 
   import Flop.Phoenix

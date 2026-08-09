@@ -209,12 +209,12 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   defp no_unsupported_options!(opts) do
-    for key <- [:append, :as, :hidden, :prepend] do
+    Enum.each([:append, :as, :hidden, :prepend], fn key ->
       if Keyword.has_key?(opts, key) do
         raise ArgumentError,
               "#{inspect(key)} is not supported on inputs_for with Flop.Meta."
       end
-    end
+    end)
   end
 
   defp humanize(atom) when is_atom(atom) do

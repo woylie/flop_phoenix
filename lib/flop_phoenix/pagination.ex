@@ -90,6 +90,7 @@ defmodule Flop.Phoenix.Pagination do
   - `reverse` - Reverses the position of the previous and next link. Only used
     for cursor-based pagination. Default: `false`.
   """
+  @doc since: "0.24.0"
   @spec new(Meta.t(), keyword) :: t
   def new(meta, opts \\ [])
 

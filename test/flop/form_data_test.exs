@@ -1,5 +1,5 @@
 defmodule Flop.Phoenix.FormDataTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   import Flop.Phoenix.Factory
   import Phoenix.HTML.Form
