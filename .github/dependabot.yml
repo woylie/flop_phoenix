@@ -1,3 +1,4 @@
+# Renovate handles version updates.
 version: 2
 updates:
   - package-ecosystem: mix
