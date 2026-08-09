@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
+  `FunctionClauseError` if the meta struct had validation errors.
+
 ## [0.26.1] - 2026-06-11
 
 ### Changed

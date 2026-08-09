@@ -337,6 +337,40 @@ defmodule Flop.Phoenix.FormDataTest do
              }
     end
 
+    @tag capture_log: true
+    test "with :dynamic option and errors" do
+      invalid_params = %{
+        "filters" => [
+          %{"field" => "name", "op" => "like", "value" => "George"},
+          %{"field" => "age", "value" => "8"}
+        ],
+        "page" => "0"
+      }
+
+      {:error, meta} = Flop.validate(invalid_params, for: Pet)
+
+      opts = [dynamic: true, fields: [age: [label: "Age"], name: [op: :like]]]
+
+      form = FormData.to_form(meta, [])
+      assert form.errors != []
+
+      assert [filter_form_1, filter_form_2] =
+               FormData.to_form(meta, form, :filters, opts)
+
+      assert filter_form_1.params == %{
+               "field" => "name",
+               "op" => "like",
+               "value" => "George"
+             }
+
+      assert filter_form_2.params == %{"field" => "age", "value" => "8"}
+
+      # the field options are matched by the string field name
+      assert filter_form_1.options[:op] == :like
+      assert filter_form_1.options[:label] == "Name"
+      assert filter_form_2.options[:label] == "Age"
+    end
+
     test "with :fields and :op option" do
       meta = build(:meta_on_first_page, flop: %Flop{filters: []})
       opts = [fields: [:name, {:age, op: :>}]]

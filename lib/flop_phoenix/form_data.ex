@@ -151,10 +151,26 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   defp filters_for(filters, fields, _, errors, true = _dynamic) do
     filters
     |> zip_errors(errors)
-    |> Enum.map(fn {%Filter{field: field} = filter, errors} ->
-      {filter, errors, fields[field] || []}
+    |> Enum.map(fn {filter, errors} ->
+      {filter, errors, dynamic_field_opts(fields, value(filter, :field))}
     end)
   end
+
+  defp dynamic_field_opts(fields, field) when is_atom(field) do
+    fields[field] || []
+  end
+
+  defp dynamic_field_opts(fields, field) when is_binary(field) do
+    Enum.find_value(fields, [], fn
+      {key, opts} when is_atom(key) and is_list(opts) ->
+        if Atom.to_string(key) == field, do: opts
+
+      _ ->
+        nil
+    end)
+  end
+
+  defp dynamic_field_opts(_fields, _field), do: []
 
   defp get_hidden(filter, false = _skip_hidden_op) do
     Misc.maybe_put([field: value(filter, :field)], :op, value(filter, :op), :==)
