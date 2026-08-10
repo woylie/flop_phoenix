@@ -4,8 +4,21 @@
 
 ### Fixed
 
+- Return one entry per message in the errors of a form built from a
+  `Flop.Meta` struct, so that `form[:page].errors` is `[{message, opts}]`
+  instead of `[[{message, opts}]]`.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
+
+### How to upgrade
+
+If you flattened the errors yourself before rendering them, you can remove that
+step. In the `input` component `mix phx.new` generates, that is:
+
+```diff
+- |> assign(:errors, Enum.map(List.flatten(field.errors), &translate_error/1))
++ |> assign(:errors, Enum.map(field.errors, &translate_error/1))
+```
 
 ## [0.26.1] - 2026-06-11
 

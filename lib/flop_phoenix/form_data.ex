@@ -10,7 +10,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
     %Phoenix.HTML.Form{
       data: meta.flop,
-      errors: meta.errors,
+      errors: flatten_errors(meta.errors),
       hidden: hidden_inputs(meta, hidden),
       id: id,
       impl: __MODULE__,
@@ -107,7 +107,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
         id: id <> "_" <> index_string,
         name: name <> "[" <> index_string <> "]",
         data: data,
-        errors: errors,
+        errors: flatten_errors(errors),
         params: params,
         hidden: hidden,
         options: opts ++ field_opts
@@ -179,6 +179,24 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   defp get_hidden(filter, true = _skip_hidden_op) do
     [field: value(filter, :field)]
   end
+
+  defp flatten_errors(errors) do
+    Enum.flat_map(errors, &flatten_error/1)
+  end
+
+  defp flatten_error({field, messages}) do
+    if nested_form_errors?(messages) do
+      [{field, messages}]
+    else
+      for message <- List.wrap(messages), do: {field, message}
+    end
+  end
+
+  defp nested_form_errors?(messages) when is_list(messages) do
+    Enum.any?(messages, &is_list/1)
+  end
+
+  defp nested_form_errors?(_messages), do: false
 
   defp zip_errors(filters, []), do: Enum.map(filters, &{&1, []})
 
