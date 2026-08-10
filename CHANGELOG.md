@@ -32,6 +32,9 @@
   `FunctionClauseError` if the `filters` parameter is not a list of maps.
 - Remove Flop query parameters that the `Flop` struct does not set from a path
   given as a URL string in `Flop.Phoenix.build_path/3`.
+- Omit pagination, order and filter parameters that match a default from the
+  hidden inputs of a form built from a `Flop.Meta` struct that has validation
+  errors.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
 
