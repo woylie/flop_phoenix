@@ -95,7 +95,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
       field_opts =
         field_opts
-        |> Keyword.put_new(:type, input_type(data, meta.schema))
+        |> Keyword.put_new(:type, input_type(get_field(filter), meta.schema))
         |> Keyword.put_new_lazy(:label, fn ->
           filter |> get_field() |> humanize()
         end)
@@ -271,12 +271,27 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     |> :string.titlecase()
   end
 
-  defp input_type(%Filter{field: field}, schema)
+  defp input_type(field, schema)
        when not is_nil(field) and not is_nil(schema) do
-    schema |> ecto_type(field) |> input_type_for_ecto_type()
+    case schema_field(schema, field) do
+      nil -> "text"
+      field -> schema |> ecto_type(field) |> input_type_for_ecto_type()
+    end
   end
 
-  defp input_type(_meta, _form), do: "text"
+  defp input_type(_field, _schema), do: "text"
+
+  # The field name arrives as a string whenever the meta has errors, and an
+  # unknown name has no atom to convert to, so it is matched against the fields
+  # the schema declares.
+  defp schema_field(_schema, field) when is_atom(field), do: field
+
+  defp schema_field(schema, field) when is_binary(field) do
+    schema
+    |> struct()
+    |> Flop.Schema.filterable()
+    |> Enum.find(&(Atom.to_string(&1) == field))
+  end
 
   defp input_type_for_ecto_type(:boolean), do: "checkbox"
   defp input_type_for_ecto_type(:date), do: "date"

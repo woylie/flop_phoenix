@@ -7,6 +7,8 @@
 - Return one entry per message in the errors of a form built from a
   `Flop.Meta` struct, so that `form[:page].errors` is `[{message, opts}]`
   instead of `[[{message, opts}]]`.
+- Derive the input type of a filter from the Ecto type of the field even if the
+  meta struct has errors, instead of falling back to a text input.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
 
