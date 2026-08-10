@@ -77,12 +77,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     name = if name = name || form.name, do: name <> "[filters]", else: "filters"
     id = if id = id || form.id, do: id <> "_filters", else: "filters"
 
-    filters =
-      if form.errors == [],
-        do: flop.filters,
-        else: Map.get(form.params, "filters", [])
-
-    filter_errors = Keyword.get(form.errors, :filters, [])
+    {filters, filter_errors} = filters_and_errors(form, flop, default)
 
     filters_errors_opts =
       filters
@@ -204,6 +199,29 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   defp nested_form_errors?(_messages), do: false
+
+  defp filters_and_errors(form, %Flop{} = flop, default) do
+    filters =
+      if form.errors == [],
+        do: flop.filters,
+        else: Map.get(form.params, "filters", [])
+
+    errors = Keyword.get(form.errors, :filters, [])
+
+    if renderable_filters?(filters, errors),
+      do: {filters, errors},
+      else: {default, []}
+  end
+
+  # Flop rejects the filters parameter as a whole if it is not a list of maps.
+  # The parameter is then passed through unchanged, and the :filters errors hold
+  # messages instead of one error list per filter. Neither can be rendered as
+  # filter forms, so the default filters are rendered instead and the message
+  # stays on the :filters field of the parent form.
+  defp renderable_filters?(filters, errors) do
+    is_list(filters) and Enum.all?(filters, &is_map/1) and
+      (errors == [] or nested_form_errors?(errors))
+  end
 
   defp zip_errors(filters, []), do: Enum.map(filters, &{&1, []})
 
