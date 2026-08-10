@@ -3353,6 +3353,12 @@ defmodule Flop.PhoenixTest do
     test "does not return range beyond total pages" do
       assert page_link_range(3, 1, 2) == {1, 2}
     end
+
+    test "raises error for non-positive max pages" do
+      assert_raise ArgumentError, ~r/Invalid page link option/, fn ->
+        page_link_range(0, 5, 20)
+      end
+    end
   end
 
   defmodule TestSchema do

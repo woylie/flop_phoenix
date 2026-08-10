@@ -871,7 +871,8 @@ defmodule Flop.Phoenix do
 
     A `page_range_start` and `page_range_end` attribute are passed to the
     inner block based on this option. If this attribute is set to `:none`, both
-    of those values will be `nil`.
+    of those values will be `nil`, and both `ellipsis_start?` and
+    `ellipsis_end?` will be `false`.
     """
 
   attr :reverse, :boolean,
@@ -939,7 +940,7 @@ defmodule Flop.Phoenix do
   def page_link_range(:none, _, _), do: {nil, nil}
 
   def page_link_range(max_pages, current_page, total_pages)
-      when is_integer(max_pages) do
+      when is_integer(max_pages) and max_pages > 0 do
     # number of additional pages to show before or after current page
     additional = ceil(max_pages / 2)
 
@@ -955,6 +956,20 @@ defmodule Flop.Phoenix do
         last = min(first + max_pages - 1, total_pages)
         {first, last}
     end
+  end
+
+  def page_link_range(max_pages, _, _) do
+    raise ArgumentError, """
+    Invalid page link option
+
+    The first argument of Flop.Phoenix.page_link_range/3 must be `:all`,
+    `:none`, or a positive integer. Pass `:none` to render no page links at
+    all.
+
+    Got:
+
+    #{Misc.indent(max_pages)}
+    """
   end
 
   @doc """

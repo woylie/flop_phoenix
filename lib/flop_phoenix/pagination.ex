@@ -5,6 +5,7 @@ defmodule Flop.Phoenix.Pagination do
   """
 
   alias Flop.Meta
+  alias Flop.Phoenix.Misc
 
   @typedoc """
   Describes the data needed to render a pagination component.
@@ -14,8 +15,8 @@ defmodule Flop.Phoenix.Pagination do
   - `current_page`
   - `ellipsis_end?` - Whether an ellipsis should be rendered between the middle
     pagination links and the link to the last page.
-  - `ellipsis_end?` - Whether an ellipsis should be rendered between the link to
-    the first page and the middle pagination links.
+  - `ellipsis_start?` - Whether an ellipsis should be rendered between the link
+    to the first page and the middle pagination links.
   - `next_page`
   - `page_range_start`, `page_range_end` - The range for the links for
     individual pages.
@@ -81,6 +82,10 @@ defmodule Flop.Phoenix.Pagination do
   @doc """
   Returns a `Pagination` struct for the given `Flop.Meta` struct.
 
+  The `Flop` struct of the meta struct must have pagination parameters, which
+  means one of `:page`, `:first`, `:last` or `:limit` must be set. Otherwise, an
+  `ArgumentError` is raised.
+
   ## Options
 
   - `page_links` - Defines how many page links to render. Only used for
@@ -122,8 +127,9 @@ defmodule Flop.Phoenix.Pagination do
 
       %__MODULE__{
         current_page: meta.current_page,
-        ellipsis_end?: page_range_end < meta.total_pages - 1,
-        ellipsis_start?: page_range_start > 2,
+        ellipsis_end?:
+          is_integer(page_range_end) and page_range_end < meta.total_pages - 1,
+        ellipsis_start?: is_integer(page_range_start) and page_range_start > 2,
         next_page: meta.next_page,
         page_range_end: page_range_end,
         path_fun: path_fun,
@@ -174,6 +180,20 @@ defmodule Flop.Phoenix.Pagination do
 
   defp pagination_type(%Flop{limit: limit}) when is_integer(limit) do
     :offset
+  end
+
+  defp pagination_type(%Flop{} = flop) do
+    raise ArgumentError, """
+    No pagination parameters
+
+    Flop.Phoenix.Pagination.new/2 needs a Flop.Meta struct for a paginated
+    query. The Flop struct must set one of :page, :first, :last or :limit, but
+    all of them are nil.
+
+    Got:
+
+    #{Misc.indent(flop)}
+    """
   end
 
   defp build_page_path_fun(_meta, nil), do: fn _ -> nil end
