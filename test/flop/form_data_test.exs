@@ -151,6 +151,29 @@ defmodule Flop.Phoenix.FormDataTest do
     end
 
     @tag capture_log: true
+    test "derives the input type from the field name with and without errors" do
+      meta =
+        build(:meta_on_first_page,
+          schema: Pet,
+          flop: %Flop{filters: [%Filter{field: :age, op: :==, value: 8}]}
+        )
+
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+      assert filter_form.options[:type] == "number"
+
+      {:error, meta} =
+        Flop.validate(
+          %{"filters" => [%{"field" => "age", "op" => "==", "value" => "a"}]},
+          for: Pet
+        )
+
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+      assert filter_form.options[:type] == "number"
+    end
+
+    @tag capture_log: true
     test "with filters and errors" do
       invalid_params = %{
         page: 0,
