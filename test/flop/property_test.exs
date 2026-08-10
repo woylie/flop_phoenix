@@ -24,19 +24,13 @@ defmodule Flop.Phoenix.PropertyTest do
     end
   end
 
-  # Parameters the Flop struct does not produce are left alone, which is what
-  # makes unrelated query parameters survive, so only the produced ones are
-  # compared here.
-  property "build_path/3 overrides the parameters it produces" do
+  property "build_path/3 replaces the parameters of an earlier Flop struct" do
     check all flop <- flop(),
               stale <- flop() do
-      fresh_path = build_path(@path, flop)
       stale_path = build_path(@path, stale)
 
-      fresh_query = decoded_query(fresh_path)
-      combined = decoded_query(build_path(stale_path, flop))
-
-      assert Map.take(combined, Map.keys(fresh_query)) == fresh_query
+      assert decoded_query(build_path(stale_path, flop)) ==
+               decoded_query(build_path(@path, flop))
     end
   end
 
