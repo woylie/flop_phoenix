@@ -1660,7 +1660,7 @@ defmodule Flop.Phoenix do
       "order_directions[]=desc&order_directions[]=asc&order_by[]=name&order_by[]=age"
   """
   @doc since: "0.6.0"
-  @spec to_query(Flop.t()) :: keyword
+  @spec to_query(Flop.t(), keyword) :: keyword
   def to_query(%Flop{filters: filters} = flop, opts \\ []) do
     filter_map =
       filters
