@@ -3,6 +3,9 @@ defmodule Flop.Phoenix.InvalidFilterFieldConfigError do
   Raised when the `fields` attribute of the `Flop.Phoenix.filter_fields`
   component is set to an invalid value.
   """
+
+  alias Flop.Phoenix.Misc
+
   defexception [:value]
 
   def message(%{value: value}) do
@@ -15,7 +18,7 @@ defmodule Flop.Phoenix.InvalidFilterFieldConfigError do
 
     Got:
 
-        #{inspect(value, pretty: true, width: 76)}
+    #{Misc.indent(value)}
 
     Expected a list of atoms:
 

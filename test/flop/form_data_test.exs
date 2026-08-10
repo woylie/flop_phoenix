@@ -705,7 +705,7 @@ defmodule Flop.Phoenix.FormDataTest do
       sortable: [],
       compound_fields: [compound: [:string, :string2]],
       join_fields: [
-        join_default: [binding: :pets, field: :species],
+        join_default: [binding: :pets, field: :species, ecto_type: :string],
         join_integer: [binding: :pets, field: :species, ecto_type: :integer]
       ],
       custom_fields: [

@@ -10,6 +10,8 @@
 - Raise an `ArgumentError` instead of a `FunctionClauseError` in
   `Flop.Phoenix.Pagination.new/2` if the `Flop` struct has no pagination
   parameters.
+- Document how to handle `_unused_*` and `_target` parameters produced by
+  Phoenix forms.
 
 ### Fixed
 
