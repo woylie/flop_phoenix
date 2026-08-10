@@ -29,10 +29,17 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   end
 
   defp hidden_inputs(
-         %Meta{flop: %Flop{} = flop, params: %{} = params, schema: schema},
+         %Meta{
+           backend: backend,
+           flop: %Flop{} = flop,
+           params: %{} = params,
+           schema: schema
+         },
          hidden
        ) do
-    default_limit = Flop.get_option(:default_limit, for: schema)
+    default_limit =
+      Flop.get_option(:default_limit, backend: backend, for: schema)
+
     default_order = Flop.get_option(:default_order, for: schema)
 
     page_size = params["page_size"] || flop.page_size
@@ -309,13 +316,21 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   def input_validations(_meta, _form, :offset), do: [min: 0]
   def input_validations(_meta, _form, :page), do: [min: 1]
 
-  def input_validations(_meta, %{source: %Flop.Meta{schema: nil}}, field)
+  def input_validations(
+        _meta,
+        %{source: %Flop.Meta{backend: nil, schema: nil}},
+        field
+      )
       when field in [:first, :last, :limit, :page_size],
       do: [min: 1]
 
-  def input_validations(_meta, %{source: %Flop.Meta{schema: schema}}, field)
+  def input_validations(
+        _meta,
+        %{source: %Flop.Meta{backend: backend, schema: schema}},
+        field
+      )
       when field in [:first, :last, :limit, :page_size] do
-    if max_limit = Flop.get_option(:max_limit, for: schema) do
+    if max_limit = Flop.get_option(:max_limit, backend: backend, for: schema) do
       [min: 1, max: max_limit]
     else
       [min: 1]
