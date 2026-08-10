@@ -3217,6 +3217,18 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "input[id='flop_filters_6_op']")
     end
 
+    test "renders validation errors with an input component" do
+      {:error, meta} =
+        Flop.validate(
+          %{"filters" => [%{"field" => "age", "op" => "==", "value" => "a"}]},
+          for: Pet
+        )
+
+      html = render_form(%{fields: [:age], meta: meta})
+
+      assert text(html, "p.error") == "is invalid"
+    end
+
     test "raises error if the form is not a form for meta" do
       assert_raise Flop.Phoenix.NoMetaFormError, fn ->
         render_component(&filter_fields/1, form: to_form(%{}))

@@ -2,7 +2,9 @@ defmodule Flop.Phoenix.FormDataTest do
   use ExUnit.Case, async: true
 
   import Flop.Phoenix.Factory
+  import Phoenix.Component
   import Phoenix.HTML.Form
+  import Phoenix.LiveViewTest
 
   alias Flop.Filter
   alias MyApp.Pet
@@ -18,8 +20,40 @@ defmodule Flop.Phoenix.FormDataTest do
       assert form.data == meta.flop
       assert form.hidden == [page_size: meta.flop.page_size]
       assert form.params == %{}
-      assert form.errors == meta.errors
+      assert form.errors == [limit: {"whatever", nil}]
+      assert form[:limit].errors == [{"whatever", nil}]
       assert form.index == nil
+    end
+
+    test "renders the errors of a field with an input component" do
+      {:error, meta} = Flop.validate(%{"limit" => -10})
+      assigns = %{form: to_form(meta)}
+
+      html =
+        rendered_to_string(~H"""
+        <MyAppWeb.CoreComponents.input field={@form[:limit]} type="number" />
+        """)
+
+      assert html =~ "must be greater than 0"
+    end
+
+    test "flattens the messages of a rejected filters parameter" do
+      meta =
+        build(:meta_on_first_page,
+          errors: [filters: [{"is invalid", [validation: :embed]}]]
+        )
+
+      form = FormData.to_form(meta, [])
+
+      assert form[:filters].errors == [{"is invalid", [validation: :embed]}]
+    end
+
+    test "passes the errors of the filter forms through" do
+      filter_errors = [[], [value: [{"is invalid", []}]]]
+      meta = build(:meta_on_first_page, errors: [filters: filter_errors])
+      form = FormData.to_form(meta, [])
+
+      assert Keyword.get(form.errors, :filters) == filter_errors
     end
 
     test "with :as" do
@@ -145,7 +179,7 @@ defmodule Flop.Phoenix.FormDataTest do
                "page" => 0
              }
 
-      assert Keyword.get(form.errors, :page) == [
+      assert form[:page].errors == [
                {"must be greater than %{number}",
                 [validation: :number, kind: :greater_than, number: 0]}
              ]
@@ -154,7 +188,8 @@ defmodule Flop.Phoenix.FormDataTest do
       assert [op: [{"is invalid", _}]] = filter_errors_2
 
       assert filter_form_1.errors == []
-      assert filter_form_2.errors == filter_errors_2
+      assert [op: {"is invalid", _}] = filter_form_2.errors
+      assert [{"is invalid", _}] = filter_form_2[:op].errors
       assert filter_form_3.errors == []
 
       assert filter_form_1.params == %{
@@ -173,6 +208,86 @@ defmodule Flop.Phoenix.FormDataTest do
                "field" => :species,
                "value" => "dog"
              }
+    end
+
+    @tag capture_log: true
+    test "flattens the errors of every key of a filter" do
+      {:error, meta} =
+        Flop.validate(
+          %{"filters" => [%{"field" => "age", "op" => "=~", "value" => "abc"}]},
+          for: Pet
+        )
+
+      assert [filter_errors] = Keyword.get(meta.errors, :filters)
+      assert filter_errors |> Keyword.keys() |> Enum.sort() == [:op, :value]
+
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+
+      assert [{"is invalid", _}] = filter_form[:op].errors
+      assert [{"is invalid", _}] = filter_form[:value].errors
+
+      assert filter_form.errors |> Keyword.keys() |> Enum.sort() == [
+               :op,
+               :value
+             ]
+
+      assert Enum.all?(filter_form.errors, &match?({_, {_message, _opts}}, &1))
+    end
+
+    test "collects multiple messages for the same key" do
+      # Flop only ever adds a single message per filter key, but applications
+      # can add their own validation.
+      params = %{
+        "filters" => [%{"field" => "age", "op" => "==", "value" => "3"}]
+      }
+
+      errors = [
+        filters: [
+          [
+            value: [
+              {"must be even", []},
+              {"must be greater than %{number}", [number: 10]}
+            ]
+          ]
+        ]
+      ]
+
+      meta = Flop.Meta.with_errors(params, errors, for: Pet)
+
+      form = FormData.to_form(meta, [])
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+
+      assert filter_form.errors == [
+               value: {"must be even", []},
+               value: {"must be greater than %{number}", [number: 10]}
+             ]
+
+      assert filter_form[:value].errors == [
+               {"must be even", []},
+               {"must be greater than %{number}", [number: 10]}
+             ]
+
+      assert filter_form[:op].errors == []
+    end
+
+    @tag capture_log: true
+    test "renders no filter form for a filter with an unknown field" do
+      {:error, meta} =
+        Flop.validate(
+          %{
+            "filters" => [
+              %{"field" => "nope", "op" => "notanop", "value" => "x"}
+            ]
+          },
+          for: Pet
+        )
+
+      assert [filter_errors] = Keyword.get(meta.errors, :filters)
+      assert filter_errors |> Keyword.keys() |> Enum.sort() == [:field, :op]
+
+      form = FormData.to_form(meta, [])
+      assert FormData.to_form(meta, form, :filters, []) == []
     end
 
     test "with filters and without errors" do
