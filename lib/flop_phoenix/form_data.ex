@@ -51,12 +51,47 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     order_params = %{order_by: order_by, order_directions: order_directions}
 
     hidden
-    |> Misc.maybe_put(:page_size, page_size, default_limit)
-    |> Misc.maybe_put(:limit, limit, default_limit)
-    |> Misc.maybe_put(:first, first, default_limit)
-    |> Misc.maybe_put(:last, last, default_limit)
-    |> Misc.maybe_put_order_params(order_params, default_order)
+    |> maybe_put_param(:page_size, page_size, default_limit)
+    |> maybe_put_param(:limit, limit, default_limit)
+    |> maybe_put_param(:first, first, default_limit)
+    |> maybe_put_param(:last, last, default_limit)
+    |> Misc.maybe_put_order_params(
+      order_params,
+      comparable_order(order_params, default_order)
+    )
   end
+
+  # The values of meta.params are strings, while the defaults are typed. The
+  # default is converted to the shape of the value before the two are compared,
+  # so that a value matching its default is omitted on an error render as well.
+  defp maybe_put_param(hidden, key, value, default) do
+    Misc.maybe_put(hidden, key, value, comparable_default(value, default))
+  end
+
+  defp comparable_default(_value, nil), do: nil
+
+  defp comparable_default(value, default) when is_binary(value),
+    do: to_string(default)
+
+  defp comparable_default([value | _], default)
+       when is_binary(value) and is_list(default),
+       do: Enum.map(default, &to_string/1)
+
+  defp comparable_default(_value, default), do: default
+
+  defp comparable_order(
+         %{order_by: [order_by | _]},
+         %{order_by: default_by, order_directions: default_directions} = default
+       )
+       when is_binary(order_by) do
+    %{
+      default
+      | order_by: Enum.map(default_by, &to_string/1),
+        order_directions: Enum.map(default_directions, &to_string/1)
+    }
+  end
+
+  defp comparable_order(_order_params, default), do: default
 
   def to_form(
         meta,
@@ -175,7 +210,14 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
   defp dynamic_field_opts(_fields, _field), do: []
 
   defp get_hidden(filter, false = _skip_hidden_op) do
-    Misc.maybe_put([field: value(filter, :field)], :op, value(filter, :op), :==)
+    op = value(filter, :op)
+
+    Misc.maybe_put(
+      [field: value(filter, :field)],
+      :op,
+      op,
+      comparable_default(op, :==)
+    )
   end
 
   defp get_hidden(filter, true = _skip_hidden_op) do

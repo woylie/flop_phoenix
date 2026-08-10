@@ -50,6 +50,38 @@ defmodule Flop.Phoenix.FormDataTest do
       assert form.hidden == []
     end
 
+    @tag capture_log: true
+    test "omits parameters matching a default when the meta has errors" do
+      params = %{
+        "order_by" => ["name"],
+        "order_directions" => ["asc"],
+        "page_size" => "20"
+      }
+
+      {:ok, flop} = Flop.validate(params, for: Pet)
+      valid_meta = %Flop.Meta{flop: flop, schema: Pet, params: %{}}
+
+      {:error, error_meta} =
+        Flop.validate(Map.put(params, "page", "0"), for: Pet)
+
+      assert FormData.to_form(valid_meta, []).hidden == []
+      assert FormData.to_form(error_meta, []).hidden == []
+    end
+
+    @tag capture_log: true
+    test "omits the default operator from filter hidden inputs with errors" do
+      params = %{
+        "filters" => [%{"field" => "name", "op" => "==", "value" => "George"}],
+        "page" => "0"
+      }
+
+      {:error, meta} = Flop.validate(params, for: Pet)
+      form = FormData.to_form(meta, [])
+
+      assert [filter_form] = FormData.to_form(meta, form, :filters, [])
+      assert filter_form.hidden == [field: "name"]
+    end
+
     test "flattens the messages of a rejected filters parameter" do
       meta =
         build(:meta_on_first_page,
