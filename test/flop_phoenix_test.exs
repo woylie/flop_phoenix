@@ -3305,6 +3305,47 @@ defmodule Flop.PhoenixTest do
              }
     end
 
+    test "removes flop parameters that the flop struct does not set" do
+      path =
+        build_path("/pets?page=3&page_size=50", %Flop{first: 10, after: "a"})
+
+      assert %URI{path: "/pets", query: query} = URI.parse(path)
+      assert URI.decode_query(query) == %{"after" => "a", "first" => "10"}
+    end
+
+    test "keeps query parameters that are not flop parameters" do
+      path = build_path("/pets?species=dogs", %Flop{page: 2, page_size: 10})
+
+      assert %URI{path: "/pets", query: query} = URI.parse(path)
+
+      assert URI.decode_query(query) == %{
+               "page" => "2",
+               "page_size" => "10",
+               "species" => "dogs"
+             }
+    end
+
+    test "removes every parameter to_query/2 can produce" do
+      flop = %Flop{
+        after: "a",
+        before: "b",
+        filters: [%Filter{field: :name, op: :==, value: "Bo"}],
+        first: 3,
+        last: 4,
+        limit: 5,
+        offset: 10,
+        order_by: [:name],
+        order_directions: [:desc],
+        page: 2,
+        page_size: 10
+      }
+
+      query = flop |> to_query() |> Query.encode()
+
+      assert %URI{query: nil} =
+               URI.parse(build_path("/pets?" <> query, %Flop{}))
+    end
+
     test "encodes filters merged into existing query parameters" do
       flop = %Flop{
         page: 2,

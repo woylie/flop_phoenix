@@ -152,6 +152,12 @@ defmodule Flop.Phoenix do
   alias Phoenix.LiveView.JS
   alias Plug.Conn.Query
 
+  # every query parameter to_query/2 can produce
+  @flop_param_keys ~w(
+    after before filters first last limit offset order_by order_directions
+    page page_size
+  )
+
   @typedoc """
   Defines how many page links to render.
 
@@ -1792,6 +1798,15 @@ defmodule Flop.Phoenix do
       iex> {parsed_path, URI.decode_query(parsed_query)}
       {"/pets", %{"page" => "2", "page_size" => "10", "species" => "dogs"}}
 
+  A Flop parameter that exists only in the path is removed, so that the
+  parameters always describe the given Flop struct.
+
+      iex> flop = %Flop{first: 10, after: "eyJpZCI6IDF9"}
+      iex> path = build_path("/pets?page=3&species=dogs", flop)
+      iex> %URI{path: parsed_path, query: parsed_query} = URI.parse(path)
+      iex> {parsed_path, URI.decode_query(parsed_query)}
+      {"/pets", %{"after" => "eyJpZCI6IDF9", "first" => "10", "species" => "dogs"}}
+
   ### With an MFA tuple
 
       iex> flop = %Flop{page: 2, page_size: 10}
@@ -1978,14 +1993,15 @@ defmodule Flop.Phoenix do
       when is_binary(uri) and is_list(flop_params) do
     uri = URI.parse(uri)
 
-    # The decoded query has string keys, the Flop parameters atom keys. Without
-    # stringifying, a key present in both is emitted twice.
+    # The decoded query has string keys, the Flop parameters atom keys.
+    # Every parameter the Flop struct owns is dropped before merging.
     flop_params =
       Map.new(flop_params, fn {key, value} -> {to_string(key), value} end)
 
     query =
       (uri.query || "")
       |> Query.decode()
+      |> Map.drop(@flop_param_keys)
       |> Map.merge(flop_params)
 
     query = if query != %{}, do: Query.encode(query), else: nil
