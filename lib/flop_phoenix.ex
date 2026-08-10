@@ -1519,6 +1519,7 @@ defmodule Flop.Phoenix do
   """
   @doc since: "0.16.0"
   @doc section: :components
+  @spec hidden_inputs_for_filter(map) :: Phoenix.LiveView.Rendered.t()
 
   attr :form, Phoenix.HTML.Form, required: true
 
