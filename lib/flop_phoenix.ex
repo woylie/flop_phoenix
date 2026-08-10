@@ -1699,8 +1699,6 @@ defmodule Flop.Phoenix do
           1 => %{field: :age, op: :>, value: 25}
         }
       ]
-      iex> to_query(f)
-      [filters: %{0 => %{value: "Mag", op: :=~, field: :name}, 1 => %{value: 25, op: :>, field: :age}}]
 
       iex> f = %Flop{page: 5, page_size: 20}
       iex> to_query(f, default_limit: 20)
