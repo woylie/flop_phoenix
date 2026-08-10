@@ -3270,6 +3270,38 @@ defmodule Flop.PhoenixTest do
       meta = %Flop.Meta{schema: Pet, flop: %Flop{page_size: 20}}
       assert build_path("/pets", meta) == "/pets"
     end
+
+    test "overrides existing query parameters" do
+      path =
+        build_path("/pets?page=3&species=dogs", %Flop{page: 2, page_size: 10})
+
+      assert %URI{path: "/pets", query: query} = URI.parse(path)
+
+      assert URI.decode_query(query) == %{
+               "page" => "2",
+               "page_size" => "10",
+               "species" => "dogs"
+             }
+    end
+
+    test "encodes filters merged into existing query parameters" do
+      flop = %Flop{
+        page: 2,
+        page_size: 10,
+        filters: [%Filter{field: :name, op: :==, value: "Bo"}]
+      }
+
+      path = build_path("/pets?species=dogs", flop)
+
+      assert %URI{path: "/pets", query: query} = URI.parse(path)
+
+      assert %{
+               "filters" => %{
+                 "0" => %{"field" => "name", "op" => "==", "value" => "Bo"}
+               },
+               "species" => "dogs"
+             } = Query.decode(query)
+    end
   end
 
   describe "page_link_range/3" do
