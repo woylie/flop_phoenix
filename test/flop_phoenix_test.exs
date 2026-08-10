@@ -3217,6 +3217,7 @@ defmodule Flop.PhoenixTest do
       assert [_] = Floki.find(html, "input[id='flop_filters_6_op']")
     end
 
+    @tag capture_log: true
     test "renders validation errors with an input component" do
       {:error, meta} =
         Flop.validate(
