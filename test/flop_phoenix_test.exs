@@ -2885,6 +2885,16 @@ defmodule Flop.PhoenixTest do
       assert attribute(input, "value") == "10"
     end
 
+    test "renders each hidden filter input once", %{fields: fields, meta: meta} do
+      names =
+        %{fields: fields, meta: meta}
+        |> render_form()
+        |> Floki.find("input[type='hidden']")
+        |> Enum.map(&attribute(&1, "name"))
+
+      assert names == Enum.uniq(names)
+    end
+
     test "renders the labels and filter inputs", %{
       fields: fields,
       meta: meta
