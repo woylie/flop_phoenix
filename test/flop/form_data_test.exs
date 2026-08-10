@@ -25,6 +25,7 @@ defmodule Flop.Phoenix.FormDataTest do
       assert form.index == nil
     end
 
+    @tag capture_log: true
     test "renders the errors of a field with an input component" do
       {:error, meta} = Flop.validate(%{"limit" => -10})
       assigns = %{form: to_form(meta)}
