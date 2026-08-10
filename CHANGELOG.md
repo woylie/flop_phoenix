@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+All notable changes to this project are documented in this file.
+
+The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.26.2] - 2026-08-10
 
 ### Changed
 
@@ -69,7 +77,7 @@ step. In the `input` component `mix phx.new` generates, that is:
 
 - Remove unused require Logger warnings in Elixir 1.20.
 
-### Changed table header markup
+### How to upgrade
 
 Sortable table header markup before the change:
 
@@ -1341,4 +1349,66 @@ Update your template like this:
 
 ## [0.1.0] - 2020-06-15
 
-Initial release
+### Added
+
+- Initial release.
+
+[unreleased]: https://github.com/woylie/flop_phoenix/compare/0.26.2...HEAD
+[0.26.2]: https://github.com/woylie/flop_phoenix/compare/0.26.1...0.26.2
+[0.26.1]: https://github.com/woylie/flop_phoenix/compare/0.26.0...0.26.1
+[0.26.0]: https://github.com/woylie/flop_phoenix/compare/0.25.3...0.26.0
+[0.25.3]: https://github.com/woylie/flop_phoenix/compare/0.25.2...0.25.3
+[0.25.2]: https://github.com/woylie/flop_phoenix/compare/0.25.1...0.25.2
+[0.25.1]: https://github.com/woylie/flop_phoenix/compare/0.25.0...0.25.1
+[0.25.0]: https://github.com/woylie/flop_phoenix/compare/0.24.0...0.25.0
+[0.24.0]: https://github.com/woylie/flop_phoenix/compare/0.23.1...0.24.0
+[0.23.1]: https://github.com/woylie/flop_phoenix/compare/0.23.0...0.23.1
+[0.23.0]: https://github.com/woylie/flop_phoenix/compare/0.22.10...0.23.0
+[0.22.10]: https://github.com/woylie/flop_phoenix/compare/0.22.9...0.22.10
+[0.22.9]: https://github.com/woylie/flop_phoenix/compare/0.22.8...0.22.9
+[0.22.8]: https://github.com/woylie/flop_phoenix/compare/0.22.7...0.22.8
+[0.22.7]: https://github.com/woylie/flop_phoenix/compare/0.22.6...0.22.7
+[0.22.6]: https://github.com/woylie/flop_phoenix/compare/0.22.5...0.22.6
+[0.22.5]: https://github.com/woylie/flop_phoenix/compare/0.22.4...0.22.5
+[0.22.4]: https://github.com/woylie/flop_phoenix/compare/0.22.3...0.22.4
+[0.22.3]: https://github.com/woylie/flop_phoenix/compare/0.22.2...0.22.3
+[0.22.2]: https://github.com/woylie/flop_phoenix/compare/0.22.1...0.22.2
+[0.22.1]: https://github.com/woylie/flop_phoenix/compare/0.22.0...0.22.1
+[0.22.0]: https://github.com/woylie/flop_phoenix/compare/0.21.2...0.22.0
+[0.21.2]: https://github.com/woylie/flop_phoenix/compare/0.21.1...0.21.2
+[0.21.1]: https://github.com/woylie/flop_phoenix/compare/0.21.0...0.21.1
+[0.21.0]: https://github.com/woylie/flop_phoenix/compare/0.20.0...0.21.0
+[0.20.0]: https://github.com/woylie/flop_phoenix/compare/0.19.1...0.20.0
+[0.19.1]: https://github.com/woylie/flop_phoenix/compare/0.19.0...0.19.1
+[0.19.0]: https://github.com/woylie/flop_phoenix/compare/0.18.2...0.19.0
+[0.18.2]: https://github.com/woylie/flop_phoenix/compare/0.18.1...0.18.2
+[0.18.1]: https://github.com/woylie/flop_phoenix/compare/0.18.0...0.18.1
+[0.18.0]: https://github.com/woylie/flop_phoenix/compare/0.17.2...0.18.0
+[0.17.2]: https://github.com/woylie/flop_phoenix/compare/0.17.1...0.17.2
+[0.17.1]: https://github.com/woylie/flop_phoenix/compare/0.17.0...0.17.1
+[0.17.0]: https://github.com/woylie/flop_phoenix/compare/0.16.0...0.17.0
+[0.16.0]: https://github.com/woylie/flop_phoenix/compare/0.15.2...0.16.0
+[0.15.2]: https://github.com/woylie/flop_phoenix/compare/0.15.1...0.15.2
+[0.15.1]: https://github.com/woylie/flop_phoenix/compare/0.15.0...0.15.1
+[0.15.0]: https://github.com/woylie/flop_phoenix/compare/0.14.2...0.15.0
+[0.14.2]: https://github.com/woylie/flop_phoenix/compare/0.14.1...0.14.2
+[0.14.1]: https://github.com/woylie/flop_phoenix/compare/0.14.0...0.14.1
+[0.14.0]: https://github.com/woylie/flop_phoenix/compare/0.13.0...0.14.0
+[0.13.0]: https://github.com/woylie/flop_phoenix/compare/0.12.0...0.13.0
+[0.12.0]: https://github.com/woylie/flop_phoenix/compare/0.11.1...0.12.0
+[0.11.1]: https://github.com/woylie/flop_phoenix/compare/0.11.0...0.11.1
+[0.11.0]: https://github.com/woylie/flop_phoenix/compare/0.10.0...0.11.0
+[0.10.0]: https://github.com/woylie/flop_phoenix/compare/0.9.1...0.10.0
+[0.9.1]: https://github.com/woylie/flop_phoenix/compare/0.9.0...0.9.1
+[0.9.0]: https://github.com/woylie/flop_phoenix/compare/0.8.1...0.9.0
+[0.8.1]: https://github.com/woylie/flop_phoenix/compare/0.8.0...0.8.1
+[0.8.0]: https://github.com/woylie/flop_phoenix/compare/0.7.0...0.8.0
+[0.7.0]: https://github.com/woylie/flop_phoenix/compare/0.6.1...0.7.0
+[0.6.1]: https://github.com/woylie/flop_phoenix/compare/0.6.0...0.6.1
+[0.6.0]: https://github.com/woylie/flop_phoenix/compare/0.5.1...0.6.0
+[0.5.1]: https://github.com/woylie/flop_phoenix/compare/0.5.0...0.5.1
+[0.5.0]: https://github.com/woylie/flop_phoenix/compare/0.4.0...0.5.0
+[0.4.0]: https://github.com/woylie/flop_phoenix/compare/0.3.0...0.4.0
+[0.3.0]: https://github.com/woylie/flop_phoenix/compare/0.2.0...0.3.0
+[0.2.0]: https://github.com/woylie/flop_phoenix/compare/0.1.0...0.2.0
+[0.1.0]: https://github.com/woylie/flop_phoenix/releases/tag/0.1.0
