@@ -38,6 +38,18 @@ defmodule Flop.Phoenix.FormDataTest do
       assert html =~ "must be greater than 0"
     end
 
+    test "omits hidden inputs matching a default set on the backend" do
+      meta =
+        build(:meta_on_first_page,
+          backend: MyApp.Backend,
+          flop: %Flop{page: 1, page_size: 25}
+        )
+
+      form = FormData.to_form(meta, [])
+
+      assert form.hidden == []
+    end
+
     test "flattens the messages of a rejected filters parameter" do
       meta =
         build(:meta_on_first_page,
@@ -759,6 +771,16 @@ defmodule Flop.Phoenix.FormDataTest do
       assert input_validations(form, :last) == [min: 1, max: 200]
       assert input_validations(form, :limit) == [min: 1, max: 200]
       assert input_validations(form, :page_size) == [min: 1, max: 200]
+    end
+
+    test "applies :max_limit if only the backend is set" do
+      meta = build(:meta_on_first_page, backend: MyApp.Backend)
+      form = FormData.to_form(meta, [])
+
+      assert input_validations(form, :first) == [min: 1, max: 50]
+      assert input_validations(form, :last) == [min: 1, max: 50]
+      assert input_validations(form, :limit) == [min: 1, max: 50]
+      assert input_validations(form, :page_size) == [min: 1, max: 50]
     end
 
     test "adds maxlength to all filter text input fields" do
