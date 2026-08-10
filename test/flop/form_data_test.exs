@@ -308,6 +308,30 @@ defmodule Flop.Phoenix.FormDataTest do
     end
 
     @tag capture_log: true
+    test "renders no filter form if the filters parameter was rejected" do
+      for value <- ["notalist", ["notamap"]] do
+        {:error, meta} = Flop.validate(%{"filters" => value}, for: Pet)
+        form = FormData.to_form(meta, [])
+
+        assert FormData.to_form(meta, form, :filters, []) == []
+
+        assert [{"is invalid", _}] = form[:filters].errors
+      end
+    end
+
+    @tag capture_log: true
+    test "renders the default filters if the filters parameter was rejected" do
+      {:error, meta} = Flop.validate(%{"filters" => "notalist"}, for: Pet)
+      form = FormData.to_form(meta, [])
+      default = [%Filter{field: :name, op: :==, value: nil}]
+
+      assert [filter_form] =
+               FormData.to_form(meta, form, :filters, default: default)
+
+      assert filter_form.errors == []
+    end
+
+    @tag capture_log: true
     test "renders no filter form for a filter with an unknown field" do
       {:error, meta} =
         Flop.validate(

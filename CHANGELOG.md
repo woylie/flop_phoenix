@@ -28,6 +28,8 @@
   `Flop.Phoenix.Pagination.new/2` when `page_links` is `:none`.
 - Resolve Flop options from the backend module set on the meta struct, not only
   from the schema.
+- Render the configured filter fields instead of raising a
+  `FunctionClauseError` if the `filters` parameter is not a list of maps.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
 

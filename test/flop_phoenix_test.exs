@@ -3240,6 +3240,16 @@ defmodule Flop.PhoenixTest do
       assert text(html, "p.error") == "is invalid"
     end
 
+    @tag capture_log: true
+    test "renders the configured fields if the filters parameter was rejected" do
+      {:error, meta} = Flop.validate(%{"filters" => "notalist"}, for: Pet)
+
+      html = render_form(%{fields: [:age], meta: meta})
+
+      assert [input] = Floki.find(html, "input[name='filters[0][value]']")
+      assert attribute(input, "value") == nil
+    end
+
     test "raises error if the form is not a form for meta" do
       assert_raise Flop.Phoenix.NoMetaFormError, fn ->
         render_component(&filter_fields/1, form: to_form(%{}))
