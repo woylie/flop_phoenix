@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- Raise an `ArgumentError` instead of a `FunctionClauseError` in
+  `Flop.Phoenix.page_link_range/3` if the page link option is neither `:all`,
+  `:none` nor a positive integer.
+- Raise an `ArgumentError` instead of a `FunctionClauseError` in
+  `Flop.Phoenix.Pagination.new/2` if the `Flop` struct has no pagination
+  parameters.
+
 ### Fixed
 
 - Return one entry per message in the errors of a form built from a
@@ -13,6 +22,8 @@
   the path is given as a URL string, instead of appending a second set of them.
 - Render the hidden inputs of each filter once instead of twice in
   `Flop.Phoenix.filter_fields/1`.
+- Set `ellipsis_start?` and `ellipsis_end?` to `false` in
+  `Flop.Phoenix.Pagination.new/2` when `page_links` is `:none`.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
 

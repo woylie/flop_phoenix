@@ -82,6 +82,20 @@ defmodule Flop.Phoenix.Misc do
   end
 
   @doc """
+  Inspects and indents a term for an exception message.
+
+      iex> indent([:a, :b])
+      "    [:a, :b]"
+  """
+  @spec indent(term) :: String.t()
+  def indent(term) do
+    term
+    |> inspect(pretty: true, width: 76)
+    |> String.split("\n")
+    |> Enum.map_join("\n", &("    " <> &1))
+  end
+
+  @doc """
   Returns the global opts derived from a function referenced in the application
   environment.
   """
