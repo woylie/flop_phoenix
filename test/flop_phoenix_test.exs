@@ -2895,6 +2895,16 @@ defmodule Flop.PhoenixTest do
       assert names == Enum.uniq(names)
     end
 
+    test "does not render persistent id inputs", %{fields: fields, meta: meta} do
+      names =
+        %{fields: fields, meta: meta}
+        |> render_form()
+        |> Floki.find("input[type='hidden']")
+        |> Enum.map(&attribute(&1, "name"))
+
+      refute Enum.any?(names, &String.contains?(&1, "_persistent_id"))
+    end
+
     test "renders the labels and filter inputs", %{
       fields: fields,
       meta: meta

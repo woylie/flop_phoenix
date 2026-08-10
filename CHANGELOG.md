@@ -35,6 +35,8 @@
 - Omit pagination, order and filter parameters that match a default from the
   hidden inputs of a form built from a `Flop.Meta` struct that has validation
   errors.
+- Do not render the hidden `_persistent_id` inputs that
+  `Phoenix.Component.inputs_for/1` adds in `Flop.Phoenix.filter_fields/1`.
 - `Flop.Phoenix.filter_fields/1` with `dynamic={true}` raised a
   `FunctionClauseError` if the meta struct had validation errors.
 

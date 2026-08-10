@@ -1500,6 +1500,7 @@ defmodule Flop.Phoenix do
       field={@form[:filters]}
       options={[dynamic: @dynamic, fields: @fields]}
       skip_hidden
+      skip_persistent_id
     >
       <.hidden_inputs_for_filter form={ff} />
       {render_slot(@inner_block, %{
