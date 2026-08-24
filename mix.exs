@@ -2,7 +2,7 @@ defmodule FlopPhoenix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/woylie/flop_phoenix"
-  @version "0.26.2"
+  @version "0.26.3"
 
   def project do
     [
@@ -65,11 +65,11 @@ defmodule FlopPhoenix.MixProject do
       {:credo, "== 1.7.19", only: [:test], runtime: false},
       {:dialyxir, "1.4.7", only: [:test], runtime: false},
       {:ex_doc, "0.40.3", only: :dev, runtime: false},
-      {:ex_machina, "== 2.8.1", only: :test},
+      {:ex_machina, "== 2.8.2", only: :test},
       {:excoveralls, "0.18.5", only: :test},
       {:floki, "== 0.38.4", only: :test},
       {:lazy_html, "== 0.1.12", only: :test},
-      {:flop, ">= 0.23.0 and < 0.28.0"},
+      {:flop, ">= 0.23.0 and < 0.29.0"},
       {:jason, "1.4.5", only: [:dev, :test]},
       {:makeup_css, "0.2.3", only: :dev, runtime: false},
       {:makeup_diff, "0.1.1", only: :dev, runtime: false},
