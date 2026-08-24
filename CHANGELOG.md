@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.26.3] - 2026-08-24
+
+### Changed
+
+- Allow `flop` 0.28.
+
 ## [0.26.2] - 2026-08-10
 
 ### Changed
@@ -1353,7 +1359,8 @@ Update your template like this:
 
 - Initial release.
 
-[unreleased]: https://github.com/woylie/flop_phoenix/compare/0.26.2...HEAD
+[unreleased]: https://github.com/woylie/flop_phoenix/compare/0.26.3...HEAD
+[0.26.3]: https://github.com/woylie/flop_phoenix/compare/0.26.2...0.26.3
 [0.26.2]: https://github.com/woylie/flop_phoenix/compare/0.26.1...0.26.2
 [0.26.1]: https://github.com/woylie/flop_phoenix/compare/0.26.0...0.26.1
 [0.26.0]: https://github.com/woylie/flop_phoenix/compare/0.25.3...0.26.0
