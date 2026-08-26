@@ -109,8 +109,8 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     {offset, opts} = Keyword.pop(opts, :offset, 0)
     {skip_hidden_op, opts} = Keyword.pop(opts, :skip_hidden_op, false)
 
-    name = if name = name || form.name, do: name <> "[filters]", else: "filters"
-    id = if id = id || form.id, do: id <> "_filters", else: "filters"
+    name = build_name(name || form.name)
+    id = build_id(id || form.id)
 
     {filters, filter_errors} = filters_and_errors(form, flop, default)
 
@@ -156,6 +156,20 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     raise ArgumentError,
           "Only :filters is supported on " <>
             "inputs_for with Flop.Meta, got: #{inspect(field)}."
+  end
+
+  defp build_name(name) do
+    case name do
+      nil -> "filters"
+      name -> name <> "[filters]"
+    end
+  end
+
+  defp build_id(id) do
+    case id do
+      nil -> "filters"
+      id -> id <> "_filters"
+    end
   end
 
   defp get_field(%{field: field}), do: field
