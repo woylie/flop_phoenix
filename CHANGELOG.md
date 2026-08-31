@@ -64,6 +64,11 @@ step. In the `input` component `mix phx.new` generates, that is:
 + |> assign(:errors, Enum.map(field.errors, &translate_error/1))
 ```
 
+### Fixed
+
+- Allow explicitly rendering the table empty state when using a LiveView
+  stream.
+
 ## [0.26.1] - 2026-06-11
 
 ### Changed
