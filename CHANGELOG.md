@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-09-03
+
 ### Changed
 
 - Require Flop 0.29.0, which turns `Flop.Schema` from a protocol into a
@@ -1366,7 +1368,8 @@ Update your template like this:
 
 - Initial release.
 
-[unreleased]: https://github.com/woylie/flop_phoenix/compare/0.26.3...HEAD
+[unreleased]: https://github.com/woylie/flop_phoenix/compare/0.27.0...HEAD
+[0.27.0]: https://github.com/woylie/flop_phoenix/compare/0.26.3...0.27.0
 [0.26.3]: https://github.com/woylie/flop_phoenix/compare/0.26.2...0.26.3
 [0.26.2]: https://github.com/woylie/flop_phoenix/compare/0.26.1...0.26.2
 [0.26.1]: https://github.com/woylie/flop_phoenix/compare/0.26.0...0.26.1
