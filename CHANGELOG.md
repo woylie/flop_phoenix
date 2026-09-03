@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Require Flop 0.29.0, which turns `Flop.Schema` from a protocol into a
+  behaviour.
+- Determine the sortable and filterable fields with `Flop.allowed_fields/2`,
+  which applies a field list passed to a query function.
+
 ## [0.26.3] - 2026-08-24
 
 ### Changed

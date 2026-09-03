@@ -3424,8 +3424,12 @@ defmodule Flop.PhoenixTest do
 
   defmodule TestSchema do
     use Ecto.Schema
+    use Flop.Schema
 
-    @derive {Flop.Schema, filterable: [:email, :age], sortable: []}
+    @flop_options [
+      filterable: [:email, :age],
+      sortable: []
+    ]
 
     schema "test_schema" do
       field(:age, :integer)

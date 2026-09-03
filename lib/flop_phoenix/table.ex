@@ -65,7 +65,7 @@ defmodule Flop.Phoenix.Table do
             on_sort={@on_sort}
             field={col[:field]}
             label={col[:label]}
-            sortable={sortable?(col[:field], @meta.schema)}
+            sortable={sortable?(col[:field], @meta)}
             directions={col[:directions]}
             meta={@meta}
             thead_th_attrs={
@@ -292,10 +292,10 @@ defmodule Flop.Phoenix.Table do
   defp order_direction(%Flop{}, _), do: nil
 
   defp sortable?(nil, _), do: false
-  defp sortable?(_, nil), do: true
+  defp sortable?(_, %Flop.Meta{schema: nil}), do: true
 
-  defp sortable?(field, module) do
-    field in (module |> struct() |> Flop.Schema.sortable())
+  defp sortable?(field, %Flop.Meta{} = meta) do
+    field in Flop.allowed_fields(:sortable, Misc.schema_opts(meta))
   end
 
   defp build_path(nil, _, _, _), do: nil

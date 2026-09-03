@@ -749,9 +749,9 @@ defmodule Flop.Phoenix.FormDataTest do
 
   defmodule TestSchema do
     use Ecto.Schema
+    use Flop.Schema
 
-    @derive {
-      Flop.Schema,
+    @flop_options [
       filterable: [
         :integer,
         :float,
@@ -782,7 +782,7 @@ defmodule Flop.Phoenix.FormDataTest do
           ecto_type: :date
         ]
       ]
-    }
+    ]
 
     schema "test_schema" do
       field(:integer, :integer)
