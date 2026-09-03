@@ -1647,7 +1647,7 @@ defmodule Flop.Phoenix do
   defaults are determined by calling `Flop.get_option/3`.
 
   - Pass the `:for` option to pick up the default values from a schema module
-    deriving `Flop.Schema`.
+    that uses `Flop.Schema`.
   - Pass the `:backend` option to pick up the default values from your backend
     configuration.
   - If neither the schema module nor the backend module have default options
@@ -1771,7 +1771,7 @@ defmodule Flop.Phoenix do
 
   Default values for `limit`, `page_size`, `order_by` and `order_directions` are
   omitted from the query parameters. To pick up the default parameters from a
-  schema module deriving `Flop.Schema`, you need to pass the `:for` option. To
+  schema module that uses `Flop.Schema`, you need to pass the `:for` option. To
   pick up the default parameters from the backend module, you need to pass the
   `:backend` option. If you pass a `Flop.Meta` struct as the second argument,
   these options are retrieved from the struct automatically.

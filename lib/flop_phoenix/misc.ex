@@ -2,6 +2,17 @@ defmodule Flop.Phoenix.Misc do
   @moduledoc false
 
   @doc """
+  Returns the options to pass to `Flop.allowed_fields/2` for the given meta.
+
+  A meta built by Flop has the schema in both `:schema` and `opts[:for]`, but
+  one built by hand often sets only `:schema`, so `:schema` is the fallback.
+  """
+  @spec schema_opts(Flop.Meta.t()) :: keyword
+  def schema_opts(%Flop.Meta{opts: opts, schema: schema}) do
+    Keyword.put(opts, :for, opts[:for] || schema)
+  end
+
+  @doc """
   Deep merge for keyword lists.
 
       iex> deep_merge(

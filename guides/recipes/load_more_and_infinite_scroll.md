@@ -12,13 +12,16 @@ We'll define a basic schema:
 ```elixir
 defmodule Petshop.Pets.Pet do
   use Ecto.Schema
+  use Flop.Schema
+
   import Ecto.Changeset
 
-  @derive {Flop.Schema,
-           filterable: [:name],
-           sortable: [:id],
-           default_order: %{order_by: [:id], order_directions: [:desc]},
-           default_limit: 50}
+  @flop_options [
+    filterable: [:name],
+    sortable: [:id],
+    default_order: %{order_by: [:id], order_directions: [:desc]},
+    default_limit: 50
+  ]
 
   schema "pets" do
     field :name, :string
@@ -28,7 +31,7 @@ defmodule Petshop.Pets.Pet do
 end
 ```
 
-We derive the `Flop.Schema` protocol, make the `id` column sortable, set the
+We set up `Flop.Schema`, make the `id` column sortable, set the
 default order to `id DESC`, and set the default limit to 50.
 
 Then we define a list function:

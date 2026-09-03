@@ -3,9 +3,9 @@ defmodule MyApp.Pet do
   Defines an Ecto schema for testing.
   """
   use Ecto.Schema
+  use Flop.Schema
 
-  @derive {
-    Flop.Schema,
+  @flop_options [
     filterable: [:name, :age],
     sortable: [:name, :age],
     default_limit: 20,
@@ -14,7 +14,7 @@ defmodule MyApp.Pet do
       order_by: [:name],
       order_directions: [:asc]
     }
-  }
+  ]
 
   schema "pets" do
     field(:name, :string)

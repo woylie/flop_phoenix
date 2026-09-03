@@ -117,7 +117,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     filters_errors_opts =
       filters
       |> filters_for(fields, default, filter_errors, dynamic)
-      |> reject_unfilterable(meta.schema)
+      |> reject_unfilterable(meta)
 
     for {{filter, errors, field_opts}, index} <-
           Enum.with_index(filters_errors_opts, offset) do
@@ -132,7 +132,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
       field_opts =
         field_opts
-        |> Keyword.put_new(:type, input_type(get_field(filter), meta.schema))
+        |> Keyword.put_new(:type, input_type(get_field(filter), meta))
         |> Keyword.put_new_lazy(:label, fn ->
           filter |> get_field() |> humanize()
         end)
@@ -312,10 +312,10 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     )
   end
 
-  defp reject_unfilterable(filters, nil), do: filters
+  defp reject_unfilterable(filters, %Flop.Meta{schema: nil}), do: filters
 
-  defp reject_unfilterable(filters_errors_opts, schema) do
-    filterable = schema |> struct() |> Flop.Schema.filterable()
+  defp reject_unfilterable(filters_errors_opts, %Flop.Meta{} = meta) do
+    filterable = Flop.allowed_fields(:filterable, Misc.schema_opts(meta))
     filterable = filterable ++ Enum.map(filterable, &Atom.to_string/1)
 
     Enum.reject(filters_errors_opts, fn {filter, _, _} ->
@@ -352,25 +352,24 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
     |> :string.titlecase()
   end
 
-  defp input_type(field, schema)
+  defp input_type(field, %Flop.Meta{schema: schema} = meta)
        when not is_nil(field) and not is_nil(schema) do
-    case schema_field(schema, field) do
+    case schema_field(meta, field) do
       nil -> "text"
       field -> schema |> ecto_type(field) |> input_type_for_ecto_type()
     end
   end
 
-  defp input_type(_field, _schema), do: "text"
+  defp input_type(_field, _meta), do: "text"
 
   # The field name arrives as a string whenever the meta has errors, and an
   # unknown name has no atom to convert to, so it is matched against the fields
   # the schema declares.
-  defp schema_field(_schema, field) when is_atom(field), do: field
+  defp schema_field(_meta, field) when is_atom(field), do: field
 
-  defp schema_field(schema, field) when is_binary(field) do
-    schema
-    |> struct()
-    |> Flop.Schema.filterable()
+  defp schema_field(%Flop.Meta{} = meta, field) when is_binary(field) do
+    :filterable
+    |> Flop.allowed_fields(Misc.schema_opts(meta))
     |> Enum.find(&(Atom.to_string(&1) == field))
   end
 
@@ -444,7 +443,7 @@ defimpl Phoenix.HTML.FormData, for: Flop.Meta do
 
   defp ecto_type(module, field) do
     %Flop.FieldInfo{ecto_type: type} =
-      module |> struct() |> Flop.Schema.field_info(field)
+      Flop.Schema.field_info(module, field)
 
     type
   end
