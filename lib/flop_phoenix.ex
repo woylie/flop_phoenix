@@ -1016,6 +1016,15 @@ defmodule Flop.Phoenix do
     by the query.
     """
 
+  attr :empty, :boolean,
+    default: false,
+    doc: """
+    Whether to render the configured no-results content instead of the table.
+    Empty lists are detected automatically. Set this attribute when using an
+    empty LiveView stream, since the component cannot infer a stream's current
+    contents.
+    """
+
   attr :meta, Flop.Meta,
     required: true,
     doc: "The `Flop.Meta` struct returned by the query function."
@@ -1254,7 +1263,7 @@ defmodule Flop.Phoenix do
       |> assign_new(:id, fn -> table_id(meta.schema) end)
 
     ~H"""
-    <%= if @items == [] do %>
+    <%= if @empty || @items == [] do %>
       {@opts[:no_results_content]}
     <% else %>
       <%= if @opts[:container] do %>

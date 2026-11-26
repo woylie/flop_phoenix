@@ -18,6 +18,7 @@ defmodule Flop.PhoenixTest do
   @route_helper_opts [%{}, :pets]
 
   attr :caption, :string, default: nil
+  attr :empty, :boolean, default: false
   attr :on_sort, JS, default: nil
   attr :id, :string, default: "some-table"
   attr :meta, Flop.Meta, default: %Flop.Meta{flop: %Flop{}}
@@ -34,6 +35,7 @@ defmodule Flop.PhoenixTest do
     parse_heex(~H"""
     <Flop.Phoenix.table
       caption={@caption}
+      empty={@empty}
       on_sort={@on_sort}
       id={@id}
       items={@items}
@@ -1698,6 +1700,7 @@ defmodule Flop.PhoenixTest do
         """)
 
       assert [tr_1, tr_2] = Floki.find(html, "tbody tr")
+      assert attribute(find_one(html, "tbody"), "phx-update") == "stream"
       assert attribute(tr_1, "id") == "pets-1"
       assert attribute(tr_2, "id") == "pets-2"
     end
@@ -2426,6 +2429,27 @@ defmodule Flop.PhoenixTest do
 
     test "renders notice if item list is empty" do
       assert [{"p", [], ["No results."]}] = render_table(%{items: []})
+    end
+
+    test "renders notice if a stream is explicitly empty" do
+      stream = LiveStream.new(:pets, 0, [], [])
+
+      assert [{"p", [], ["No results."]}] =
+               render_table(%{items: stream, empty: true})
+    end
+
+    test "allows to set no_results_content for an explicitly empty stream" do
+      stream = LiveStream.new(:pets, 0, [], [])
+
+      assert render_table(%{
+               items: stream,
+               empty: true,
+               opts: [no_results_content: custom_no_results_content()]
+             }) == [{"div", [], ["Nothing!"]}]
+    end
+
+    test "empty overrides a non-empty list" do
+      assert [{"p", [], ["No results."]}] = render_table(%{empty: true})
     end
 
     test "allows to set no_results_content" do
